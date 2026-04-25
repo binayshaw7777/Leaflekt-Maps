@@ -1,4 +1,6 @@
-# LeafleKT 🌿
+# LeafleKT
+
+LeafleKT is a Compose-first Android wrapper around Leaflet.js. It uses `WebView` plus a JavaScript bridge, but the public API is Kotlin-first and state-driven.
 
 <img src="https://github.com/user-attachments/assets/d9544533-7c4a-4653-9364-cfd631314368"
      style="max-width:100%; height:auto;" />
@@ -13,9 +15,9 @@
 ---
 
 LeafleKT is a Compose-first Android wrapper around Leaflet.js. It uses `WebView` plus a JavaScript bridge, but the public API is Kotlin-first and state-driven.
-
 ## Status
 
+## Status
 - Map rendering in Compose
 - Camera state
 - Map style switching
@@ -26,6 +28,18 @@ LeafleKT is a Compose-first Android wrapper around Leaflet.js. It uses `WebView`
 - Declarative circles
 - JitPack publication setup
 
+- Map rendering in Compose
+- Camera state
+- Map style switching
+- India boundary overlay
+- Declarative markers
+- Declarative polylines
+- Declarative polygons
+- Declarative circles
+- JitPack publication setup
+## Install
+
+Add JitPack:
 ## Install
 
 Add JitPack:
