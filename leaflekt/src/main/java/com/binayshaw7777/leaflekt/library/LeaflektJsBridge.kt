@@ -11,7 +11,8 @@ internal class LeaflektJsBridge(
     private val onMarkerClick: (String) -> Unit,
     private val onPolylineClick: (String) -> Unit,
     private val onPolygonClick: (String) -> Unit,
-    private val onCircleClick: (String) -> Unit
+    private val onCircleClick: (String) -> Unit,
+    private val onProjectionChanged: (String) -> Unit
 ) {
     @JavascriptInterface
     fun onMapReady() {
@@ -36,6 +37,11 @@ internal class LeaflektJsBridge(
     @JavascriptInterface
     fun onCameraIdle(lat: Double, lng: Double, zoom: Double, bearing: Double) {
         onCameraIdle.invoke(lat, lng, zoom, bearing)
+    }
+
+    @JavascriptInterface
+    fun onProjectionChanged(projectionsJson: String) {
+        onProjectionChanged.invoke(projectionsJson)
     }
 
     @JavascriptInterface

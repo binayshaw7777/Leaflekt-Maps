@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.dokka)
     `maven-publish`
 }
@@ -73,6 +74,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.webkit)
     implementation(libs.google.play.services.location)
+    implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.junit)
 }

@@ -2,77 +2,164 @@ package com.binayshaw7777.leaflektsampleapp
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class OlaMapsViewModel : ViewModel() {
 
     private val repository = OlaMapsRepository()
 
-    var searchQuery = MutableStateFlow("")
-        private set
-
-    var predictions = MutableStateFlow<List<Prediction>>(emptyList())
-        private set
-
-    var isLoading = MutableStateFlow(false)
-        private set
-
-    var selectedPlace = MutableStateFlow<PlaceDetails?>(null)
-        private set
-
-    init {
-        setupAutocomplete()
-    }
+    val exploreSearchQuery = MutableStateFlow("")
+    val isExploreSearchLoading = MutableStateFlow(false)
+    val selectedExplorePlace = MutableStateFlow<PlaceDetails?>(null)
 
     @OptIn(FlowPreview::class)
-    private fun setupAutocomplete() {
-        searchQuery
-            .debounce(500)
-            .distinctUntilChanged()
-            .onEach { query ->
-                if (query.length > 2) {
-                    // Updating state on Main thread (via viewModelScope)
-                    isLoading.value = true
-
-                    // The repository function is main-safe (internally uses Dispatchers.IO)
-                    val results = repository.autocomplete(query)
-
-                    // Back on Main thread to update UI state
-                    predictions.value = results
-                    isLoading.value = false
-                } else {
-                    predictions.value = emptyList()
+    val explorePredictions: StateFlow<List<Prediction>> = exploreSearchQuery
+        .debounce(450)
+        .distinctUntilChanged()
+        .flatMapLatest { query ->
+            if (query.length <= 2) {
+                flow { emit(emptyList<Prediction>()) }
+            } else {
+                flow {
+                    isExploreSearchLoading.value = true
+                    emit(repository.autocomplete(query))
+                    isExploreSearchLoading.value = false
                 }
             }
-            .launchIn(viewModelScope) // Defaults to Dispatchers.Main.immediate
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val directionsSearchQuery = MutableStateFlow("")
+    val isDirectionsSearchLoading = MutableStateFlow(false)
+    val selectedOriginPlace = MutableStateFlow<PlaceDetails?>(null)
+    val selectedDestinationPlace = MutableStateFlow<PlaceDetails?>(null)
+    val activeDirectionsEndpoint = MutableStateFlow(DirectionsEndpoint.Origin)
+    val activeRoute = MutableStateFlow<DirectionsRoute?>(null)
+    val isRouteLoading = MutableStateFlow(false)
+    val routeErrorMessage = MutableStateFlow<String?>(null)
+
+    @OptIn(FlowPreview::class)
+    val directionsPredictions: StateFlow<List<Prediction>> = directionsSearchQuery
+        .debounce(450)
+        .distinctUntilChanged()
+        .flatMapLatest { query ->
+            if (query.length <= 2) {
+                flow { emit(emptyList<Prediction>()) }
+            } else {
+                flow {
+                    isDirectionsSearchLoading.value = true
+                    emit(repository.autocomplete(query))
+                    isDirectionsSearchLoading.value = false
+                }
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun onExploreSearchQueryChange(newQuery: String) {
+        exploreSearchQuery.value = newQuery
     }
 
-    fun onSearchQueryChange(newQuery: String) {
-        searchQuery.value = newQuery
-    }
-
-    fun selectPrediction(prediction: Prediction) {
-        searchQuery.value = prediction.description
+    fun selectExplorePrediction(prediction: Prediction) {
+        exploreSearchQuery.value = prediction.description
         viewModelScope.launch {
-            isLoading.value = true
-
-            // repository.getPlaceDetails is main-safe
-            val details = repository.getPlaceDetails(prediction.placeId)
-
-            selectedPlace.value = details
-            isLoading.value = false
+            isExploreSearchLoading.value = true
+            selectedExplorePlace.value = repository.getPlaceDetails(prediction.placeId)
+            isExploreSearchLoading.value = false
         }
     }
 
-    fun clearSearch() {
-        searchQuery.value = ""
-        predictions.value = emptyList()
-        selectedPlace.value = null
+    fun clearExploreSearch() {
+        exploreSearchQuery.value = ""
+        selectedExplorePlace.value = null
+    }
+
+    fun beginDirectionsSearch(endpoint: DirectionsEndpoint) {
+        activeDirectionsEndpoint.value = endpoint
+        directionsSearchQuery.value = ""
+    }
+
+    fun onDirectionsSearchQueryChange(newQuery: String) {
+        directionsSearchQuery.value = newQuery
+    }
+
+    fun selectDirectionsPrediction(prediction: Prediction) {
+        viewModelScope.launch {
+            isDirectionsSearchLoading.value = true
+            directionsSearchQuery.value = prediction.description
+
+            val selectedPlace = repository.getPlaceDetails(prediction.placeId)
+            assignDirectionsPlace(selectedPlace)
+
+            directionsSearchQuery.value = ""
+            isDirectionsSearchLoading.value = false
+
+            refreshRouteIfPossible()
+        }
+    }
+
+    fun clearDirectionsSearch() {
+        directionsSearchQuery.value = ""
+    }
+
+    fun clearDirectionsPlace(endpoint: DirectionsEndpoint) {
+        when (endpoint) {
+            DirectionsEndpoint.Origin -> selectedOriginPlace.value = null
+            DirectionsEndpoint.Destination -> selectedDestinationPlace.value = null
+        }
+
+        activeRoute.value = null
+        routeErrorMessage.value = null
+    }
+
+    fun swapDirectionsPlaces() {
+        val previousOrigin = selectedOriginPlace.value
+        selectedOriginPlace.value = selectedDestinationPlace.value
+        selectedDestinationPlace.value = previousOrigin
+        refreshRouteIfPossible()
+    }
+
+    fun refreshRouteIfPossible() {
+        val origin = selectedOriginPlace.value?.geometry?.location
+        val destination = selectedDestinationPlace.value?.geometry?.location
+
+        if (origin == null || destination == null) {
+            activeRoute.value = null
+            routeErrorMessage.value = null
+            isRouteLoading.value = false
+            return
+        }
+
+        viewModelScope.launch {
+            isRouteLoading.value = true
+            routeErrorMessage.value = null
+
+            val route = repository.getDirections(origin, destination)
+            activeRoute.value = route
+            routeErrorMessage.value = if (route == null) {
+                "Unable to load directions for the selected places."
+            } else {
+                null
+            }
+
+            isRouteLoading.value = false
+        }
+    }
+
+    private fun assignDirectionsPlace(selectedPlace: PlaceDetails?) {
+        when (activeDirectionsEndpoint.value) {
+            DirectionsEndpoint.Origin -> selectedOriginPlace.value = selectedPlace
+            DirectionsEndpoint.Destination -> selectedDestinationPlace.value = selectedPlace
+        }
     }
 }

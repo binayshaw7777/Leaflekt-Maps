@@ -1,6 +1,7 @@
 package com.binayshaw7777.leaflekt.library
 
 import android.webkit.WebView
+import androidx.compose.runtime.mutableStateMapOf
 import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
@@ -15,6 +16,28 @@ class LeaflektController internal constructor() {
     private val circleClickHandlers = mutableMapOf<String, () -> Unit>()
     private var currentLocationCenteringAction: ((Double) -> Unit)? = null
     private var isMapReady = false
+
+    internal val projectionState = mutableStateMapOf<LeaflektLatLng, Pair<Float, Float>>()
+
+    fun registerOverlayPoint(latLng: LeaflektLatLng) {
+        enqueueOrRun("window.LeaflektBridge.registerOverlayPoint(${latLng.latitude}, ${latLng.longitude});")
+    }
+
+    fun unregisterOverlayPoint(latLng: LeaflektLatLng) {
+        enqueueOrRun("window.LeaflektBridge.unregisterOverlayPoint(${latLng.latitude}, ${latLng.longitude});")
+        projectionState.remove(latLng)
+    }
+
+    internal fun onProjectionChanged(projectionsJson: String) {
+        try {
+            val list: List<MapProjection> = LeaflektMapJson.decodeFromString(projectionsJson)
+            list.forEach { projection ->
+                projectionState[LeaflektLatLng(projection.lat, projection.lng)] = Pair(projection.x.toFloat(), projection.y.toFloat())
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
 
     internal fun setWebView(view: WebView?) {
         webView = view

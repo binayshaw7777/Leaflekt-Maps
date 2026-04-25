@@ -317,6 +317,9 @@ Planned:
 - [ ] HTML/divIcon markers
 - [ ] Custom info windows
 - [x] OLA Maps Places search and autocomplete sample in `leaflektsampleapp`
+- [x] Map Rotation support (using Leaflet.Rotate)
+- [x] Automatic Theme Sync (Sync map tiles with system Dark/Light mode)
+- [x] Native Compose Overlays (Pin any @Composable to map coordinates)
 - [ ] Tile source customization API
 - [ ] Clustering
 - [ ] Offline tile caching

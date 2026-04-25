@@ -57,6 +57,7 @@
         const polygonLayers = new Map();
         const circleLayers = new Map();
         const vectorLayerOrder = new Map();
+        const trackedOverlayPoints = new Set();
 
         function getAndroidBridge() {
             return window[bridgeName];
@@ -66,6 +67,33 @@
             const androidBridge = getAndroidBridge();
             if (androidBridge && typeof androidBridge.onMapReady === "function") {
                 androidBridge.onMapReady();
+            }
+        }
+
+        function notifyProjectionChanged() {
+            const androidBridge = getAndroidBridge();
+            if (!androidBridge || typeof androidBridge.onProjectionChanged !== "function" || trackedOverlayPoints.size === 0) {
+                return;
+            }
+
+            const projections = [];
+            trackedOverlayPoints.forEach(id => {
+                const parts = id.split(",");
+                if (parts.length === 2) {
+                    const lat = parseFloat(parts[0]);
+                    const lng = parseFloat(parts[1]);
+                    const point = map.latLngToContainerPoint([lat, lng]);
+                    projections.push({
+                        lat: lat,
+                        lng: lng,
+                        x: point.x,
+                        y: point.y
+                    });
+                }
+            });
+
+            if (projections.length > 0) {
+                androidBridge.onProjectionChanged(JSON.stringify(projections));
             }
         }
 
@@ -410,10 +438,12 @@
             map.on("move zoom rotate", function () {
                 cancelCameraIdleReport();
                 reportCameraMove();
+                notifyProjectionChanged();
             });
 
             map.on("moveend zoomend rotateend", function () {
                 scheduleCameraIdleReport();
+                notifyProjectionChanged();
             });
         }
 
@@ -787,6 +817,15 @@
             },
             removeCircle: function (circleId) {
                 removeCircleLayer(circleId);
+            },
+            registerOverlayPoint: function (lat, lng) {
+                const id = lat + "," + lng;
+                trackedOverlayPoints.add(id);
+                notifyProjectionChanged();
+            },
+            unregisterOverlayPoint: function (lat, lng) {
+                const id = lat + "," + lng;
+                trackedOverlayPoints.delete(id);
             }
         };
 

@@ -26,22 +26,34 @@ val DefaultLeaflektMapProperties: LeaflektMapProperties = LeaflektMapProperties(
 /**
  * Data-like class for map-level properties that can be set on a [LeaflektMap].
  *
- * @param mapStyle The [LeaflektMapStyle] (tile provider) to use for the map.
+ * @param mapStyle The [LeaflektMapStyle] (tile provider) to use for the map. 
+ *                 Ignored if [automaticThemeSync] is true.
+ * @param automaticThemeSync Whether the map should automatically switch between light and dark 
+ *                           tile providers based on the system theme.
  */
 class LeaflektMapProperties(
-    val mapStyle: LeaflektMapStyle = LeaflektMapStyle.OpenStreetMap
+    val mapStyle: LeaflektMapStyle = LeaflektMapStyle.OpenStreetMap,
+    val automaticThemeSync: Boolean = false
 ) {
-    override fun toString(): String = "LeaflektMapProperties(mapStyle=$mapStyle)"
+    override fun toString(): String = "LeaflektMapProperties(" +
+            "mapStyle=$mapStyle, " +
+            "automaticThemeSync=$automaticThemeSync)"
 
     override fun equals(other: Any?): Boolean =
-        other is LeaflektMapProperties && mapStyle == other.mapStyle
+        other is LeaflektMapProperties && 
+                mapStyle == other.mapStyle &&
+                automaticThemeSync == other.automaticThemeSync
 
-    override fun hashCode(): Int = Objects.hash(mapStyle)
+    override fun hashCode(): Int = Objects.hash(mapStyle, automaticThemeSync)
 
     /**
      * Returns a copy of this [LeaflektMapProperties] with the specified properties updated.
      */
     fun copy(
-        mapStyle: LeaflektMapStyle = this.mapStyle
-    ): LeaflektMapProperties = LeaflektMapProperties(mapStyle = mapStyle)
+        mapStyle: LeaflektMapStyle = this.mapStyle,
+        automaticThemeSync: Boolean = this.automaticThemeSync
+    ): LeaflektMapProperties = LeaflektMapProperties(
+        mapStyle = mapStyle,
+        automaticThemeSync = automaticThemeSync
+    )
 }

@@ -43,6 +43,12 @@
 - [ ] Offline Tile caching system
 - [ ] Custom Icon support (Bitmaps/Drawables)
 
+### Phase 16 - mapcn Inspiration (Rich UI & Viz)
+- [x] **Automatic Theme Sync:** Sync map tiles with system Light/Dark mode.
+- [x] **Native Compose Overlays:** Pin any @Composable to a `LeaflektLatLng`.
+- [ ] **Curved Lines (`LeaflektArc`):** Bezier curve support for visualizations.
+- [ ] **MapBlocks Registry:** Common pre-wired UI patterns (e.g., Location Picker).
+
 ## Success Criteria
 - [x] Map loads in Compose
 - [x] 1:1 Google-style Marker API implemented

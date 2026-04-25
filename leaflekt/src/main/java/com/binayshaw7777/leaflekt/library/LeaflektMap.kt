@@ -16,6 +16,7 @@
 
 package com.binayshaw7777.leaflekt.library
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -176,6 +177,9 @@ fun LeaflektMap(
             },
             onCircleClick = { circleId ->
                 controller.notifyCircleClick(circleId)
+            },
+            onProjectionChanged = { projectionsJson ->
+                controller.onProjectionChanged(projectionsJson)
             }
         )
     }
@@ -199,8 +203,15 @@ fun LeaflektMap(
         )
     }
 
-    LaunchedEffect(properties.mapStyle) {
-        controller.setMapStyle(properties.mapStyle)
+    val isDarkTheme = isSystemInDarkTheme()
+    
+    LaunchedEffect(properties.mapStyle, properties.automaticThemeSync, isDarkTheme) {
+        val style = if (properties.automaticThemeSync) {
+            if (isDarkTheme) LeaflektMapStyle.CartoDark else LeaflektMapStyle.OpenStreetMap
+        } else {
+            properties.mapStyle
+        }
+        controller.setMapStyle(style)
     }
 
     // UI Settings wiring
