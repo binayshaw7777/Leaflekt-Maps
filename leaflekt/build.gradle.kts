@@ -121,7 +121,7 @@ tasks.withType<DokkaTask>().configureEach {
     )
 
     dokkaSourceSets.configureEach {
-        includes.from("README.md")
+        includes.from(rootProject.file("README.md"))
         
         // Link to Android documentation
         noAndroidSdkLink.set(false)
