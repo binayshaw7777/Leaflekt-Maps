@@ -74,12 +74,12 @@ dependencies {
 ```kotlin
 @Composable
 fun SampleMap() {
-    val cameraPositionState = rememberLeaflektCameraPositionState(
-        initialPosition = LeaflektCameraPosition(
-            target = LeaflektLatLng(22.5726, 88.3639),
-            zoom = 11.0
+    val cameraPositionState = rememberLeaflektCameraPositionState {
+        position = LeaflektCameraPosition(
+            target = LeaflektLatLng(latitude = 22.5726, longitude = 88.3639),
+            zoom = 12.0
         )
-    )
+    }
 
     LeaflektMap(
         modifier = Modifier.fillMaxSize(),
@@ -316,6 +316,7 @@ Planned:
 - [ ] General custom marker bitmaps and drawables
 - [ ] HTML/divIcon markers
 - [ ] Custom info windows
+- [x] OLA Maps Places search and autocomplete sample in `leaflektsampleapp`
 - [ ] Tile source customization API
 - [ ] Clustering
 - [ ] Offline tile caching

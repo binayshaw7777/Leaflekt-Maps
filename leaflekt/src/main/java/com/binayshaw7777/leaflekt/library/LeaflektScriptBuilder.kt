@@ -7,8 +7,8 @@ import androidx.compose.ui.graphics.toArgb
  * Internal script builder that generates JavaScript commands for the Leaflet runtime.
  */
 internal object LeaflektScriptBuilder {
-    fun initMapScript(lat: Double, lng: Double, zoom: Double): String {
-        return "window.LeaflektBridge.initMap($lat,$lng,$zoom);"
+    fun initMapScript(lat: Double, lng: Double, zoom: Double, bearing: Double): String {
+        return "window.LeaflektBridge.initMap($lat,$lng,$zoom,$bearing);"
     }
 
     fun setZoomControlsEnabledScript(isEnabled: Boolean): String {
@@ -23,12 +23,20 @@ internal object LeaflektScriptBuilder {
         return "window.LeaflektBridge.setZoomGesturesEnabled($isEnabled);"
     }
 
+    fun setRotateGesturesEnabledScript(isEnabled: Boolean): String {
+        return "window.LeaflektBridge.setRotateGesturesEnabled($isEnabled);"
+    }
+
     fun setMapStyleScript(style: LeaflektMapStyle): String {
         return "window.LeaflektBridge.setMapStyle(${style.toJson()});"
     }
 
-    fun moveCameraScript(lat: Double, lng: Double, zoom: Double): String {
-        return "window.LeaflektBridge.moveCamera($lat,$lng,$zoom);"
+    fun moveCameraScript(lat: Double, lng: Double, zoom: Double, bearing: Double): String {
+        return "window.LeaflektBridge.moveCamera($lat,$lng,$zoom,$bearing);"
+    }
+
+    fun setBearingScript(bearing: Double): String {
+        return "window.LeaflektBridge.setBearing($bearing);"
     }
 
     fun addMarkersScript(markers: List<LeaflektMarkerInfo>): String {

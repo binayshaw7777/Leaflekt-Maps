@@ -34,6 +34,8 @@
 - [x] Polylines implementation
 - [x] Polygons implementation
 - [x] Circles implementation
+- [x] OLA Maps Places search and autocomplete sample in `leaflektsampleapp`
+- [x] Map Rotation support (using Leaflet.Rotate)
 - [ ] Advanced Clustering plugin integration
 
 ### Phase 15 - Core Infrastructure

@@ -5,9 +5,9 @@ import android.webkit.JavascriptInterface
 internal class LeaflektJsBridge(
     private val onMapReady: () -> Unit,
     private val onMapClick: (Double, Double) -> Unit,
-    private val onCameraMoveStarted: (Double, Double, Double) -> Unit,
-    private val onCameraMove: (Double, Double, Double) -> Unit,
-    private val onCameraIdle: (Double, Double, Double) -> Unit,
+    private val onCameraMoveStarted: (Double, Double, Double, Double) -> Unit,
+    private val onCameraMove: (Double, Double, Double, Double) -> Unit,
+    private val onCameraIdle: (Double, Double, Double, Double) -> Unit,
     private val onMarkerClick: (String) -> Unit,
     private val onPolylineClick: (String) -> Unit,
     private val onPolygonClick: (String) -> Unit,
@@ -24,18 +24,18 @@ internal class LeaflektJsBridge(
     }
 
     @JavascriptInterface
-    fun onCameraMoveStarted(lat: Double, lng: Double, zoom: Double) {
-        onCameraMoveStarted.invoke(lat, lng, zoom)
+    fun onCameraMoveStarted(lat: Double, lng: Double, zoom: Double, bearing: Double) {
+        onCameraMoveStarted.invoke(lat, lng, zoom, bearing)
     }
 
     @JavascriptInterface
-    fun onCameraMove(lat: Double, lng: Double, zoom: Double) {
-        onCameraMove.invoke(lat, lng, zoom)
+    fun onCameraMove(lat: Double, lng: Double, zoom: Double, bearing: Double) {
+        onCameraMove.invoke(lat, lng, zoom, bearing)
     }
 
     @JavascriptInterface
-    fun onCameraIdle(lat: Double, lng: Double, zoom: Double) {
-        onCameraIdle.invoke(lat, lng, zoom)
+    fun onCameraIdle(lat: Double, lng: Double, zoom: Double, bearing: Double) {
+        onCameraIdle.invoke(lat, lng, zoom, bearing)
     }
 
     @JavascriptInterface

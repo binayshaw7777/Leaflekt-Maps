@@ -105,7 +105,7 @@ fun LeaflektMap(
     onCameraMove: (() -> Unit)? = null,
     onCameraIdle: (() -> Unit)? = null,
     onMarkerClick: ((String) -> Unit)? = null,
-    content: @Composable @LeaflektMapComposable () -> Unit = {},
+    content: @Composable () -> Unit = {},
 ) {
     val controller = remember { LeaflektController() }
     var hasReportedReady by remember { mutableStateOf(false) }
@@ -134,29 +134,32 @@ fun LeaflektMap(
                     LeaflektLatLng(latitude = lat, longitude = lng)
                 )
             },
-            onCameraMoveStarted = { lat, lng, zoom ->
+            onCameraMoveStarted = { lat, lng, zoom, bearing ->
                 currentCameraPositionState.onCameraMoveStarted(
                     LeaflektCameraPosition(
                         target = LeaflektLatLng(latitude = lat, longitude = lng),
-                        zoom = zoom
+                        zoom = zoom,
+                        bearing = bearing
                     )
                 )
                 currentOnCameraMoveStarted?.invoke()
             },
-            onCameraMove = { lat, lng, zoom ->
+            onCameraMove = { lat, lng, zoom, bearing ->
                 currentCameraPositionState.onCameraMove(
                     LeaflektCameraPosition(
                         target = LeaflektLatLng(latitude = lat, longitude = lng),
-                        zoom = zoom
+                        zoom = zoom,
+                        bearing = bearing
                     )
                 )
                 currentOnCameraMove?.invoke()
             },
-            onCameraIdle = { lat, lng, zoom ->
+            onCameraIdle = { lat, lng, zoom, bearing ->
                 currentCameraPositionState.onCameraIdle(
                     LeaflektCameraPosition(
                         target = LeaflektLatLng(latitude = lat, longitude = lng),
-                        zoom = zoom
+                        zoom = zoom,
+                        bearing = bearing
                     )
                 )
                 currentOnCameraIdle?.invoke()
@@ -190,6 +193,7 @@ fun LeaflektMap(
             initialLat = cameraPositionState.position.target.latitude,
             initialLng = cameraPositionState.position.target.longitude,
             initialZoom = cameraPositionState.position.zoom,
+            initialBearing = cameraPositionState.position.bearing,
             isZoomControlEnabled = uiSettings.zoomControlsEnabled,
             initialMapStyle = properties.mapStyle
         )
@@ -210,6 +214,10 @@ fun LeaflektMap(
 
     LaunchedEffect(uiSettings.zoomGesturesEnabled) {
         controller.setZoomGesturesEnabled(uiSettings.zoomGesturesEnabled)
+    }
+
+    LaunchedEffect(uiSettings.rotateGesturesEnabled) {
+        controller.setRotateGesturesEnabled(uiSettings.rotateGesturesEnabled)
     }
 
     Box(modifier = modifier) {

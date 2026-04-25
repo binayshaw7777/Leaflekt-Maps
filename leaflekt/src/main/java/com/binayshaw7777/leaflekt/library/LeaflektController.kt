@@ -27,8 +27,8 @@ class LeaflektController internal constructor() {
         }
     }
 
-    fun moveCamera(lat: Double, lng: Double, zoom: Double) {
-        enqueueOrRun(LeaflektScriptBuilder.moveCameraScript(lat = lat, lng = lng, zoom = zoom))
+    fun moveCamera(lat: Double, lng: Double, zoom: Double, bearing: Double = 0.0) {
+        enqueueOrRun(LeaflektScriptBuilder.moveCameraScript(lat = lat, lng = lng, zoom = zoom, bearing = bearing))
     }
 
     fun setZoomControlsEnabled(isEnabled: Boolean) {
@@ -41,6 +41,14 @@ class LeaflektController internal constructor() {
 
     fun setZoomGesturesEnabled(isEnabled: Boolean) {
         enqueueOrRun(LeaflektScriptBuilder.setZoomGesturesEnabledScript(isEnabled))
+    }
+
+    fun setRotateGesturesEnabled(isEnabled: Boolean) {
+        enqueueOrRun(LeaflektScriptBuilder.setRotateGesturesEnabledScript(isEnabled))
+    }
+
+    fun setBearing(bearing: Double) {
+        enqueueOrRun(LeaflektScriptBuilder.setBearingScript(bearing))
     }
 
     fun setMapStyle(style: LeaflektMapStyle) {
@@ -153,10 +161,11 @@ class LeaflektController internal constructor() {
         initialLat: Double,
         initialLng: Double,
         initialZoom: Double,
+        initialBearing: Double,
         isZoomControlEnabled: Boolean,
         initialMapStyle: LeaflektMapStyle
     ) {
-        enqueueOrRun(LeaflektScriptBuilder.initMapScript(initialLat, initialLng, initialZoom))
+        enqueueOrRun(LeaflektScriptBuilder.initMapScript(initialLat, initialLng, initialZoom, initialBearing))
         enqueueOrRun(LeaflektScriptBuilder.setZoomControlsEnabledScript(isZoomControlEnabled))
         enqueueOrRun(LeaflektScriptBuilder.setMapStyleScript(initialMapStyle))
     }

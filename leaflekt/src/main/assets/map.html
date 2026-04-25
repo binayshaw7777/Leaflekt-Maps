@@ -25,12 +25,14 @@
 <body>
 <div id="map"></div>
 <script src="/assets/leaflet/leaflet.js"></script>
+<script src="/assets/leaflet/leaflet-rotate.min.js"></script>
 <script src="/assets/leaflet/india-boundaries.js"></script>
 <script>
     (function () {
         const DEFAULT_LAT = 22.5726;
         const DEFAULT_LNG = 88.3639;
         const DEFAULT_ZOOM = 12;
+        const DEFAULT_BEARING = 0;
         const bridgeName = "LeaflektAndroidBridge";
         const defaultMapStyle = {
             id: "open_street_map",
@@ -47,7 +49,9 @@
         let isZoomControlEnabled = true;
         let isCameraMoving = false;
         let cameraIdleHandle = null;
+        let activeBearing = DEFAULT_BEARING;
         let vectorDrawSequence = 0;
+        let touchRotateEnabled = false;
         const markerLayers = new Map();
         const polylineLayers = new Map();
         const polygonLayers = new Map();
@@ -72,24 +76,24 @@
             }
         }
 
-        function notifyCameraMoveStarted(lat, lng, zoom) {
+        function notifyCameraMoveStarted(lat, lng, zoom, bearing) {
             const androidBridge = getAndroidBridge();
             if (androidBridge && typeof androidBridge.onCameraMoveStarted === "function") {
-                androidBridge.onCameraMoveStarted(lat, lng, zoom);
+                androidBridge.onCameraMoveStarted(lat, lng, zoom, bearing);
             }
         }
 
-        function notifyCameraMove(lat, lng, zoom) {
+        function notifyCameraMove(lat, lng, zoom, bearing) {
             const androidBridge = getAndroidBridge();
             if (androidBridge && typeof androidBridge.onCameraMove === "function") {
-                androidBridge.onCameraMove(lat, lng, zoom);
+                androidBridge.onCameraMove(lat, lng, zoom, bearing);
             }
         }
 
-        function notifyCameraIdle(lat, lng, zoom) {
+        function notifyCameraIdle(lat, lng, zoom, bearing) {
             const androidBridge = getAndroidBridge();
             if (androidBridge && typeof androidBridge.onCameraIdle === "function") {
-                androidBridge.onCameraIdle(lat, lng, zoom);
+                androidBridge.onCameraIdle(lat, lng, zoom, bearing);
             }
         }
 
@@ -126,8 +130,40 @@
             mapContainer.innerHTML = "<div style='padding:16px;font-family:sans-serif;color:#b00020'>" + message + "</div>";
         }
 
-        function createMap(lat, lng, zoom) {
-            map = L.map("map", { zoomControl: false }).setView([lat, lng], zoom);
+        function supportsMapBearing() {
+            return map !== null && typeof map.getBearing === "function" && typeof map.setBearing === "function";
+        }
+
+        function currentBearing() {
+            if (supportsMapBearing()) {
+                return Number(map.getBearing());
+            }
+
+            return activeBearing;
+        }
+
+        function updateBearing(bearing) {
+            if (typeof bearing === "undefined" || bearing === null || Number.isNaN(Number(bearing))) {
+                return;
+            }
+
+            activeBearing = Number(bearing);
+
+            if (supportsMapBearing()) {
+                map.setBearing(activeBearing);
+            }
+        }
+
+        function createMap(lat, lng, zoom, bearing) {
+            activeBearing = Number(bearing ?? DEFAULT_BEARING);
+            map = L.map("map", {
+                zoomControl: false,
+                rotate: true,
+                touchRotate: touchRotateEnabled,
+                bearing: activeBearing,
+                rotateControl: false
+            }).setView([lat, lng], zoom);
+
             applyZoomControls();
             replaceTileLayer(activeMapStyle);
 
@@ -176,11 +212,11 @@
             }, 150);
         }
 
-        function ensureMap(lat, lng, zoom) {
+        function ensureMap(lat, lng, zoom, bearing) {
             if (map !== null) {
                 return map;
             }
-            return createMap(lat, lng, zoom);
+            return createMap(lat, lng, zoom, bearing);
         }
 
         function createTileLayer(style) {
@@ -253,7 +289,7 @@
         }
 
         function addMarkerLayer(marker) {
-            const activeMap = ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM);
+            const activeMap = ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM, DEFAULT_BEARING);
             const markerId = marker.id || nextMarkerId();
             const markerLayer = L.marker(
                 [marker.lat, marker.lng],
@@ -322,7 +358,8 @@
             return {
                 lat: center.lat,
                 lng: center.lng,
-                zoom: map.getZoom()
+                zoom: map.getZoom(),
+                bearing: currentBearing()
             };
         }
 
@@ -333,7 +370,7 @@
             }
 
             isCameraMoving = true;
-            notifyCameraMoveStarted(snapshot.lat, snapshot.lng, snapshot.zoom);
+            notifyCameraMoveStarted(snapshot.lat, snapshot.lng, snapshot.zoom, snapshot.bearing);
         }
 
         function reportCameraMove() {
@@ -343,7 +380,7 @@
             }
 
             reportCameraMoveStarted();
-            notifyCameraMove(snapshot.lat, snapshot.lng, snapshot.zoom);
+            notifyCameraMove(snapshot.lat, snapshot.lng, snapshot.zoom, snapshot.bearing);
         }
 
         function scheduleCameraIdleReport() {
@@ -356,7 +393,7 @@
                 }
 
                 isCameraMoving = false;
-                notifyCameraIdle(snapshot.lat, snapshot.lng, snapshot.zoom);
+                notifyCameraIdle(snapshot.lat, snapshot.lng, snapshot.zoom, snapshot.bearing);
             }, 48);
         }
 
@@ -365,17 +402,17 @@
                 return;
             }
 
-            map.on("movestart zoomstart", function () {
+            map.on("movestart zoomstart rotatestart", function () {
                 cancelCameraIdleReport();
                 reportCameraMoveStarted();
             });
 
-            map.on("move zoom", function () {
+            map.on("move zoom rotate", function () {
                 cancelCameraIdleReport();
                 reportCameraMove();
             });
 
-            map.on("moveend zoomend", function () {
+            map.on("moveend zoomend rotateend", function () {
                 scheduleCameraIdleReport();
             });
         }
@@ -420,7 +457,7 @@
         }
 
         function addPolylineLayer(polyline) {
-            const activeMap = ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM);
+            const activeMap = ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM, DEFAULT_BEARING);
             const layer = L.polyline(
                 polyline.points.map(toLeafletLatLng),
                 {
@@ -468,7 +505,7 @@
         }
 
         function addPolygonLayer(polygon) {
-            const activeMap = ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM);
+            const activeMap = ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM, DEFAULT_BEARING);
             const polygonLatLngs = [polygon.points.map(toLeafletLatLng)].concat(
                 polygon.holes.map(function (hole) {
                     return hole.map(toLeafletLatLng);
@@ -531,7 +568,7 @@
         }
 
         function addCircleLayer(circle) {
-            const activeMap = ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM);
+            const activeMap = ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM, DEFAULT_BEARING);
             const layer = L.circle(
                 toLeafletLatLng(circle.center),
                 {
@@ -585,8 +622,8 @@
         }
 
         window.LeaflektBridge = {
-            initMap: function (lat, lng, zoom) {
-                ensureMap(lat, lng, zoom);
+            initMap: function (lat, lng, zoom, bearing) {
+                ensureMap(lat, lng, zoom, bearing);
             },
             setZoomControlsEnabled: function (isEnabled) {
                 isZoomControlEnabled = Boolean(isEnabled);
@@ -612,6 +649,18 @@
                     map.scrollWheelZoom.disable();
                 }
             },
+            setRotateGesturesEnabled: function (isEnabled) {
+                touchRotateEnabled = Boolean(isEnabled);
+                if (map === null) return;
+                if (!map.touchRotate) {
+                    return;
+                }
+                if (touchRotateEnabled) {
+                    map.touchRotate.enable();
+                } else {
+                    map.touchRotate.disable();
+                }
+            },
             setMapStyle: function (style) {
                 if (!style || !style.tileUrlTemplate || !style.attributionHtml) {
                     return;
@@ -633,7 +682,7 @@
                     return;
                 }
 
-                ensureMap(list[0].lat, list[0].lng, DEFAULT_ZOOM);
+                ensureMap(list[0].lat, list[0].lng, DEFAULT_ZOOM, DEFAULT_BEARING);
                 list.forEach(function (item) {
                     addMarkerLayer({
                         id: item.id || null,
@@ -674,9 +723,14 @@
                     markerLayer.setOpacity(marker.visible ? marker.alpha : 0);
                 }
             },
-            moveCamera: function (lat, lng, zoom) {
-                const activeMap = ensureMap(lat, lng, zoom);
+            moveCamera: function (lat, lng, zoom, bearing) {
+                const activeMap = ensureMap(lat, lng, zoom, bearing);
                 activeMap.setView([lat, lng], zoom);
+                updateBearing(bearing);
+            },
+            setBearing: function (bearing) {
+                if (map === null) return;
+                updateBearing(bearing);
             },
             clearMarkers: function () {
                 if (map === null) {
@@ -747,7 +801,7 @@
             }
         });
 
-        ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM);
+        ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM, DEFAULT_BEARING);
     })();
 </script>
 </body>

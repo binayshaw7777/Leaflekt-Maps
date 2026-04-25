@@ -29,10 +29,12 @@ import androidx.compose.runtime.setValue
  * 
  * @property target The center coordinate of the current view.
  * @property zoom The current zoom level (typically 1.0 to 19.0).
+ * @property bearing The current rotation angle in degrees (0 to 360).
  */
 data class LeaflektCameraPosition(
     val target: LeaflektLatLng,
-    val zoom: Double
+    val zoom: Double,
+    val bearing: Double = 0.0
 )
 
 /**
@@ -53,9 +55,9 @@ data class LeaflektLatLng(
  * val cameraState = rememberLeaflektCameraPositionState()
  * 
  * Button(onClick = { 
- *     cameraState.move(LeaflektLatLng(22.5726, 88.3639), zoom = 14.0) 
+ *     cameraState.move(LeaflektLatLng(22.5726, 88.3639), zoom = 14.0, bearing = 45.0) 
  * }) {
- *     Text("Fly to Kolkata")
+ *     Text("Fly to Kolkata (Rotated)")
  * }
  * 
  * LeaflektMap(cameraPositionState = cameraState)
@@ -64,11 +66,12 @@ data class LeaflektLatLng(
 class LeaflektCameraPositionState(
     initialPosition: LeaflektCameraPosition = LeaflektCameraPosition(
         target = LeaflektLatLng(22.5726, 88.3639),
-        zoom = 12.0
+        zoom = 12.0,
+        bearing = 0.0
     )
 ) {
     /**
-     * Whether the camera is currently moving (including panning or zooming).
+     * Whether the camera is currently moving (including panning, zooming, or rotating).
      */
     var isMoving: Boolean by mutableStateOf(false)
         internal set
@@ -92,7 +95,8 @@ class LeaflektCameraPositionState(
                 controller.moveCamera(
                     lat = value.target.latitude,
                     lng = value.target.longitude,
-                    zoom = value.zoom
+                    zoom = value.zoom,
+                    bearing = value.bearing
                 )
             }
         }
@@ -109,7 +113,8 @@ class LeaflektCameraPositionState(
             controller.moveCamera(
                 lat = position.target.latitude,
                 lng = position.target.longitude,
-                zoom = position.zoom
+                zoom = position.zoom,
+                bearing = position.bearing
             )
         } else {
             isMoving = false
@@ -117,13 +122,18 @@ class LeaflektCameraPositionState(
     }
 
     /**
-     * Instantly moves the camera to the specified [target] and [zoom].
+     * Instantly moves the camera to the specified [target], [zoom], and [bearing].
      * 
      * @param target The destination coordinates.
      * @param zoom The destination zoom level. Defaults to current zoom.
+     * @param bearing The destination bearing (rotation). Defaults to current bearing.
      */
-    fun move(target: LeaflektLatLng, zoom: Double = position.zoom) {
-        this.position = LeaflektCameraPosition(target, zoom)
+    fun move(
+        target: LeaflektLatLng, 
+        zoom: Double = position.zoom,
+        bearing: Double = position.bearing
+    ) {
+        this.position = LeaflektCameraPosition(target, zoom, bearing)
     }
 
     internal fun onCameraMoveStarted(position: LeaflektCameraPosition) {
@@ -150,14 +160,16 @@ class LeaflektCameraPositionState(
                 listOf(
                     it.position.target.latitude,
                     it.position.target.longitude,
-                    it.position.zoom
+                    it.position.zoom,
+                    it.position.bearing
                 )
             },
             restore = {
                 LeaflektCameraPositionState(
                     initialPosition = LeaflektCameraPosition(
                         target = LeaflektLatLng(it[0], it[1]),
-                        zoom = it[2]
+                        zoom = it[2],
+                        bearing = it[3]
                     )
                 )
             }
