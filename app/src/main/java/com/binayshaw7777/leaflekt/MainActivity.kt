@@ -83,7 +83,7 @@ private fun LeaflektDemoScreen(modifier: Modifier = Modifier) {
     var activeFeatureLat by rememberSaveable { mutableDoubleStateOf(22.5726) }
     var activeFeatureLng by rememberSaveable { mutableDoubleStateOf(88.3639) }
     var selectedMapStyle by rememberSaveable { mutableStateOf(LeaflektMapStyle.OpenStreetMap) }
-    var lastTap by rememberSaveable { mutableStateOf("Tap anywhere on the map to move the demo set") }
+    var lastTap by rememberSaveable { mutableStateOf("Tap anywhere on map to move the demo set") }
     var lastMarkerId by rememberSaveable { mutableStateOf("No marker clicked yet") }
     var isMarkerVisible by rememberSaveable { mutableStateOf(true) }
     var isPolylineVisible by rememberSaveable { mutableStateOf(true) }
