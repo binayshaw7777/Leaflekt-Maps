@@ -1,3 +1,8 @@
+---
+name: android-compose-playground
+description: Build sample/demo screens that make library options explorable. Add controls, previews, presets, sample data, and QA surfaces in the app module.
+---
+
 # Android Compose Playground
 
 Purpose:

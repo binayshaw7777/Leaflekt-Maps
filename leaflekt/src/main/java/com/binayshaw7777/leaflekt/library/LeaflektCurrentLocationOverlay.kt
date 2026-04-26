@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Looper
-import android.util.Base64
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.LinearEasing
@@ -30,7 +29,6 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
-import java.io.ByteArrayOutputStream
 
 @Composable
 @LeaflektMapComposable
@@ -269,20 +267,12 @@ private fun Map<String, Boolean>.hasLocationPermission(): Boolean {
 }
 
 private fun LeaflektCurrentLocationIcon.toMarkerIconInfo(): LeaflektMarkerIconInfo {
-    val resolvedWidth = widthPx.coerceAtLeast(1)
-    val resolvedHeight = heightPx.coerceAtLeast(1)
-    val bitmapBytes = ByteArrayOutputStream().use { stream ->
-        bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, stream)
-        stream.toByteArray()
-    }
-    val dataUrl = "data:image/png;base64," + Base64.encodeToString(bitmapBytes, Base64.NO_WRAP)
-
-    return LeaflektMarkerIconInfo(
-        dataUrl = dataUrl,
-        widthPx = resolvedWidth,
-        heightPx = resolvedHeight,
-        anchorFractionX = anchorFractionX.coerceIn(0f, 1f),
-        anchorFractionY = anchorFractionY.coerceIn(0f, 1f)
+    return buildMarkerIconInfo(
+        bitmap = bitmap,
+        widthPx = widthPx,
+        heightPx = heightPx,
+        anchorFractionX = anchorFractionX,
+        anchorFractionY = anchorFractionY
     )
 }
 

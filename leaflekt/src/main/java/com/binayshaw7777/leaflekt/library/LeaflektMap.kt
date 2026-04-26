@@ -74,6 +74,25 @@ internal val LocalLeaflektCameraPositionState = staticCompositionLocalOf { Leafl
  * )
  * ```
  *
+ * ### Marker With Custom Compose Info Window:
+ * ```kotlin
+ * val markerState = rememberLeaflektMarkerState(
+ *     position = LeaflektLatLng(12.9716, 77.5946)
+ * )
+ *
+ * LeaflektMap {
+ *     LeaflektMarker(
+ *         state = markerState,
+ *         rotationDegrees = 18f,
+ *         infoWindow = {
+ *             Surface {
+ *                 Text("Bangalore marker")
+ *             }
+ *         }
+ *     )
+ * }
+ * ```
+ *
  * **Attribution:**
  * This component wraps [Leaflet.js](https://leafletjs.com/) and provides a bridge for 
  * [OpenStreetMap](https://www.openstreetmap.org/) based tiles.
@@ -90,7 +109,8 @@ internal val LocalLeaflektCameraPositionState = staticCompositionLocalOf { Leafl
  * @param onCameraMove Callback invoked while the map camera is actively changing.
  * @param onCameraIdle Callback invoked after the map camera settles.
  * @param onMarkerClick Callback invoked when a marker layer is clicked.
- * @param content The content to be displayed on top of the map (usually [LeaflektMarker]s).
+ * @param content The content to be displayed on top of the map, such as [LeaflektMarker] and
+ * [LeaflektOverlay].
  */
 @Composable
 fun LeaflektMap(

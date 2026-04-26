@@ -36,16 +36,25 @@
 - [x] Circles implementation
 - [x] OLA Maps Places search and autocomplete sample in `leaflektsampleapp`
 - [x] Map Rotation support (using Leaflet.Rotate)
+- [ ] Directions journey playback sample with moving bike marker
+- [ ] Route playback controls: start, pause, resume, stop
+- [ ] Route playback speed controls using Compose segmented buttons
+- [ ] Marker visibility toggle for journey playback
 - [ ] Advanced Clustering plugin integration
 
 ### Phase 15 - Core Infrastructure
 - [ ] **JNI Layer Migration:** Research migrating the bridge from JS-based to a native JNI layer for improved performance and direct engine access.
 - [ ] Offline Tile caching system
-- [ ] Custom Icon support (Bitmaps/Drawables)
+- [x] Custom Icon support (Bitmap-backed marker icons)
+- [x] Public custom marker icon API for SDK consumers
+- [x] Public marker rotation API for SDK consumers
+- [x] Public custom info window API for SDK consumers
+- [ ] Public moving-marker icon API for route playback and vehicle simulation
 
 ### Phase 16 - mapcn Inspiration (Rich UI & Viz)
 - [x] **Automatic Theme Sync:** Sync map tiles with system Light/Dark mode.
 - [x] **Native Compose Overlays:** Pin any @Composable to a `LeaflektLatLng`.
+- [ ] **Smooth Pinch Zoom:** Fix pinch zoom snappiness by disabling zoomSnap for continuous zoom levels (leaflekt/src/main/assets/map.html:194).
 - [ ] **Curved Lines (`LeaflektArc`):** Bezier curve support for visualizations.
 - [ ] **MapBlocks Registry:** Common pre-wired UI patterns (e.g., Location Picker).
 

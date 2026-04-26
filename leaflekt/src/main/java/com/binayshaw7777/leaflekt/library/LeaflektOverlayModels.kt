@@ -6,6 +6,6 @@ import kotlinx.serialization.Serializable
 internal data class MapProjection(
     val lat: Double,
     val lng: Double,
-    val x: Double,
-    val y: Double
+    val xFraction: Double,
+    val yFraction: Double
 )

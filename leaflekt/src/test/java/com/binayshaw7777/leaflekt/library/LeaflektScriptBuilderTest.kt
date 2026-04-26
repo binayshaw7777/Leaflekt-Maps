@@ -43,8 +43,8 @@ class LeaflektScriptBuilderTest {
 
     @Test
     fun testMoveCameraScriptGeneration() {
-        val script = LeaflektScriptBuilder.moveCameraScript(22.5, 88.3, 10.0)
-        assertTrue(script.contains("window.LeaflektBridge.moveCamera(22.5,88.3,10.0)"))
+        val script = LeaflektScriptBuilder.moveCameraScript(22.5, 88.3, 10.0, 0.0)
+        assertTrue(script.contains("window.LeaflektBridge.moveCamera(22.5,88.3,10.0,0.0)"))
     }
 
     @Test
@@ -55,6 +55,7 @@ class LeaflektScriptBuilderTest {
                     id = "current-location",
                     lat = 22.5726,
                     lng = 88.3639,
+                    rotationDegrees = 42f,
                     icon = LeaflektMarkerIconInfo(
                         dataUrl = "data:image/png;base64,abc123",
                         widthPx = 32,
@@ -70,6 +71,7 @@ class LeaflektScriptBuilderTest {
         assertTrue(script.contains("\"dataUrl\": \"data:image/png;base64,abc123\""))
         assertTrue(script.contains("\"widthPx\": 32"))
         assertTrue(script.contains("\"heightPx\": 32"))
+        assertTrue(script.contains("\"rotationDegrees\": 42.0"))
     }
 
     @Test

@@ -313,11 +313,13 @@ Implemented:
 Planned:
 
 - [ ] GeoJSON layer API
-- [ ] General custom marker bitmaps and drawables
+- [x] General custom marker bitmaps
+- [ ] Drawable convenience API for markers
 - [ ] HTML/divIcon markers
-- [ ] Custom info windows
+- [x] Custom info windows
 - [x] OLA Maps Places search and autocomplete sample in `leaflektsampleapp`
 - [x] Map Rotation support (using Leaflet.Rotate)
+- [x] Marker rotation
 - [x] Automatic Theme Sync (Sync map tiles with system Dark/Light mode)
 - [x] Native Compose Overlays (Pin any @Composable to map coordinates)
 - [ ] Tile source customization API

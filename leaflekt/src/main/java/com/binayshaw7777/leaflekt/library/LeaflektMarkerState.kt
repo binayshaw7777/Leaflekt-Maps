@@ -13,6 +13,23 @@ import androidx.compose.runtime.setValue
  * This implementation follows the Google Maps Compose pattern to provide a familiar API
  * for Kotlin developers using Leaflekt.
  *
+ * ### Usage Example:
+ * ```kotlin
+ * val markerState = rememberLeaflektMarkerState(
+ *     position = LeaflektLatLng(22.5726, 88.3639)
+ * )
+ *
+ * LeaflektMarker(
+ *     state = markerState,
+ *     title = "Kolkata"
+ * )
+ *
+ * LaunchedEffect(Unit) {
+ *     markerState.position = LeaflektLatLng(22.5850, 88.3900)
+ *     markerState.showInfoWindow()
+ * }
+ * ```
+ *
  * @param position the initial marker position
  */
 class LeaflektMarkerState(position: LeaflektLatLng = LeaflektLatLng(0.0, 0.0)) {
@@ -24,18 +41,39 @@ class LeaflektMarkerState(position: LeaflektLatLng = LeaflektLatLng(0.0, 0.0)) {
      */
     var position: LeaflektLatLng by mutableStateOf(position)
 
+    internal var isInfoWindowShown: Boolean by mutableStateOf(false)
+        private set
+
+    private var showInfoWindowAction: (() -> Unit)? = null
+    private var hideInfoWindowAction: (() -> Unit)? = null
+
     /**
      * Shows the info window for the underlying marker.
+     *
+     * This opens the default Leaflet popup when [LeaflektMarker] uses `title` and `snippet`,
+     * or reveals the custom Compose info window when [LeaflektMarker] uses `infoWindow`.
      */
     fun showInfoWindow() {
-        // Implementation for future: Trigger L.marker.openPopup() via bridge
+        isInfoWindowShown = true
+        showInfoWindowAction?.invoke()
     }
 
     /**
      * Hides the info window for the underlying marker.
+     *
+     * This closes whichever info window implementation is currently attached to the marker.
      */
     fun hideInfoWindow() {
-        // Implementation for future: Trigger L.marker.closePopup() via bridge
+        isInfoWindowShown = false
+        hideInfoWindowAction?.invoke()
+    }
+
+    internal fun bindInfoWindowActions(
+        showInfoWindow: (() -> Unit)?,
+        hideInfoWindow: (() -> Unit)?
+    ) {
+        showInfoWindowAction = showInfoWindow
+        hideInfoWindowAction = hideInfoWindow
     }
 
     companion object {
@@ -53,6 +91,15 @@ class LeaflektMarkerState(position: LeaflektLatLng = LeaflektLatLng(0.0, 0.0)) {
 
 /**
  * Creates and [rememberSaveable]s a [LeaflektMarkerState].
+ *
+ * This is the preferred way to create marker state in Compose screens.
+ *
+ * ### Usage Example:
+ * ```kotlin
+ * val markerState = rememberLeaflektMarkerState(
+ *     position = LeaflektLatLng(12.9716, 77.5946)
+ * )
+ * ```
  *
  * @param key optional key for the saved state
  * @param position the initial marker position

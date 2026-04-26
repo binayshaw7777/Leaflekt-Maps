@@ -45,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.binayshaw7777.leaflekt.library.LeaflektCameraPosition
@@ -128,11 +129,16 @@ internal fun ExploreMapScreen(
     val markerState = rememberLeaflektMarkerState()
 
     LaunchedEffect(selectedPlace) {
-        val location = selectedPlace?.geometry?.location ?: return@LaunchedEffect
+        val location = selectedPlace?.geometry?.location
+        if (location == null) {
+            markerState.hideInfoWindow()
+            return@LaunchedEffect
+        }
         cameraPositionState.position = LeaflektCameraPosition(
             target = LeaflektLatLng(location.lat, location.lng),
             zoom = 15.0
         )
+        markerState.showInfoWindow()
     }
 
     if (showMapStyleSheet) {
@@ -175,6 +181,13 @@ internal fun ExploreMapScreen(
                     },
                     title = explorePlace.headline(),
                     snippet = explorePlace.supportingLine(),
+                    infoWindow = {
+                        MarkerInfoWindowCard(
+                            label = "Selected place",
+                            headline = explorePlace.headline(),
+                            supportingLine = explorePlace.supportingLine()
+                        )
+                    },
                     id = "explore-selected-place"
                 )
             }
@@ -250,12 +263,28 @@ internal fun DirectionsMapScreen(
     var showDirectionsSearchSheet by rememberSaveable { mutableStateOf(false) }
     var selectedZoom by rememberSaveable { mutableFloatStateOf(12f) }
     var mapController by remember { mutableStateOf<LeaflektController?>(null) }
+    val originMarkerState = rememberLeaflektMarkerState()
+    val destinationMarkerState = rememberLeaflektMarkerState()
 
     val cameraPositionState = rememberLeaflektCameraPositionState {
         position = LeaflektCameraPosition(
             target = LeaflektLatLng(latitude = 22.5726, longitude = 88.3639),
             zoom = 12.0
         )
+    }
+    val originRotation = activeRoute?.points?.routeStartHeadingDegrees() ?: 0f
+    val destinationRotation = activeRoute?.points?.routeEndHeadingDegrees() ?: 0f
+
+    LaunchedEffect(originPlace) {
+        val location = originPlace?.geometry?.location ?: return@LaunchedEffect
+        originMarkerState.position = LeaflektLatLng(location.lat, location.lng)
+        originMarkerState.showInfoWindow()
+    }
+
+    LaunchedEffect(destinationPlace) {
+        val location = destinationPlace?.geometry?.location ?: return@LaunchedEffect
+        destinationMarkerState.position = LeaflektLatLng(location.lat, location.lng)
+        destinationMarkerState.showInfoWindow()
     }
 
     LaunchedEffect(originPlace, destinationPlace, activeRoute) {
@@ -344,18 +373,38 @@ internal fun DirectionsMapScreen(
 
             originPlace?.geometry?.location?.let { location ->
                 LeaflektMarker(
-                    position = LeaflektLatLng(location.lat, location.lng),
+                    state = originMarkerState.apply {
+                        position = LeaflektLatLng(location.lat, location.lng)
+                    },
                     title = "Origin",
                     snippet = originPlace?.headline(),
+                    rotationDegrees = originRotation,
+                    infoWindow = {
+                        MarkerInfoWindowCard(
+                            label = "Origin",
+                            headline = originPlace?.headline() ?: "Origin",
+                            supportingLine = originPlace?.supportingLine()
+                        )
+                    },
                     id = "directions-origin"
                 )
             }
 
             destinationPlace?.geometry?.location?.let { location ->
                 LeaflektMarker(
-                    position = LeaflektLatLng(location.lat, location.lng),
+                    state = destinationMarkerState.apply {
+                        position = LeaflektLatLng(location.lat, location.lng)
+                    },
                     title = "Destination",
                     snippet = destinationPlace?.headline(),
+                    rotationDegrees = destinationRotation,
+                    infoWindow = {
+                        MarkerInfoWindowCard(
+                            label = "Destination",
+                            headline = destinationPlace?.headline() ?: "Destination",
+                            supportingLine = destinationPlace?.supportingLine()
+                        )
+                    },
                     id = "directions-destination"
                 )
             }
@@ -401,6 +450,49 @@ internal fun DirectionsMapScreen(
                 Icon(
                     imageVector = Icons.Default.LocationSearching,
                     contentDescription = "Current location"
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MarkerInfoWindowCard(
+    label: String,
+    headline: String,
+    supportingLine: String?
+) {
+    Surface(
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 6.dp,
+        shadowElevation = 8.dp,
+        modifier = Modifier
+            .padding(bottom = 14.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = headline,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            supportingLine?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
@@ -584,4 +676,31 @@ private enum class SampleTab(
 ) {
     Explore(label = "Explore", icon = Icons.Default.Search),
     Directions(label = "Directions", icon = Icons.Default.LocationSearching)
+}
+
+private fun List<LeaflektLatLng>.routeStartHeadingDegrees(): Float? {
+    if (size < 2) {
+        return null
+    }
+
+    return first().headingTo(this[1])
+}
+
+private fun List<LeaflektLatLng>.routeEndHeadingDegrees(): Float? {
+    if (size < 2) {
+        return null
+    }
+
+    return this[size - 2].headingTo(last())
+}
+
+private fun LeaflektLatLng.headingTo(other: LeaflektLatLng): Float {
+    val startLatitude = Math.toRadians(latitude)
+    val endLatitude = Math.toRadians(other.latitude)
+    val longitudeDelta = Math.toRadians(other.longitude - longitude)
+    val y = kotlin.math.sin(longitudeDelta) * kotlin.math.cos(endLatitude)
+    val x = kotlin.math.cos(startLatitude) * kotlin.math.sin(endLatitude) -
+        kotlin.math.sin(startLatitude) * kotlin.math.cos(endLatitude) * kotlin.math.cos(longitudeDelta)
+    val heading = Math.toDegrees(kotlin.math.atan2(y, x))
+    return ((heading + 360.0) % 360.0).toFloat()
 }

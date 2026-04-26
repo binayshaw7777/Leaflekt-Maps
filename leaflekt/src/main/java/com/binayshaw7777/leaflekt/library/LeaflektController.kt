@@ -17,7 +17,7 @@ class LeaflektController internal constructor() {
     private var currentLocationCenteringAction: ((Double) -> Unit)? = null
     private var isMapReady = false
 
-    internal val projectionState = mutableStateMapOf<LeaflektLatLng, Pair<Float, Float>>()
+    internal val projectionState = mutableStateMapOf<LeaflektLatLng, MapOverlayProjection>()
 
     fun registerOverlayPoint(latLng: LeaflektLatLng) {
         enqueueOrRun("window.LeaflektBridge.registerOverlayPoint(${latLng.latitude}, ${latLng.longitude});")
@@ -32,7 +32,10 @@ class LeaflektController internal constructor() {
         try {
             val list: List<MapProjection> = LeaflektMapJson.decodeFromString(projectionsJson)
             list.forEach { projection ->
-                projectionState[LeaflektLatLng(projection.lat, projection.lng)] = Pair(projection.x.toFloat(), projection.y.toFloat())
+                projectionState[LeaflektLatLng(projection.lat, projection.lng)] = MapOverlayProjection(
+                    xFraction = projection.xFraction.toFloat(),
+                    yFraction = projection.yFraction.toFloat()
+                )
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -110,6 +113,14 @@ class LeaflektController internal constructor() {
 
     fun clearMarkers() {
         enqueueOrRun(LeaflektScriptBuilder.clearMarkersScript())
+    }
+
+    internal fun showMarkerInfoWindow(markerId: String) {
+        enqueueOrRun("window.LeaflektBridge.showMarkerInfoWindow(${LeaflektMapJson.encodeString(markerId)});")
+    }
+
+    internal fun hideMarkerInfoWindow(markerId: String) {
+        enqueueOrRun("window.LeaflektBridge.hideMarkerInfoWindow(${LeaflektMapJson.encodeString(markerId)});")
     }
 
     internal fun registerMarkerClick(markerId: String, onClick: () -> Boolean) {
@@ -231,3 +242,8 @@ class LeaflektController internal constructor() {
         circleClickHandlers[circleId]?.invoke()
     }
 }
+
+internal data class MapOverlayProjection(
+    val xFraction: Float,
+    val yFraction: Float
+)

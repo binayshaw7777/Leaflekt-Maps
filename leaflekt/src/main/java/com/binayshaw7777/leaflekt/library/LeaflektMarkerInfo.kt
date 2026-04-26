@@ -21,7 +21,8 @@ internal data class LeaflektMarkerInfo(
     val snippet: String? = null,
     val visible: Boolean = true,
     val alpha: Float = 1.0f,
-    val icon: LeaflektMarkerIconInfo? = null
+    val icon: LeaflektMarkerIconInfo? = null,
+    val rotationDegrees: Float = 0f
 )
 
 internal data class LeaflektMarkerIconInfo(

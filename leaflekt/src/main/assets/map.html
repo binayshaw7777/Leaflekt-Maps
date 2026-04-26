@@ -76,6 +76,13 @@
                 return;
             }
 
+            const mapContainer = map ? map.getContainer() : null;
+            const mapWidth = mapContainer ? mapContainer.clientWidth : 0;
+            const mapHeight = mapContainer ? mapContainer.clientHeight : 0;
+            if (mapWidth <= 0 || mapHeight <= 0) {
+                return;
+            }
+
             const projections = [];
             trackedOverlayPoints.forEach(id => {
                 const parts = id.split(",");
@@ -86,8 +93,8 @@
                     projections.push({
                         lat: lat,
                         lng: lng,
-                        x: point.x,
-                        y: point.y
+                        xFraction: point.x / mapWidth,
+                        yFraction: point.y / mapHeight
                     });
                 }
             });
@@ -182,15 +189,16 @@
             }
         }
 
-        function createMap(lat, lng, zoom, bearing) {
-            activeBearing = Number(bearing ?? DEFAULT_BEARING);
-            map = L.map("map", {
-                zoomControl: false,
-                rotate: true,
-                touchRotate: touchRotateEnabled,
-                bearing: activeBearing,
-                rotateControl: false
-            }).setView([lat, lng], zoom);
+         function createMap(lat, lng, zoom, bearing) {
+             activeBearing = Number(bearing ?? DEFAULT_BEARING);
+             map = L.map("map", {
+                 zoomControl: false,
+                 zoomSnap: false,
+                 rotate: true,
+                 touchRotate: touchRotateEnabled,
+                 bearing: activeBearing,
+                 rotateControl: false
+             }).setView([lat, lng], zoom);
 
             applyZoomControls();
             replaceTileLayer(activeMapStyle);
@@ -296,6 +304,18 @@
             return "marker-" + Date.now() + "-" + Math.floor(Math.random() * 100000);
         }
 
+        function buildMarkerPopupContent(marker) {
+            if (!marker || (!marker.title && !marker.snippet)) {
+                return null;
+            }
+
+            if (marker.title && marker.snippet) {
+                return "<div><strong>" + marker.title + "</strong><br/>" + marker.snippet + "</div>";
+            }
+
+            return marker.title || marker.snippet;
+        }
+
         function createMarkerIcon(marker) {
             if (!marker || !marker.icon || !marker.icon.dataUrl) {
                 return new L.Icon.Default();
@@ -316,22 +336,51 @@
             });
         }
 
+        function createMarkerRotationOrigin(marker) {
+            if (!marker || !marker.icon) {
+                return "50% 100%";
+            }
+
+            const anchorFractionX = Number(marker.icon.anchorFractionX ?? 0.5);
+            const anchorFractionY = Number(marker.icon.anchorFractionY ?? 1);
+            return (anchorFractionX * 100) + "% " + (anchorFractionY * 100) + "%";
+        }
+
+        function applyMarkerRotation(markerLayer) {
+            if (!markerLayer || !markerLayer._icon) {
+                return;
+            }
+
+            const markerRotation = Number(markerLayer.options.rotationAngle || 0);
+            const markerRotationOrigin = markerLayer.options.rotationOrigin || "50% 100%";
+            const baseTransform = (markerLayer._icon.style.transform || "").replace(/ rotateZ\([^)]*\)/g, "");
+
+            markerLayer._icon.style.transformOrigin = markerRotationOrigin;
+            markerLayer._icon.style.transform = baseTransform + " rotateZ(" + markerRotation + "deg)";
+        }
+
         function addMarkerLayer(marker) {
             const activeMap = ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM, DEFAULT_BEARING);
             const markerId = marker.id || nextMarkerId();
             const markerLayer = L.marker(
                 [marker.lat, marker.lng],
-                { icon: createMarkerIcon(marker) }
+                {
+                    icon: createMarkerIcon(marker),
+                    rotationAngle: Number(marker.rotationDegrees || 0),
+                    rotationOrigin: createMarkerRotationOrigin(marker)
+                }
             ).addTo(activeMap);
 
-            if (marker.title) {
-                markerLayer.bindPopup(marker.title);
+            const popupContent = buildMarkerPopupContent(marker);
+            if (popupContent) {
+                markerLayer.bindPopup(popupContent);
             }
 
             markerLayer.on("click", function () {
                 notifyMarkerClick(markerId);
             });
 
+            applyMarkerRotation(markerLayer);
             markerLayers.set(markerId, markerLayer);
             return markerId;
         }
@@ -738,19 +787,36 @@
                 }
                 const markerLayer = markerLayers.get(marker.id);
                 if (markerLayer) {
-                    // Update position
                     markerLayer.setLatLng([marker.lat, marker.lng]);
+                    markerLayer.options.rotationAngle = Number(marker.rotationDegrees || 0);
+                    markerLayer.options.rotationOrigin = createMarkerRotationOrigin(marker);
                     markerLayer.setIcon(createMarkerIcon(marker));
-                    
-                    // Update popup
-                    if (marker.title) {
-                        markerLayer.setPopupContent(marker.title);
+
+                    const popupContent = buildMarkerPopupContent(marker);
+                    if (popupContent) {
+                        if (markerLayer.getPopup()) {
+                            markerLayer.setPopupContent(popupContent);
+                        } else {
+                            markerLayer.bindPopup(popupContent);
+                        }
                     } else {
                         markerLayer.unbindPopup();
                     }
 
-                    // Update opacity
                     markerLayer.setOpacity(marker.visible ? marker.alpha : 0);
+                    applyMarkerRotation(markerLayer);
+                }
+            },
+            showMarkerInfoWindow: function (markerId) {
+                const markerLayer = markerLayers.get(markerId);
+                if (markerLayer && markerLayer.getPopup()) {
+                    markerLayer.openPopup();
+                }
+            },
+            hideMarkerInfoWindow: function (markerId) {
+                const markerLayer = markerLayers.get(markerId);
+                if (markerLayer && markerLayer.getPopup()) {
+                    markerLayer.closePopup();
                 }
             },
             moveCamera: function (lat, lng, zoom, bearing) {
@@ -832,6 +898,15 @@
         if (typeof L === "undefined") {
             showLoadError("Leaflekt local assets failed to load.");
             return;
+        }
+
+        if (L.Marker && L.Marker.prototype && !L.Marker.prototype.leaflektSetPosPatched) {
+            const originalSetPos = L.Marker.prototype._setPos;
+            L.Marker.prototype._setPos = function (position) {
+                originalSetPos.call(this, position);
+                applyMarkerRotation(this);
+            };
+            L.Marker.prototype.leaflektSetPosPatched = true;
         }
 
         window.addEventListener("resize", function () {

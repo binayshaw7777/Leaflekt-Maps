@@ -114,7 +114,8 @@ internal object LeaflektScriptBuilder {
                 "snippet": ${LeaflektMapJson.encodeNullableString(snippet)},
                 "visible": $visible,
                 "alpha": $alpha,
-                "icon": $iconJson
+                "icon": $iconJson,
+                "rotationDegrees": $rotationDegrees
             }
         """.trimIndent()
     }
