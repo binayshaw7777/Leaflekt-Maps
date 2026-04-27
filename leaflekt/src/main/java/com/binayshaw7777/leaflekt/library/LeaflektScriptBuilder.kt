@@ -7,8 +7,8 @@ import androidx.compose.ui.graphics.toArgb
  * Internal script builder that generates JavaScript commands for the Leaflet runtime.
  */
 internal object LeaflektScriptBuilder {
-    fun initMapScript(lat: Double, lng: Double, zoom: Double, bearing: Double): String {
-        return "window.LeaflektBridge.initMap($lat,$lng,$zoom,$bearing);"
+    fun initMapScript(lat: Double, lng: Double, zoom: Double, bearing: Double, minZoom: Double, maxZoom: Double): String {
+        return "window.LeaflektBridge.initMap($lat,$lng,$zoom,$bearing,$minZoom,$maxZoom);"
     }
 
     fun setZoomControlsEnabledScript(isEnabled: Boolean): String {

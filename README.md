@@ -59,6 +59,10 @@ Add the library:
 ```kotlin
 dependencies {
     implementation("com.github.binayshaw7777.LeafleKT:leaflekt:0.5.0")
+
+    // Optional: Required only for async marker icon loading
+    // rememberLeaflektAsyncMarkerIcon uses Coil under the hood
+    implementation("io.coil-kt:coil-compose:2.7.0")
 }
 ```
 
@@ -240,6 +244,149 @@ fun CameraAwareMap() {
 }
 ```
 
+## Marker Icons
+
+Leaflekt supports both synchronous bitmap icons and asynchronous image loading via Coil.
+
+### Synchronous (Bitmap) API
+
+Provide a pre-loaded `Bitmap` via `LeaflektMarkerIcon`:
+
+```kotlin
+val bikeBitmap = BitmapFactory.decodeResource(
+    LocalContext.current.resources,
+    R.drawable.ic_bike_marker
+)
+
+LeaflektMarker(
+    position = LeaflektLatLng(22.5726, 88.3639),
+    icon = LeaflektMarkerIcon(
+        bitmap = bikeBitmap,
+        widthPx = 72,
+        heightPx = 72,
+        anchorFractionX = 0.5f,
+        anchorFractionY = 1f
+    )
+)
+```
+
+### Asynchronous (Coil-powered) API
+
+Use `rememberLeaflektAsyncMarkerIcon` to load images from URLs, drawable resources, files, or any Coil-supported model. The returned `State<LeaflektMarkerIcon?>` is `null` while loading and automatically updates when the image is ready.
+
+> **Note:** Async icon loading requires adding the Coil Compose dependency:
+> ```kotlin
+> implementation("io.coil-kt:coil-compose:2.7.0")
+> ```
+
+```kotlin
+// From URL
+val remoteIcon = rememberLeaflektAsyncMarkerIcon(
+    model = "https://example.com/marker.png",
+    widthPx = 64,
+    heightPx = 64
+)
+
+// From drawable resource
+val localIcon = rememberLeaflektAsyncMarkerIcon(
+    model = R.drawable.ic_custom_marker,
+    anchorFractionX = 0.5f,
+    anchorFractionY = 0.5f
+)
+
+LeaflektMarker(
+    position = LeaflektLatLng(22.5726, 88.3639),
+    icon = remoteIcon.value  // null during load, non-null on success
+)
+```
+
+Supported model types include:
+- `String` — HTTP/HTTPS URL or absolute file path
+- `@DrawableRes Int` — Android drawable resource ID
+- `Bitmap` — in-memory bitmap
+- `File` — local file
+- `Uri` — content URI
+- Any custom Coil `Model` (requires providing a custom [ImageLoader])
+
+### Composable Marker Icons
+
+Pass a composable lambda directly as the marker icon using `iconContent`. This renders any Compose UI at the marker's position, anchored flexibly.
+
+```kotlin
+LeaflektMarker(
+    position = LeaflektLatLng(22.5726, 88.3639),
+    iconContent = {
+        // Custom animated vector, text badge, or any composable
+        Box(
+            modifier = Modifier
+                .background(Color.Blue, RoundedCornerShape(8.dp))
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+        ) {
+            Text(
+                text = "Custom",
+                color = Color.White,
+                style = MaterialTheme.typography.labelSmall
+            )
+        }
+    },
+    iconAnchorX = 0.5f,  // center horizontally (default)
+    iconAnchorY = 1f     // bottom aligned to marker tip (default)
+)
+```
+
+`iconContent` is rendered using `LeaflektOverlay`, so it's resolution-independent and fully interactive (clicks, animations, etc.). You can combine `icon` (bitmap) and `iconContent` (overlay) simultaneously for layered effects.
+
+### Anchor Control
+
+Both APIs support `anchorFractionX` and `anchorFractionY` (0–1) to control which point on the icon is anchored to the marker's lat/lng:
+- `(0f, 0f)` — top-left corner
+- `(0.5f, 0.5f)` — center (default for `LeaflektMarkerIcon`)
+- `(1f, 1f)` — bottom-right corner
+
+Default for `LeaflektMarkerIcon`: `anchorFractionY = 1f` (bottom edge), matching Google Maps behavior.
+
+### Map Zoom Bounds
+
+Control the allowed zoom range via `LeaflektMapProperties` to prevent overscrolling into blank space:
+
+```kotlin
+LeaflektMap(
+    properties = LeaflektMapProperties(
+        minZoom = 2.0,   // Don't zoom out beyond world view
+        maxZoom = 18.0   // Don't over-zoom beyond tile detail
+    )
+)
+```
+
+Defaults: `minZoom = 2.0`, `maxZoom = 19.0`. These bounds apply to all user gestures (pinch, scroll, double-tap) and programmatic camera moves.
+
+### Info Window Control
+
+Control info window visibility and anchor position:
+
+```kotlin
+LeaflektMarker(
+    position = LeaflektLatLng(22.5726, 88.3639),
+    title = "Victoria Memorial",
+    infoWindow = {
+        MarkerInfoWindowCard(
+            label = "Landmark",
+            headline = "Victoria Memorial",
+            supportingLine = "Built 1906–1921"
+        )
+    },
+    isInfoWindowVisible = true,  // Show immediately
+    infoWindowAnchorX = 0.5f,    // Center horizontally (default)
+    infoWindowAnchorY = 1f       // Bottom of info window at marker tip (default)
+)
+```
+
+**Parameters:**
+- `isInfoWindowVisible` — Shows the info window on first composition when `true`. Default: `false`. Ignored when `infoWindow` is `null`.
+- `infoWindowAnchorX` / `infoWindowAnchorY` — Fraction (0–1) controlling where the info window attaches relative to the marker position. Defaults: `0.5f, 1f` (bottom-center, standard info window placement). Uses the same system as `LeaflektOverlay`.
+
+**Default Leaflet Popup:** If `infoWindow` is not provided, the standard Leaflet popup shows `title` and `snippet` with default styling.
+
 ## Built-In Map Styles
 
 - `LeaflektMapStyle.OpenStreetMap`
@@ -313,14 +460,20 @@ Planned:
 
 - [ ] GeoJSON layer API
 - [x] General custom marker bitmaps
+- [x] Async image loading for marker icons (Coil-powered)
+- [x] Composable marker icons (pass @Composable as iconContent)
 - [ ] Drawable convenience API for markers
 - [ ] HTML/divIcon markers
 - [x] Custom info windows
+- [x] Info window anchor customization
+- [x] Info window initial visibility control
 - [x] OLA Maps Places search and autocomplete sample in `leaflektsampleapp`
 - [x] Map Rotation support (using Leaflet.Rotate)
 - [x] Marker rotation
 - [x] Automatic Theme Sync (Sync map tiles with system Dark/Light mode)
 - [x] Native Compose Overlays (Pin any @Composable to map coordinates)
+- [x] Zoom bounds (min/max to prevent overscroll to white space)
+- [x] Smooth continuous pinch zoom (no snapping to integer zoom levels)
 - [ ] Tile source customization API
 - [ ] Clustering
 - [ ] Offline tile caching

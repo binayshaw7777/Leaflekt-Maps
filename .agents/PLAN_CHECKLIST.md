@@ -49,12 +49,16 @@
 - [x] Public custom marker icon API for SDK consumers
 - [x] Public marker rotation API for SDK consumers
 - [x] Public custom info window API for SDK consumers
+- [x] **Async Icon Loading:** Coil-powered async marker icon loading with `rememberLeaflektAsyncMarkerIcon(model)` supporting URLs, resources, files, and URIs.
+- [x] **Composable Marker Icons:** Pass @Composable lambdas directly as marker icons via `iconContent` with configurable anchors.
+- [x] **Zoom Bounds:** Enforce min/max zoom to prevent overscrolling to white space.
+- [x] Info window anchor customization (`infoWindowAnchorX/Y`) and initial visibility (`isInfoWindowVisible`)
 - [ ] Public moving-marker icon API for route playback and vehicle simulation
 
 ### Phase 16 - mapcn Inspiration (Rich UI & Viz)
 - [x] **Automatic Theme Sync:** Sync map tiles with system Light/Dark mode.
 - [x] **Native Compose Overlays:** Pin any @Composable to a `LeaflektLatLng`.
-- [ ] **Smooth Pinch Zoom:** Fix pinch zoom snappiness by disabling zoomSnap for continuous zoom levels (leaflekt/src/main/assets/map.html:194).
+- [x] **Smooth Pinch Zoom:** Fix pinch zoom snappiness by disabling zoomSnap for continuous zoom levels (leaflekt/src/main/assets/map.html:194).
 - [ ] **Curved Lines (`LeaflektArc`):** Bezier curve support for visualizations.
 - [ ] **MapBlocks Registry:** Common pre-wired UI patterns (e.g., Location Picker).
 

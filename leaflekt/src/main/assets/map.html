@@ -189,16 +189,18 @@
             }
         }
 
-         function createMap(lat, lng, zoom, bearing) {
-             activeBearing = Number(bearing ?? DEFAULT_BEARING);
-             map = L.map("map", {
-                 zoomControl: false,
-                 zoomSnap: false,
-                 rotate: true,
-                 touchRotate: touchRotateEnabled,
-                 bearing: activeBearing,
-                 rotateControl: false
-             }).setView([lat, lng], zoom);
+        function createMap(lat, lng, zoom, bearing, minZoom, maxZoom) {
+            activeBearing = Number(bearing ?? DEFAULT_BEARING);
+            map = L.map("map", {
+                zoomControl: false,
+                zoomSnap: false,
+                minZoom: minZoom,
+                maxZoom: maxZoom,
+                rotate: true,
+                touchRotate: touchRotateEnabled,
+                bearing: activeBearing,
+                rotateControl: false
+            }).setView([lat, lng], zoom);
 
             applyZoomControls();
             replaceTileLayer(activeMapStyle);
@@ -248,11 +250,11 @@
             }, 150);
         }
 
-        function ensureMap(lat, lng, zoom, bearing) {
+        function ensureMap(lat, lng, zoom, bearing, minZoom, maxZoom) {
             if (map !== null) {
                 return map;
             }
-            return createMap(lat, lng, zoom, bearing);
+            return createMap(lat, lng, zoom, bearing, minZoom, maxZoom);
         }
 
         function createTileLayer(style) {
@@ -701,8 +703,8 @@
         }
 
         window.LeaflektBridge = {
-            initMap: function (lat, lng, zoom, bearing) {
-                ensureMap(lat, lng, zoom, bearing);
+            initMap: function (lat, lng, zoom, bearing, minZoom, maxZoom) {
+                ensureMap(lat, lng, zoom, bearing, minZoom, maxZoom);
             },
             setZoomControlsEnabled: function (isEnabled) {
                 isZoomControlEnabled = Boolean(isEnabled);

@@ -19,41 +19,51 @@ package com.binayshaw7777.leaflekt.library
 import java.util.Objects
 
 /**
- * Default properties for the map. Uses OpenStreetMap as the base style.
- */
-val DefaultLeaflektMapProperties: LeaflektMapProperties = LeaflektMapProperties()
-
-/**
- * Data-like class for map-level properties that can be set on a [LeaflektMap].
+ * Configuration properties for the Leaflekt map.
  *
- * @param mapStyle The [LeaflektMapStyle] (tile provider) to use for the map. 
- *                 Ignored if [automaticThemeSync] is true.
- * @param automaticThemeSync Whether the map should automatically switch between light and dark 
- *                           tile providers based on the system theme.
+ * @property mapStyle The visual tile style to display.
+ * @param automaticThemeSync Whether the map should automatically switch between light and dark
+ * tile providers based on the system theme.
+ * @property minZoom Minimum allowed zoom level. Prevents zooming out to blank space.
+ * Defaults to 2.0 (shows most of the world, but prevents extreme zoom-out).
+ * @property maxZoom Maximum allowed zoom level. Prevents over-zooming beyond tile detail.
+ * Defaults to 19.0 (typical max for most tile providers).
  */
 class LeaflektMapProperties(
     val mapStyle: LeaflektMapStyle = LeaflektMapStyle.OpenStreetMap,
-    val automaticThemeSync: Boolean = false
+    val automaticThemeSync: Boolean = false,
+    val minZoom: Double = 2.0,
+    val maxZoom: Double = 19.0
 ) {
     override fun toString(): String = "LeaflektMapProperties(" +
             "mapStyle=$mapStyle, " +
-            "automaticThemeSync=$automaticThemeSync)"
+            "automaticThemeSync=$automaticThemeSync, " +
+            "minZoom=$minZoom, " +
+            "maxZoom=$maxZoom)"
 
     override fun equals(other: Any?): Boolean =
-        other is LeaflektMapProperties && 
+        other is LeaflektMapProperties &&
                 mapStyle == other.mapStyle &&
-                automaticThemeSync == other.automaticThemeSync
+                automaticThemeSync == other.automaticThemeSync &&
+                minZoom == other.minZoom &&
+                maxZoom == other.maxZoom
 
-    override fun hashCode(): Int = Objects.hash(mapStyle, automaticThemeSync)
+    override fun hashCode(): Int = Objects.hash(mapStyle, automaticThemeSync, minZoom, maxZoom)
 
     /**
      * Returns a copy of this [LeaflektMapProperties] with the specified properties updated.
      */
     fun copy(
         mapStyle: LeaflektMapStyle = this.mapStyle,
-        automaticThemeSync: Boolean = this.automaticThemeSync
+        automaticThemeSync: Boolean = this.automaticThemeSync,
+        minZoom: Double = this.minZoom,
+        maxZoom: Double = this.maxZoom
     ): LeaflektMapProperties = LeaflektMapProperties(
         mapStyle = mapStyle,
-        automaticThemeSync = automaticThemeSync
+        automaticThemeSync = automaticThemeSync,
+        minZoom = minZoom,
+        maxZoom = maxZoom
     )
 }
+
+val DefaultLeaflektMapProperties: LeaflektMapProperties = LeaflektMapProperties()

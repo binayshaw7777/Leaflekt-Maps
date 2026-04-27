@@ -197,9 +197,11 @@ class LeaflektController internal constructor() {
         initialZoom: Double,
         initialBearing: Double,
         isZoomControlEnabled: Boolean,
-        initialMapStyle: LeaflektMapStyle
+        initialMapStyle: LeaflektMapStyle,
+        minZoom: Double,
+        maxZoom: Double
     ) {
-        enqueueOrRun(LeaflektScriptBuilder.initMapScript(initialLat, initialLng, initialZoom, initialBearing))
+        enqueueOrRun(LeaflektScriptBuilder.initMapScript(initialLat, initialLng, initialZoom, initialBearing, minZoom, maxZoom))
         enqueueOrRun(LeaflektScriptBuilder.setZoomControlsEnabledScript(isZoomControlEnabled))
         enqueueOrRun(LeaflektScriptBuilder.setMapStyleScript(initialMapStyle))
     }

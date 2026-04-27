@@ -35,20 +35,22 @@ import kotlin.math.roundToInt
  *         )
  *     }
  * }
- * ```
- *
- * @param position The [LeaflektLatLng] where this overlay should be pinned.
- * @param anchorFractionX Horizontal anchor fraction. `0f` aligns the content start with the
- * map point, `0.5f` centers it, and `1f` aligns the content end with the map point.
- * @param anchorFractionY Vertical anchor fraction. `0f` aligns the content top with the map
- * point and `1f` aligns the content bottom with the map point.
- * @param content The @Composable content to render at this position.
+  * ```
+  *
+  * @param position The [LeaflektLatLng] where this overlay should be pinned.
+  * @param anchorFractionX Horizontal anchor fraction. `0f` aligns the content start with the
+  * map point, `0.5f` centers it, and `1f` aligns the content end with the map point.
+  * Default: `0.5f` (centered horizontally).
+  * @param anchorFractionY Vertical anchor fraction. `0f` aligns the content top with the map
+  * point and `1f` aligns the content bottom with the map point. Default: `1f` (bottom-aligned,
+  * typical for info windows above a marker).
+  * @param content The @Composable content to render at this position.
  */
 @Composable
 fun LeaflektOverlay(
     position: LeaflektLatLng,
-    anchorFractionX: Float = 0f,
-    anchorFractionY: Float = 0f,
+    anchorFractionX: Float = 0.5f,
+    anchorFractionY: Float = 1f,
     content: @Composable () -> Unit
 ) {
     val controller = LocalLeaflektController.current ?: return

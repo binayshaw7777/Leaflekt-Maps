@@ -14,7 +14,13 @@
 - [x] Expose public custom marker icon API in `:leaflekt`
 - [x] Expose public marker rotation support in `:leaflekt`
 - [x] Expose public custom info window support in `:leaflekt`
-- [ ] Fix pinch zoom snappiness by setting zoomSnap=false in Leaflet options
+- [x] Implement async marker icon loading with Coil (`rememberLeaflektAsyncMarkerIcon`)
+- [x] Add sample demonstrating async icon loading in sample app
+- [x] Add info window anchor customization and initial visibility control
+- [x] Add composable marker icon API (`iconContent`) with anchor control
+- [x] Add sample demonstrating composable marker icon in sample app
+- [x] Fix overscrolling by enforcing min/max zoom bounds (default 2–19)
+- [x] Confirm pinch zoom is smooth and continuous (zoomSnap: false)
 - [ ] Add journey playback controls on Directions screen
 - [ ] Add bike marker visibility toggle and playback state
 - [ ] Animate bike movement from route source to destination

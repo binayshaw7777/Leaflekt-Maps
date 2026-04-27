@@ -219,7 +219,9 @@ fun LeaflektMap(
             initialZoom = cameraPositionState.position.zoom,
             initialBearing = cameraPositionState.position.bearing,
             isZoomControlEnabled = uiSettings.zoomControlsEnabled,
-            initialMapStyle = properties.mapStyle
+            initialMapStyle = properties.mapStyle,
+            minZoom = properties.minZoom,
+            maxZoom = properties.maxZoom
         )
     }
 

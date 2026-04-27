@@ -10,7 +10,10 @@ import java.io.ByteArrayOutputStream
  * This mirrors the common "custom marker icon" use case from Google Maps style APIs while
  * remaining explicit about size and anchor behavior.
  *
- * ### Usage Example:
+ * For async image loading from URLs or resources, use [rememberLeaflektAsyncMarkerIcon]
+ * which returns a `State<LeaflektMarkerIcon?>` that updates when the image is ready.
+ *
+ * ### Usage Example (Sync):
  * ```kotlin
  * val bikeBitmap = BitmapFactory.decodeResource(
  *     LocalContext.current.resources,
@@ -26,6 +29,20 @@ import java.io.ByteArrayOutputStream
  *         anchorFractionX = 0.5f,
  *         anchorFractionY = 1f
  *     )
+ * )
+ * ```
+ *
+ * ### Usage Example (Async):
+ * ```kotlin
+ * val bikeIcon = rememberLeaflektAsyncMarkerIcon(
+ *     model = "https://example.com/bike.png",
+ *     widthPx = 72,
+ *     heightPx = 72
+ * )
+ *
+ * LeaflektMarker(
+ *     position = LeaflektLatLng(22.5726, 88.3639),
+ *     icon = bikeIcon.value
  * )
  * ```
  */
