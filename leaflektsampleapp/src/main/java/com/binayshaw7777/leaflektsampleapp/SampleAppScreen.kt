@@ -56,9 +56,14 @@ import com.binayshaw7777.leaflekt.library.LeaflektLatLng
 import com.binayshaw7777.leaflekt.library.LeaflektMap
 import com.binayshaw7777.leaflekt.library.LeaflektMapProperties
 import com.binayshaw7777.leaflekt.library.LeaflektMapStyle
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import com.binayshaw7777.leaflekt.library.LeaflektMapUiSettings
 import com.binayshaw7777.leaflekt.library.LeaflektMarker
+import com.binayshaw7777.leaflekt.library.LeaflektMarkerCluster
+import com.binayshaw7777.leaflekt.library.LeaflektOverlay
 import com.binayshaw7777.leaflekt.library.LeaflektPolyline
+import com.binayshaw7777.leaflekt.library.MarkerClusterOptions
 import com.binayshaw7777.leaflekt.library.rememberLeaflektAsyncMarkerIcon
 import com.binayshaw7777.leaflekt.library.rememberLeaflektCameraPositionState
 import com.binayshaw7777.leaflekt.library.rememberLeaflektMarkerState
@@ -66,6 +71,7 @@ import com.binayshaw7777.leaflekt.library.rememberLeaflektMarkerState
 @Composable
 internal fun SampleAppScreen(viewModel: OlaMapsViewModel = viewModel()) {
     var selectedTab by rememberSaveable { mutableStateOf(SampleTab.Explore) }
+    var selectedMapStyle by rememberSaveable { mutableStateOf(LeaflektMapStyle.CartoDark) }
 
     Scaffold(
         bottomBar = {
@@ -89,12 +95,23 @@ internal fun SampleAppScreen(viewModel: OlaMapsViewModel = viewModel()) {
         when (selectedTab) {
             SampleTab.Explore -> ExploreMapScreen(
                 modifier = Modifier.padding(innerPadding),
-                viewModel = viewModel
+                viewModel = viewModel,
+                selectedMapStyle = selectedMapStyle,
+                onMapStyleChange = { selectedMapStyle = it }
             )
 
             SampleTab.Directions -> DirectionsMapScreen(
                 modifier = Modifier.padding(innerPadding),
-                viewModel = viewModel
+                viewModel = viewModel,
+                selectedMapStyle = selectedMapStyle,
+                onMapStyleChange = { selectedMapStyle = it }
+            )
+
+            SampleTab.Clustering -> ClusteringMapScreen(
+                modifier = Modifier.padding(innerPadding),
+                viewModel = viewModel,
+                selectedMapStyle = selectedMapStyle,
+                onMapStyleChange = { selectedMapStyle = it }
             )
         }
     }
@@ -104,14 +121,14 @@ internal fun SampleAppScreen(viewModel: OlaMapsViewModel = viewModel()) {
 @Composable
 internal fun ExploreMapScreen(
     modifier: Modifier = Modifier,
-    viewModel: OlaMapsViewModel
+    viewModel: OlaMapsViewModel,
+    selectedMapStyle: LeaflektMapStyle,
+    onMapStyleChange: (LeaflektMapStyle) -> Unit
 ) {
     val searchQuery by viewModel.exploreSearchQuery.collectAsState()
     val predictions by viewModel.explorePredictions.collectAsState()
     val isLoading by viewModel.isExploreSearchLoading.collectAsState()
     val selectedPlace by viewModel.selectedExplorePlace.collectAsState()
-
-    var selectedMapStyle by rememberSaveable { mutableStateOf(LeaflektMapStyle.CartoDark) }
 
     var expanded by rememberSaveable { mutableStateOf(false) }
     var showMapStyleSheet by rememberSaveable { mutableStateOf(false) }
@@ -136,16 +153,6 @@ internal fun ExploreMapScreen(
          anchorFractionY = 0.5f
       )
 
-      // Demo: Composable marker icon (vector-based)
-      val demoComposableIcon: @Composable () -> Unit = {
-          Icon(
-              imageVector = Icons.Default.Star,
-              contentDescription = "Featured",
-              tint = MaterialTheme.colorScheme.secondary,
-              modifier = Modifier.size(32.dp)
-          )
-      }
-
       LaunchedEffect(selectedPlace) {
          val location = selectedPlace?.geometry?.location
          if (location == null) {
@@ -163,7 +170,7 @@ internal fun ExploreMapScreen(
         MapStyleSheet(
             selectedMapStyle = selectedMapStyle,
             onMapStyleSelected = {
-                selectedMapStyle = it
+                onMapStyleChange(it)
                 showMapStyleSheet = false
             },
             onDismissRequest = {
@@ -180,7 +187,7 @@ internal fun ExploreMapScreen(
             modifier = Modifier.fillMaxSize(),
             properties = LeaflektMapProperties(
                 mapStyle = selectedMapStyle,
-                automaticThemeSync = true
+                automaticThemeSync = false
             ),
             uiSettings = LeaflektMapUiSettings(
                 zoomControlsEnabled = false,
@@ -192,23 +199,25 @@ internal fun ExploreMapScreen(
                 mapController = controller
             }
              ) {
-                  explorePlace?.geometry?.location?.let { location ->
-                      LeaflektMarker(
-                          state = markerState.apply {
-                              position = LeaflektLatLng(location.lat, location.lng)
-                          },
-                          title = explorePlace.headline(),
-                          snippet = explorePlace.supportingLine(),
-                          infoWindow = {
-                              MarkerInfoWindowCard(
-                                  label = "Selected place",
-                                  headline = explorePlace.headline(),
-                                  supportingLine = explorePlace.supportingLine()
-                              )
-                          },
-                          isInfoWindowVisible = selectedPlace != null,
-                          id = "explore-selected-place"
-                      )
+                  if (explorePlace != null) {
+                      val location = explorePlace.geometry?.location
+                      if (location != null) {
+                          LeaflektMarker(
+                              state = markerState.apply {
+                                  position = LeaflektLatLng(location.lat, location.lng)
+                              },
+                              title = explorePlace.headline(),
+                              snippet = explorePlace.supportingLine(),
+                              infoWindow = {
+                                  MarkerInfoWindowCard(
+                                      label = "Selected place",
+                                      headline = explorePlace.headline(),
+                                      supportingLine = explorePlace.supportingLine()
+                                  )
+                              },
+                              id = "explore-selected-place"
+                          )
+                      }
                   }
 
                   // Demo: Composable marker icon (a star) at a fixed offset
@@ -299,11 +308,10 @@ internal fun ExploreMapScreen(
 @Composable
 internal fun DirectionsMapScreen(
     modifier: Modifier = Modifier,
-    viewModel: OlaMapsViewModel
+    viewModel: OlaMapsViewModel,
+    selectedMapStyle: LeaflektMapStyle,
+    onMapStyleChange: (LeaflektMapStyle) -> Unit
 ) {
-
-    var selectedMapStyle by rememberSaveable { mutableStateOf(LeaflektMapStyle.CartoDark) }
-
     val originPlace by viewModel.selectedOriginPlace.collectAsState()
     val destinationPlace by viewModel.selectedDestinationPlace.collectAsState()
     val activeRoute by viewModel.activeRoute.collectAsState()
@@ -315,6 +323,7 @@ internal fun DirectionsMapScreen(
     val activeDirectionsEndpoint by viewModel.activeDirectionsEndpoint.collectAsState()
 
     var showDirectionsSearchSheet by rememberSaveable { mutableStateOf(false) }
+    var showMapStyleSheet by rememberSaveable { mutableStateOf(false) }
     var selectedZoom by rememberSaveable { mutableFloatStateOf(12f) }
     var mapController by remember { mutableStateOf<LeaflektController?>(null) }
     val originMarkerState = rememberLeaflektMarkerState()
@@ -326,8 +335,8 @@ internal fun DirectionsMapScreen(
             zoom = 12.0
         )
     }
-    val originRotation =  0f // activeRoute?.points?.routeStartHeadingDegrees() ?: 0f
-    val destinationRotation =  0f // activeRoute?.points?.routeEndHeadingDegrees() ?: 0f
+    val originRotation =  0f
+    val destinationRotation =  0f
 
     LaunchedEffect(originPlace) {
         val location = originPlace?.geometry?.location ?: return@LaunchedEffect
@@ -374,6 +383,19 @@ internal fun DirectionsMapScreen(
         )
     }
 
+    if (showMapStyleSheet) {
+        MapStyleSheet(
+            selectedMapStyle = selectedMapStyle,
+            onMapStyleSelected = {
+                onMapStyleChange(it)
+                showMapStyleSheet = false
+            },
+            onDismissRequest = {
+                showMapStyleSheet = false
+            }
+        )
+    }
+
     if (showDirectionsSearchSheet) {
         PlacePickerSheet(
             title = when (activeDirectionsEndpoint) {
@@ -404,7 +426,7 @@ internal fun DirectionsMapScreen(
             modifier = Modifier.fillMaxSize(),
             properties = LeaflektMapProperties(
                 mapStyle = selectedMapStyle,
-                automaticThemeSync = true
+                automaticThemeSync = false
             ),
             uiSettings = LeaflektMapUiSettings(
                 zoomControlsEnabled = false,
@@ -440,7 +462,6 @@ internal fun DirectionsMapScreen(
                              supportingLine = null
                          )
                      },
-                     isInfoWindowVisible = true,
                      id = "directions-origin"
                  )
              }
@@ -460,29 +481,9 @@ internal fun DirectionsMapScreen(
                              supportingLine = null
                          )
                      },
-                     isInfoWindowVisible = true,
                      id = "directions-destination"
                  )
              }
-
-            destinationPlace?.geometry?.location?.let { location ->
-                LeaflektMarker(
-                    state = destinationMarkerState.apply {
-                        position = LeaflektLatLng(location.lat, location.lng)
-                    },
-                    title = "Destination",
-                    snippet = destinationPlace?.headline(),
-                    rotationDegrees = destinationRotation,
-                    infoWindow = {
-                        MarkerInfoWindowCard(
-                            label = "Destination",
-                            headline = destinationPlace?.headline() ?: "Destination",
-                            supportingLine = null //destinationPlace?.supportingLine()
-                        )
-                    },
-                    id = "directions-destination"
-                )
-            }
 
             // Async icon demo: bike marker at route midpoint
             activeRoute?.let { route ->
@@ -532,6 +533,20 @@ internal fun DirectionsMapScreen(
 
             Spacer(Modifier.weight(1f))
 
+            SmallFloatingActionButton(
+                onClick = { showMapStyleSheet = true },
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Layers,
+                    contentDescription = "Map layers"
+                )
+            }
+
             FloatingActionButton(
                 onClick = {
                     mapController?.centerOnCurrentLocation(
@@ -541,6 +556,189 @@ internal fun DirectionsMapScreen(
                 modifier = Modifier
                     .align(Alignment.End)
                     .navigationBarsPadding()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.LocationSearching,
+                    contentDescription = "Current location"
+                )
+            }
+        }
+    }
+}
+
+@Composable
+internal fun ClusteringMapScreen(
+    modifier: Modifier = Modifier,
+    viewModel: OlaMapsViewModel,
+    selectedMapStyle: LeaflektMapStyle,
+    onMapStyleChange: (LeaflektMapStyle) -> Unit
+) {
+    val searchQuery by viewModel.exploreSearchQuery.collectAsState()
+    val predictions by viewModel.explorePredictions.collectAsState()
+    val isLoading by viewModel.isExploreSearchLoading.collectAsState()
+    val selectedPlace by viewModel.selectedExplorePlace.collectAsState()
+
+    var showMapStyleSheet by rememberSaveable { mutableStateOf(false) }
+    var mapController by remember { mutableStateOf<LeaflektController?>(null) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
+    val cameraPositionState = rememberLeaflektCameraPositionState {
+        position = LeaflektCameraPosition(
+            target = LeaflektLatLng(22.5726, 88.3639),
+            zoom = 11.0
+        )
+    }
+    val markerState = rememberLeaflektMarkerState()
+
+    LaunchedEffect(selectedPlace) {
+        val location = selectedPlace?.geometry?.location
+        if (location == null) {
+            markerState.hideInfoWindow()
+            return@LaunchedEffect
+        }
+        cameraPositionState.position = LeaflektCameraPosition(
+            target = LeaflektLatLng(location.lat, location.lng),
+            zoom = 15.0
+        )
+        markerState.showInfoWindow()
+    }
+
+    // Generate some random points around Kolkata for clustering
+    val clusterPoints = remember {
+        List(100) {
+            LeaflektLatLng(
+                latitude = 22.5726 + (Math.random() - 0.5) * 0.2,
+                longitude = 88.3639 + (Math.random() - 0.5) * 0.2
+            )
+        }
+    }
+
+    if (showMapStyleSheet) {
+        MapStyleSheet(
+            selectedMapStyle = selectedMapStyle,
+            onMapStyleSelected = {
+                onMapStyleChange(it)
+                showMapStyleSheet = false
+            },
+            onDismissRequest = {
+                showMapStyleSheet = false
+            }
+        )
+    }
+
+    Box(modifier = modifier.fillMaxSize()) {
+        LeaflektMap(
+            modifier = Modifier.fillMaxSize(),
+            properties = LeaflektMapProperties(
+                mapStyle = selectedMapStyle,
+                automaticThemeSync = false
+            ),
+            uiSettings = LeaflektMapUiSettings(
+                zoomControlsEnabled = false,
+                rotateGesturesEnabled = true,
+                showCurrentLocation = true
+            ),
+            cameraPositionState = cameraPositionState,
+            onReady = { controller ->
+                mapController = controller
+            }
+        ) {
+            if (selectedPlace != null) {
+                val location = selectedPlace?.geometry?.location
+                if (location != null) {
+                    LeaflektMarker(
+                        state = markerState.apply {
+                            position = LeaflektLatLng(location.lat, location.lng)
+                        },
+                        title = selectedPlace?.headline(),
+                        snippet = selectedPlace?.supportingLine(),
+                        infoWindow = {
+                            MarkerInfoWindowCard(
+                                label = "Search result",
+                                headline = selectedPlace?.headline() ?: "",
+                                supportingLine = selectedPlace?.supportingLine()
+                            )
+                        },
+                        id = "clustering-selected-place"
+                    )
+                }
+            }
+
+            LeaflektMarkerCluster(
+                options = MarkerClusterOptions(
+                    maxClusterRadius = 80,
+                    showCoverageOnHover = false
+                ),
+                onClusterClick = { lat, lng, count ->
+                    // Optional: handle cluster click
+                }
+            ) {
+                clusterPoints.forEachIndexed { index, point ->
+                    LeaflektMarker(
+                        position = point,
+                        title = "Marker #$index",
+                        snippet = "Clustered point"
+                    )
+                }
+            }
+        }
+
+        Column(Modifier.fillMaxSize()) {
+            ExploreSearchBar(
+                expanded = expanded,
+                searchQuery = searchQuery,
+                onSearchQueryChange = viewModel::onExploreSearchQueryChange,
+                onExpandedChange = { expanded = it },
+                isLoading = isLoading,
+                onClear = viewModel::clearExploreSearch,
+                predictions = predictions,
+                onSearchPrediction = { prediction ->
+                    viewModel.selectExplorePrediction(prediction)
+                    expanded = false
+                }
+            )
+
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(top = 8.dp),
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f),
+                tonalElevation = 4.dp
+            ) {
+                Text(
+                    text = "Marker Clustering: 100 points",
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
+
+            Spacer(Modifier.weight(1f))
+
+            SmallFloatingActionButton(
+                onClick = { showMapStyleSheet = true },
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Layers,
+                    contentDescription = "Map layers"
+                )
+            }
+
+            FloatingActionButton(
+                onClick = {
+                    mapController?.centerOnCurrentLocation(
+                        zoom = 15.0
+                    )
+                },
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .navigationBarsPadding()
+                    .padding(16.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.LocationSearching,
@@ -770,7 +968,8 @@ private enum class SampleTab(
     val icon: androidx.compose.ui.graphics.vector.ImageVector
 ) {
     Explore(label = "Explore", icon = Icons.Default.Search),
-    Directions(label = "Directions", icon = Icons.Default.LocationSearching)
+    Directions(label = "Directions", icon = Icons.Default.LocationSearching),
+    Clustering(label = "Clustering", icon = Icons.Default.Layers)
 }
 
 private fun List<LeaflektLatLng>.routeStartHeadingDegrees(): Float? {

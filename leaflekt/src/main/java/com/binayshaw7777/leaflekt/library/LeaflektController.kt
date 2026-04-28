@@ -11,6 +11,7 @@ class LeaflektController internal constructor() {
     private var webView: WebView? = null
     private val pendingScripts = ConcurrentLinkedQueue<String>()
     private val markerClickHandlers = mutableMapOf<String, () -> Boolean>()
+    private val clusterClickHandlers = mutableMapOf<String, (lat: Double, lng: Double, count: Int) -> Unit>()
     private val polylineClickHandlers = mutableMapOf<String, () -> Unit>()
     private val polygonClickHandlers = mutableMapOf<String, () -> Unit>()
     private val circleClickHandlers = mutableMapOf<String, () -> Unit>()
@@ -95,12 +96,12 @@ class LeaflektController internal constructor() {
         enqueueOrRun(script)
     }
 
-    internal fun addMarker(marker: LeaflektMarkerInfo) {
-        enqueueOrRun(LeaflektScriptBuilder.addMarkersScript(listOf(marker)))
+    internal fun addMarker(marker: LeaflektMarkerInfo, clusterId: String? = null) {
+        enqueueOrRun(LeaflektScriptBuilder.addMarkersScript(listOf(marker), clusterId))
     }
 
-    internal fun addMarkers(markers: List<LeaflektMarkerInfo>) {
-        enqueueOrRun(LeaflektScriptBuilder.addMarkersScript(markers))
+    internal fun addMarkers(markers: List<LeaflektMarkerInfo>, clusterId: String? = null) {
+        enqueueOrRun(LeaflektScriptBuilder.addMarkersScript(markers, clusterId))
     }
 
     internal fun updateMarker(marker: LeaflektMarkerInfo) {
@@ -113,6 +114,14 @@ class LeaflektController internal constructor() {
 
     fun clearMarkers() {
         enqueueOrRun(LeaflektScriptBuilder.clearMarkersScript())
+    }
+
+    internal fun createMarkerClusterGroup(clusterId: String, options: MarkerClusterOptions) {
+        enqueueOrRun(LeaflektScriptBuilder.createMarkerClusterGroupScript(clusterId, options))
+    }
+
+    internal fun removeMarkerClusterGroup(clusterId: String) {
+        enqueueOrRun(LeaflektScriptBuilder.removeMarkerClusterGroupScript(clusterId))
     }
 
     internal fun showMarkerInfoWindow(markerId: String) {
@@ -129,6 +138,14 @@ class LeaflektController internal constructor() {
 
     internal fun unregisterMarkerClick(markerId: String) {
         markerClickHandlers.remove(markerId)
+    }
+
+    internal fun registerClusterClick(clusterId: String, onClick: (lat: Double, lng: Double, count: Int) -> Unit) {
+        clusterClickHandlers[clusterId] = onClick
+    }
+
+    internal fun unregisterClusterClick(clusterId: String) {
+        clusterClickHandlers.remove(clusterId)
     }
 
     internal fun addPolyline(polyline: LeaflektPolylineInfo) {
@@ -197,13 +214,11 @@ class LeaflektController internal constructor() {
         initialZoom: Double,
         initialBearing: Double,
         isZoomControlEnabled: Boolean,
-        initialMapStyle: LeaflektMapStyle,
         minZoom: Double,
         maxZoom: Double
     ) {
         enqueueOrRun(LeaflektScriptBuilder.initMapScript(initialLat, initialLng, initialZoom, initialBearing, minZoom, maxZoom))
         enqueueOrRun(LeaflektScriptBuilder.setZoomControlsEnabledScript(isZoomControlEnabled))
-        enqueueOrRun(LeaflektScriptBuilder.setMapStyleScript(initialMapStyle))
     }
 
     internal fun registerCurrentLocationCenteringAction(action: (Double) -> Unit) {
@@ -230,6 +245,10 @@ class LeaflektController internal constructor() {
 
     internal fun notifyMarkerClick(markerId: String): Boolean {
         return markerClickHandlers[markerId]?.invoke() ?: false
+    }
+
+    internal fun notifyClusterClick(clusterId: String, lat: Double, lng: Double, count: Int) {
+        clusterClickHandlers[clusterId]?.invoke(lat, lng, count)
     }
 
     internal fun notifyPolylineClick(polylineId: String) {

@@ -1,5 +1,6 @@
 package com.binayshaw7777.leaflekt.library
 
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 internal object LeaflektMapJson {
@@ -18,12 +19,7 @@ internal object LeaflektMapJson {
     }
 
     fun encodeString(value: String): String {
-        val escaped = value
-            .replace("\\", "\\\\")
-            .replace("\"", "\\\"")
-            .replace("\n", "\\n")
-            .replace("\r", "\\r")
-        return "\"$escaped\""
+        return json.encodeToString(value)
     }
 
     fun encodeNullableString(value: String?): String {
@@ -40,5 +36,17 @@ internal object LeaflektMapJson {
 
     fun encodeLatLngHoles(holes: List<List<LeaflektLatLng>>): String {
         return holes.joinToString(prefix = "[", postfix = "]") { encodeLatLngList(it) }
+    }
+
+    fun encodeMarkerClusterOptions(options: MarkerClusterOptions): String {
+        return """
+            {
+                "showCoverageOnHover": ${options.showCoverageOnHover},
+                "zoomToBoundsOnClick": ${options.zoomToBoundsOnClick},
+                "spiderfyOnMaxZoom": ${options.spiderfyOnMaxZoom},
+                "disableClusteringAtZoom": ${options.disableClusteringAtZoom ?: "null"},
+                "maxClusterRadius": ${options.maxClusterRadius}
+            }
+        """.trimIndent()
     }
 }

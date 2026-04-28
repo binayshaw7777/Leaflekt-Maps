@@ -16,11 +16,14 @@
 
 package com.binayshaw7777.leaflekt.library
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Modifier
 import java.util.UUID
 
 /**
@@ -78,6 +81,7 @@ import java.util.UUID
  * @param id Unique identifier for the marker. If not provided, a random UUID will be generated.
  * @param infoWindow Optional Compose content anchored above the marker. When supplied, the
  * default Leaflet popup is suppressed.
+ * @param isInfoWindowVisible Initial visibility state for the info window.
  * @param onClick A lambda invoked when the marker is clicked. Return `true` to consume the click
  * and keep Leaflekt from opening the marker info window automatically.
  */
@@ -93,9 +97,11 @@ fun LeaflektMarker(
     alpha: Float = 1.0f,
     id: String = remember { UUID.randomUUID().toString() },
     infoWindow: (@Composable () -> Unit)? = null,
+    isInfoWindowVisible: Boolean = false,
     onClick: () -> Boolean = { false }
 ) {
     val controller = LocalLeaflektController.current ?: return
+    val clusterId = LocalLeaflektMarkerClusterId.current
     val markerIconInfo = icon?.toMarkerIconInfo()
     val popupTitle = if (infoWindow == null) title else null
     val popupSnippet = if (infoWindow == null) snippet else null
@@ -122,8 +128,12 @@ fun LeaflektMarker(
             rotationDegrees = rotationDegrees
         )
 
-        controller.addMarker(info)
+        controller.addMarker(info, clusterId)
         controller.registerMarkerClick(id, markerClickHandler)
+
+        if (isInfoWindowVisible) {
+            state.showInfoWindow()
+        }
 
         onDispose {
             controller.unregisterMarkerClick(id)
@@ -180,30 +190,17 @@ fun LeaflektMarker(
  * This is a convenience overload that takes a [LeaflektLatLng] instead of a [LeaflektMarkerState].
  * Use this when you don't need to programmatically move the marker after it's been created.
  *
- * ### Usage Example:
- * ```kotlin
- * LeaflektMarker(
- *     position = LeaflektLatLng(28.6139, 77.2090),
- *     title = "New Delhi",
- *     snippet = "Tap for details",
- *     rotationDegrees = 12f
- * )
- * ```
- *
  * @param position The position of the marker.
- * @param title Optional title shown in the default Leaflet popup. Ignored when [infoWindow] is
- * provided.
- * @param snippet Optional secondary text shown in the default Leaflet popup. Ignored when
- * [infoWindow] is provided.
+ * @param title Optional title shown in the default Leaflet popup.
+ * @param snippet Optional secondary text shown in the default Leaflet popup.
  * @param icon Optional custom marker bitmap and anchor configuration.
  * @param rotationDegrees Optional clockwise marker rotation in degrees.
  * @param visible Whether the marker is currently visible on the map.
  * @param alpha The opacity of the marker (0.0 to 1.0). Default is 1.0.
- * @param id Unique identifier for the marker. If not provided, a random UUID will be generated.
- * @param infoWindow Optional Compose content anchored above the marker. When supplied, the
- * default Leaflet popup is suppressed.
- * @param onClick A lambda invoked when the marker is clicked. Return `true` to consume the click
- * and keep Leaflekt from opening the marker info window automatically.
+ * @param id Unique identifier for the marker.
+ * @param infoWindow Optional Compose content anchored above the marker.
+ * @param isInfoWindowVisible Initial visibility state for the info window.
+ * @param onClick A lambda invoked when the marker is clicked.
  */
 @Composable
 @LeaflektMapComposable
@@ -217,6 +214,7 @@ fun LeaflektMarker(
     alpha: Float = 1.0f,
     id: String = remember { UUID.randomUUID().toString() },
     infoWindow: (@Composable () -> Unit)? = null,
+    isInfoWindowVisible: Boolean = false,
     onClick: () -> Boolean = { false }
 ) {
     LeaflektMarker(
@@ -229,6 +227,47 @@ fun LeaflektMarker(
         alpha = alpha,
         id = id,
         infoWindow = infoWindow,
+        isInfoWindowVisible = isInfoWindowVisible,
         onClick = onClick
     )
+}
+
+/**
+ * A declarative marker with a custom @Composable icon.
+ *
+ * This overload uses [LeaflektOverlay] internally to render any standard Compose UI at a map
+ * coordinate.
+ *
+ * @param position The position of the marker.
+ * @param iconContent The Compose content to render as the marker icon.
+ * @param iconAnchorX Horizontal anchor for the custom icon. Default is 0.5f (centered).
+ * @param iconAnchorY Vertical anchor for the custom icon. Default is 0.5f (centered).
+ * @param id Unique identifier for the marker.
+ * @param onClick A lambda invoked when the custom icon is clicked.
+ */
+@Composable
+@LeaflektMapComposable
+fun LeaflektMarker(
+    position: LeaflektLatLng,
+    iconContent: @Composable () -> Unit,
+    iconAnchorX: Float = 0.5f,
+    iconAnchorY: Float = 0.5f,
+    id: String = remember { UUID.randomUUID().toString() },
+    onClick: () -> Unit = {}
+) {
+    LeaflektOverlay(
+        position = position,
+        anchorFractionX = iconAnchorX,
+        anchorFractionY = iconAnchorY
+    ) {
+        Box(
+            modifier = Modifier.clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() },
+                onClick = onClick
+            )
+        ) {
+            iconContent()
+        }
+    }
 }

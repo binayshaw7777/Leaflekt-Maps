@@ -6,6 +6,8 @@
     <title>LeafleKT Map</title>
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="/assets/leaflet/leaflet.css" />
+    <link rel="stylesheet" href="/assets/leaflet/MarkerCluster.css" />
+    <link rel="stylesheet" href="/assets/leaflet/MarkerCluster.Default.css" />
     <style>
         html,
         body {
@@ -26,6 +28,7 @@
 <div id="map"></div>
 <script src="/assets/leaflet/leaflet.js"></script>
 <script src="/assets/leaflet/leaflet-rotate.min.js"></script>
+<script src="/assets/leaflet/leaflet.markercluster.js"></script>
 <script src="/assets/leaflet/india-boundaries.js"></script>
 <script>
     (function () {
@@ -53,6 +56,7 @@
         let vectorDrawSequence = 0;
         let touchRotateEnabled = false;
         const markerLayers = new Map();
+        const clusterGroups = new Map();
         const polylineLayers = new Map();
         const polygonLayers = new Map();
         const circleLayers = new Map();
@@ -136,6 +140,13 @@
             const androidBridge = getAndroidBridge();
             if (androidBridge && typeof androidBridge.onMarkerClick === "function") {
                 androidBridge.onMarkerClick(markerId);
+            }
+        }
+
+        function notifyClusterClick(clusterId, lat, lng, count) {
+            const androidBridge = getAndroidBridge();
+            if (androidBridge && typeof androidBridge.onClusterClick === "function") {
+                androidBridge.onClusterClick(clusterId, lat, lng, count);
             }
         }
 
@@ -361,7 +372,7 @@
             markerLayer._icon.style.transform = baseTransform + " rotateZ(" + markerRotation + "deg)";
         }
 
-        function addMarkerLayer(marker) {
+        function addMarkerLayer(marker, clusterId) {
             const activeMap = ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM, DEFAULT_BEARING);
             const markerId = marker.id || nextMarkerId();
             const markerLayer = L.marker(
@@ -371,7 +382,7 @@
                     rotationAngle: Number(marker.rotationDegrees || 0),
                     rotationOrigin: createMarkerRotationOrigin(marker)
                 }
-            ).addTo(activeMap);
+            );
 
             const popupContent = buildMarkerPopupContent(marker);
             if (popupContent) {
@@ -382,9 +393,46 @@
                 notifyMarkerClick(markerId);
             });
 
+            if (clusterId && clusterGroups.has(clusterId)) {
+                clusterGroups.get(clusterId).addLayer(markerLayer);
+            } else {
+                markerLayer.addTo(activeMap);
+            }
+
             applyMarkerRotation(markerLayer);
-            markerLayers.set(markerId, markerLayer);
+            markerLayers.set(markerId, { layer: markerLayer, clusterId: clusterId });
             return markerId;
+        }
+
+        function createMarkerClusterGroup(clusterId, options) {
+            const activeMap = ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM, DEFAULT_BEARING);
+            const clusterGroup = L.markerClusterGroup({
+                showCoverageOnHover: options.showCoverageOnHover ?? true,
+                zoomToBoundsOnClick: options.zoomToBoundsOnClick ?? true,
+                spiderfyOnMaxZoom: options.spiderfyOnMaxZoom ?? true,
+                disableClusteringAtZoom: options.disableClusteringAtZoom || null,
+                maxClusterRadius: options.maxClusterRadius || 80,
+                chunkedLoading: true
+            });
+
+            clusterGroup.on("clusterclick", function (a) {
+                const latlng = a.latlng;
+                notifyClusterClick(clusterId, latlng.lat, latlng.lng, a.layer.getChildCount());
+            });
+
+            clusterGroup.addTo(activeMap);
+            clusterGroups.set(clusterId, clusterGroup);
+        }
+
+        function removeMarkerClusterGroup(clusterId) {
+            if (map === null || !clusterId) {
+                return;
+            }
+            const clusterGroup = clusterGroups.get(clusterId);
+            if (clusterGroup) {
+                map.removeLayer(clusterGroup);
+                clusterGroups.delete(clusterId);
+            }
         }
 
         function toLeafletLatLng(point) {
@@ -702,6 +750,24 @@
             }
         }
 
+        function removeMarkerLayer(markerId) {
+            if (map === null || !markerId) {
+                return;
+            }
+            const entry = markerLayers.get(markerId);
+            if (entry) {
+                const markerLayer = entry.layer;
+                const clusterId = entry.clusterId;
+
+                if (clusterId && clusterGroups.has(clusterId)) {
+                    clusterGroups.get(clusterId).removeLayer(markerLayer);
+                } else {
+                    map.removeLayer(markerLayer);
+                }
+                markerLayers.delete(markerId);
+            }
+        }
+
         window.LeaflektBridge = {
             initMap: function (lat, lng, zoom, bearing, minZoom, maxZoom) {
                 ensureMap(lat, lng, zoom, bearing, minZoom, maxZoom);
@@ -755,10 +821,10 @@
                     subdomains: style.subdomains || null
                 });
             },
-            addMarker: function (lat, lng, title) {
-                addMarkerLayer({ lat: lat, lng: lng, title: title || null });
+            addMarker: function (lat, lng, title, clusterId) {
+                addMarkerLayer({ lat: lat, lng: lng, title: title || null }, clusterId);
             },
-            addMarkers: function (list) {
+            addMarkers: function (list, clusterId) {
                 if (!Array.isArray(list) || list.length === 0) {
                     return;
                 }
@@ -769,26 +835,25 @@
                         id: item.id || null,
                         lat: Number(item.lat),
                         lng: Number(item.lng),
-                        title: item.title || null
-                    });
+                        title: item.title || null,
+                        snippet: item.snippet || null,
+                        icon: item.icon || null,
+                        rotationDegrees: Number(item.rotationDegrees || 0),
+                        visible: item.visible ?? true,
+                        alpha: Number(item.alpha ?? 1.0)
+                    }, clusterId);
                 });
             },
             removeMarker: function (markerId) {
-                if (map === null || !markerId) {
-                    return;
-                }
-                const markerLayer = markerLayers.get(markerId);
-                if (markerLayer) {
-                    map.removeLayer(markerLayer);
-                    markerLayers.delete(markerId);
-                }
+                removeMarkerLayer(markerId);
             },
             updateMarker: function (marker) {
                 if (map === null || !marker || !marker.id) {
                     return;
                 }
-                const markerLayer = markerLayers.get(marker.id);
-                if (markerLayer) {
+                const entry = markerLayers.get(marker.id);
+                if (entry) {
+                    const markerLayer = entry.layer;
                     markerLayer.setLatLng([marker.lat, marker.lng]);
                     markerLayer.options.rotationAngle = Number(marker.rotationDegrees || 0);
                     markerLayer.options.rotationOrigin = createMarkerRotationOrigin(marker);
@@ -808,6 +873,12 @@
                     markerLayer.setOpacity(marker.visible ? marker.alpha : 0);
                     applyMarkerRotation(markerLayer);
                 }
+            },
+            createMarkerClusterGroup: function (clusterId, options) {
+                createMarkerClusterGroup(clusterId, options || {});
+            },
+            removeMarkerClusterGroup: function (clusterId) {
+                removeMarkerClusterGroup(clusterId);
             },
             showMarkerInfoWindow: function (markerId) {
                 const markerLayer = markerLayers.get(markerId);

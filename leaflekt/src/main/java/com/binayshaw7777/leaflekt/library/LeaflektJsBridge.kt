@@ -9,6 +9,7 @@ internal class LeaflektJsBridge(
     private val onCameraMove: (Double, Double, Double, Double) -> Unit,
     private val onCameraIdle: (Double, Double, Double, Double) -> Unit,
     private val onMarkerClick: (String) -> Unit,
+    private val onClusterClick: (String, Double, Double, Int) -> Unit,
     private val onPolylineClick: (String) -> Unit,
     private val onPolygonClick: (String) -> Unit,
     private val onCircleClick: (String) -> Unit,
@@ -47,6 +48,11 @@ internal class LeaflektJsBridge(
     @JavascriptInterface
     fun onMarkerClick(markerId: String) {
         onMarkerClick.invoke(markerId)
+    }
+
+    @JavascriptInterface
+    fun onClusterClick(clusterId: String, lat: Double, lng: Double, count: Int) {
+        onClusterClick.invoke(clusterId, lat, lng, count)
     }
 
     @JavascriptInterface

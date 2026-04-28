@@ -38,6 +38,11 @@ import androidx.compose.ui.Modifier
 val LocalLeaflektController = compositionLocalOf<LeaflektController?> { null }
 
 /**
+ * CompositionLocal used to provide the cluster ID to markers inside a [LeaflektMarkerCluster].
+ */
+val LocalLeaflektMarkerClusterId = compositionLocalOf<String?> { null }
+
+/**
  * CompositionLocal used to provide the [LeaflektCameraPositionState] to map children.
  */
 internal val LocalLeaflektCameraPositionState = staticCompositionLocalOf { LeaflektCameraPositionState() }
@@ -189,6 +194,9 @@ fun LeaflektMap(
                 controller.notifyMarkerClick(markerId)
                 currentOnMarkerClick?.invoke(markerId)
             },
+            onClusterClick = { clusterId, lat, lng, count ->
+                controller.notifyClusterClick(clusterId, lat, lng, count)
+            },
             onPolylineClick = { polylineId ->
                 controller.notifyPolylineClick(polylineId)
             },
@@ -219,7 +227,6 @@ fun LeaflektMap(
             initialZoom = cameraPositionState.position.zoom,
             initialBearing = cameraPositionState.position.bearing,
             isZoomControlEnabled = uiSettings.zoomControlsEnabled,
-            initialMapStyle = properties.mapStyle,
             minZoom = properties.minZoom,
             maxZoom = properties.maxZoom
         )

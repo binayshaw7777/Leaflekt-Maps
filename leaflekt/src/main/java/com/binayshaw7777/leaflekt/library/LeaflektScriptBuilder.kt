@@ -39,9 +39,10 @@ internal object LeaflektScriptBuilder {
         return "window.LeaflektBridge.setBearing($bearing);"
     }
 
-    fun addMarkersScript(markers: List<LeaflektMarkerInfo>): String {
+    fun addMarkersScript(markers: List<LeaflektMarkerInfo>, clusterId: String? = null): String {
         val payload = markers.joinToString(prefix = "[", postfix = "]") { it.toJson() }
-        return "window.LeaflektBridge.addMarkers($payload);"
+        val clusterArg = clusterId?.let { LeaflektMapJson.encodeString(it) } ?: "null"
+        return "window.LeaflektBridge.addMarkers($payload, $clusterArg);"
     }
 
     fun updateMarkerScript(marker: LeaflektMarkerInfo): String {
@@ -54,6 +55,14 @@ internal object LeaflektScriptBuilder {
 
     fun clearMarkersScript(): String {
         return "window.LeaflektBridge.clearMarkers();"
+    }
+
+    fun createMarkerClusterGroupScript(clusterId: String, options: MarkerClusterOptions): String {
+        return "window.LeaflektBridge.createMarkerClusterGroup(${LeaflektMapJson.encodeString(clusterId)}, ${LeaflektMapJson.encodeMarkerClusterOptions(options)});"
+    }
+
+    fun removeMarkerClusterGroupScript(clusterId: String): String {
+        return "window.LeaflektBridge.removeMarkerClusterGroup(${LeaflektMapJson.encodeString(clusterId)});"
     }
 
     fun addPolylineScript(polyline: LeaflektPolylineInfo): String {
@@ -126,7 +135,7 @@ internal object LeaflektScriptBuilder {
             {
                 "id": ${LeaflektMapJson.encodeString(id)},
                 "tileUrlTemplate": ${LeaflektMapJson.encodeString(url)},
-                attributionHtml: "$attribution",
+                "attributionHtml": ${LeaflektMapJson.encodeString(attribution)},
                 "maxZoom": $maxZoom,
                 "subdomains": $subdomainsJson
             }
