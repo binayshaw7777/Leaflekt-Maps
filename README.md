@@ -2,14 +2,8 @@
 
 LeafleKT is a Compose-first Android wrapper around Leaflet.js. It uses `WebView` plus a JavaScript bridge, but the public API is Kotlin-first and state-driven.
 
-<!-- MEDIA SUGGESTION: HERO POSTER/VIDEO
-     Suggestion: A high-quality wide poster (16:9) or a short looping video showing:
-     - Map style switching
-     - A car marker moving with rotation
-     - Smooth pinch-to-zoom
-     - A dark/light mode transition
--->
-<img src="https://github.com/user-attachments/assets/ac67880c-9258-4b8b-be38-10ffd0a3788c" style="max-width:100%; height:auto;" />
+<img src="https://github.com/user-attachments/assets/ac67880c-9258-4b8b-be38-10ffd0a3788c"
+     style="max-width:100%; height:auto;" />
 
 [![JitPack](https://jitpack.io/v/binayshaw7777/LeafleKT-Maps.svg)](https://jitpack.io/#binayshaw7777/LeafleKT-Maps)
 [![Android API](https://img.shields.io/badge/API-21%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=21)
