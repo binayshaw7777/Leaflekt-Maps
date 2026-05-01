@@ -55,7 +55,7 @@ class OlaMapsViewModel : ViewModel() {
         .distinctUntilChanged()
         .flatMapLatest { query ->
             if (query.length <= 2) {
-                flow { emit(emptyList<Prediction>()) }
+                flow { emit(emptyList()) }
             } else {
                 flow {
                     isDirectionsSearchLoading.value = true

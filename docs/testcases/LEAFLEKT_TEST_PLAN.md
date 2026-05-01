@@ -145,7 +145,7 @@ This document outlines the test cases for LeafleKT, a Compose-first Android wrap
 ### 6. Marker Icon Tests
 #### Normal Cases
 - Synchronous bitmap marker icon loads correctly
-- Asynchronous marker icon loading via Coil works
+- App-provided asynchronous marker icon loading works
 - Marker icon anchoring works correctly
 - Marker icon size scaling works
 - Marker icon tinting works
@@ -157,13 +157,13 @@ This document outlines the test cases for LeafleKT, a Compose-first Android wrap
 - Marker icon with zero size
 - Marker icon with extremely large size
 - Marker icon with fractional anchor values (0.0, 1.0)
-- Marker icon loaded from invalid URL (async)
+- Marker icon loaded from invalid remote source
 - Marker icon loaded from invalid resource ID
 - Marker icon with null bitmap (sync)
 - Rapid icon changes during loading
 
 #### Exceptional Cases
-- Marker icon with null model (async)
+- Marker icon with null app-provided model
 - Marker icon loading failure (network error, invalid format)
 - Marker icon memory leak during rapid changes
 - Marker icon with corrupted image data

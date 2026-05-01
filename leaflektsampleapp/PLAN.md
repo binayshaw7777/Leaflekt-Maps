@@ -14,8 +14,8 @@
 - [x] Expose public custom marker icon API in `:leaflekt`
 - [x] Expose public marker rotation support in `:leaflekt`
 - [x] Expose public custom info window support in `:leaflekt`
-- [x] Implement async marker icon loading with Coil (`rememberLeaflektAsyncMarkerIcon`)
-- [x] Add sample demonstrating async icon loading in sample app
+- [x] Implement sample-only async marker icon loading with Coil
+- [x] Add sample demonstrating app-level remote icon loading
 - [x] Add info window anchor customization and initial visibility control
 - [x] Add composable marker icon API (`iconContent`) with anchor control
 - [x] Add sample demonstrating composable marker icon in sample app

@@ -1,6 +1,6 @@
 package com.binayshaw7777.leaflektsampleapp
 
-import com.binayshaw7777.leaflekt.library.LeaflektLatLng
+import com.binayshaw7777.leaflekt.library.camera.LeaflektLatLng
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonArray

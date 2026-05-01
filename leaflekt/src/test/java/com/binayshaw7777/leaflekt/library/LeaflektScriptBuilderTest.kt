@@ -17,6 +17,7 @@
 package com.binayshaw7777.leaflekt.library
 
 import androidx.compose.ui.graphics.Color
+import com.binayshaw7777.leaflekt.library.camera.LeaflektLatLng
 import org.junit.Assert.assertTrue
 import org.junit.Test
 

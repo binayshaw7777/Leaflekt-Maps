@@ -50,23 +50,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.binayshaw7777.leaflekt.library.LeaflektCameraPosition
-import com.binayshaw7777.leaflekt.library.LeaflektController
-import com.binayshaw7777.leaflekt.library.LeaflektLatLng
-import com.binayshaw7777.leaflekt.library.LeaflektMap
-import com.binayshaw7777.leaflekt.library.LeaflektMapProperties
-import com.binayshaw7777.leaflekt.library.LeaflektMapStyle
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import com.binayshaw7777.leaflekt.library.LeaflektMapUiSettings
-import com.binayshaw7777.leaflekt.library.LeaflektMarker
-import com.binayshaw7777.leaflekt.library.LeaflektMarkerCluster
-import com.binayshaw7777.leaflekt.library.LeaflektOverlay
-import com.binayshaw7777.leaflekt.library.LeaflektPolyline
-import com.binayshaw7777.leaflekt.library.MarkerClusterOptions
-import com.binayshaw7777.leaflekt.library.rememberLeaflektAsyncMarkerIcon
-import com.binayshaw7777.leaflekt.library.rememberLeaflektCameraPositionState
-import com.binayshaw7777.leaflekt.library.rememberLeaflektMarkerState
+import com.binayshaw7777.leaflekt.library.camera.LeaflektCameraPosition
+import com.binayshaw7777.leaflekt.library.camera.LeaflektLatLng
+import com.binayshaw7777.leaflekt.library.camera.rememberLeaflektCameraPositionState
+import com.binayshaw7777.leaflekt.library.cluster.LeaflektMarkerCluster
+import com.binayshaw7777.leaflekt.library.cluster.MarkerClusterOptions
+import com.binayshaw7777.leaflekt.library.controller.LeaflektController
+import com.binayshaw7777.leaflekt.library.map.LeaflektMap
+import com.binayshaw7777.leaflekt.library.map.LeaflektMapProperties
+import com.binayshaw7777.leaflekt.library.map.LeaflektMapStyle
+import com.binayshaw7777.leaflekt.library.map.LeaflektMapUiSettings
+import com.binayshaw7777.leaflekt.library.marker.LeaflektMarker
+import com.binayshaw7777.leaflekt.library.marker.rememberLeaflektMarkerState
+import com.binayshaw7777.leaflekt.library.polyline.LeaflektPolyline
 
 @Composable
 internal fun SampleAppScreen(viewModel: OlaMapsViewModel = viewModel()) {
@@ -135,6 +131,7 @@ internal fun ExploreMapScreen(
     var selectedZoom by rememberSaveable { mutableFloatStateOf(12f) }
     var mapController by remember { mutableStateOf<LeaflektController?>(null) }
     val explorePlace = selectedPlace
+    val selectedPlaceLocation = explorePlace?.geometry?.location
 
      val cameraPositionState = rememberLeaflektCameraPositionState {
          position = LeaflektCameraPosition(
@@ -143,9 +140,15 @@ internal fun ExploreMapScreen(
          )
      }
      val markerState = rememberLeaflektMarkerState()
+     val featuredMarkerState = rememberLeaflektMarkerState(
+         position = LeaflektLatLng(22.5726 + 0.01, 88.3639 + 0.01)
+     )
+     val historicalSiteMarkerState = rememberLeaflektMarkerState(
+         position = LeaflektLatLng(22.5448, 88.3426)
+     )
 
      // Demo: Async marker icon loaded from a remote URL
-     val demoAsyncIcon = rememberLeaflektAsyncMarkerIcon(
+     val demoAsyncIcon = rememberSampleRemoteMarkerIcon(
          model = "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Bicycle_icon.svg/64px-Bicycle_icon.svg.png",
          widthPx = 48,
          heightPx = 48,
@@ -153,12 +156,13 @@ internal fun ExploreMapScreen(
          anchorFractionY = 0.5f
       )
 
-      LaunchedEffect(selectedPlace) {
-         val location = selectedPlace?.geometry?.location
+      LaunchedEffect(selectedPlaceLocation) {
+         val location = selectedPlaceLocation
          if (location == null) {
              markerState.hideInfoWindow()
              return@LaunchedEffect
          }
+         markerState.position = LeaflektLatLng(location.lat, location.lng)
          cameraPositionState.position = LeaflektCameraPosition(
              target = LeaflektLatLng(location.lat, location.lng),
              zoom = 15.0
@@ -197,34 +201,32 @@ internal fun ExploreMapScreen(
             cameraPositionState = cameraPositionState,
             onReady = { controller ->
                 mapController = controller
+            },
+            onMapClick = {
+                markerState.hideInfoWindow()
+                featuredMarkerState.hideInfoWindow()
+                historicalSiteMarkerState.hideInfoWindow()
             }
              ) {
-                  if (explorePlace != null) {
-                      val location = explorePlace.geometry?.location
-                      if (location != null) {
-                          LeaflektMarker(
-                              state = markerState.apply {
-                                  position = LeaflektLatLng(location.lat, location.lng)
-                              },
-                              title = explorePlace.headline(),
-                              snippet = explorePlace.supportingLine(),
-                              infoWindow = {
-                                  MarkerInfoWindowCard(
-                                      label = "Selected place",
-                                      headline = explorePlace.headline(),
-                                      supportingLine = explorePlace.supportingLine()
-                                  )
-                              },
-                              id = "explore-selected-place"
+                  LeaflektMarker(
+                      state = markerState,
+                      title = explorePlace?.headline(),
+                      snippet = explorePlace?.supportingLine(),
+                      visible = selectedPlaceLocation != null,
+                      infoWindow = {
+                          MarkerInfoWindowCard(
+                              label = "Selected place",
+                              headline = explorePlace?.headline().orEmpty(),
+                              supportingLine = explorePlace?.supportingLine(),
+                              onDismiss = markerState::hideInfoWindow
                           )
-                      }
-                  }
+                      },
+                      id = "explore-selected-place"
+                  )
 
                   // Demo: Composable marker icon (a star) at a fixed offset
-                  val demoComposeIconLat = 22.5726 + 0.01
-                  val demoComposeIconLng = 88.3639 + 0.01
                   LeaflektMarker(
-                      position = LeaflektLatLng(demoComposeIconLat, demoComposeIconLng),
+                      state = featuredMarkerState,
                       iconContent = {
                           Surface(
                               shape = RoundedCornerShape(12.dp),
@@ -242,14 +244,31 @@ internal fun ExploreMapScreen(
                                )
                            }
                       },
+                      infoWindow = {
+                          MarkerInfoWindowCard(
+                              label = "Featured",
+                              headline = "Composable Icon",
+                              supportingLine = "Pinned near Kolkata",
+                              onDismiss = featuredMarkerState::hideInfoWindow
+                          )
+                      },
                       iconAnchorX = 0.5f,
                       iconAnchorY = 0.5f
+
                   )
 
              // Demo: Async icon marker (Victoria Memorial)
              LeaflektMarker(
-                 position = LeaflektLatLng(22.5448, 88.3426),
+                 state = historicalSiteMarkerState,
                  icon = demoAsyncIcon.value,
+                 infoWindow = {
+                     MarkerInfoWindowCard(
+                         label = "Historical Site",
+                         headline = "Victoria Memorial",
+                         supportingLine = "Sample app icon loaded via Coil",
+                         onDismiss = historicalSiteMarkerState::hideInfoWindow
+                     )
+                 },
                  alpha = 0.9f
              )
          }
@@ -436,6 +455,10 @@ internal fun DirectionsMapScreen(
             cameraPositionState = cameraPositionState,
             onReady = { controller ->
                 mapController = controller
+            },
+            onMapClick = {
+                originMarkerState.hideInfoWindow()
+                destinationMarkerState.hideInfoWindow()
             }
         ) {
             activeRoute?.let { route ->
@@ -459,7 +482,8 @@ internal fun DirectionsMapScreen(
                          MarkerInfoWindowCard(
                              label = "Origin",
                              headline = originPlace?.headline() ?: "Origin",
-                             supportingLine = null
+                             supportingLine = null,
+                             onDismiss = originMarkerState::hideInfoWindow
                          )
                      },
                      id = "directions-origin"
@@ -478,7 +502,8 @@ internal fun DirectionsMapScreen(
                          MarkerInfoWindowCard(
                              label = "Destination",
                              headline = destinationPlace?.headline() ?: "Destination",
-                             supportingLine = null
+                             supportingLine = null,
+                             onDismiss = destinationMarkerState::hideInfoWindow
                          )
                      },
                      id = "directions-destination"
@@ -490,7 +515,7 @@ internal fun DirectionsMapScreen(
                 if (route.points.size > 2) {
                     val midIndex = route.points.size / 2
                     val midPoint = route.points[midIndex]
-                    val demoBikeIcon = rememberLeaflektAsyncMarkerIcon(
+                    val demoBikeIcon = rememberSampleRemoteMarkerIcon(
                         model = "https://static.vecteezy.com/system/resources/thumbnails/051/959/452/small/top-view-of-a-classic-black-motorcycle-showcasing-its-sleek-design-and-leather-seat-perfect-for-bike-enthusiasts-and-design-projects-png.png",
                         widthPx = 48,
                         heightPx = 48,
@@ -641,6 +666,9 @@ internal fun ClusteringMapScreen(
             cameraPositionState = cameraPositionState,
             onReady = { controller ->
                 mapController = controller
+            },
+            onMapClick = {
+                markerState.hideInfoWindow()
             }
         ) {
             if (selectedPlace != null) {
@@ -656,7 +684,8 @@ internal fun ClusteringMapScreen(
                             MarkerInfoWindowCard(
                                 label = "Search result",
                                 headline = selectedPlace?.headline() ?: "",
-                                supportingLine = selectedPlace?.supportingLine()
+                                supportingLine = selectedPlace?.supportingLine(),
+                                onDismiss = markerState::hideInfoWindow
                             )
                         },
                         id = "clustering-selected-place"
@@ -753,7 +782,8 @@ internal fun ClusteringMapScreen(
 private fun MarkerInfoWindowCard(
     label: String,
     headline: String,
-    supportingLine: String? = null
+    supportingLine: String? = null,
+    onDismiss: () -> Unit
 ) {
     Surface(
         shape = RoundedCornerShape(18.dp),
@@ -767,11 +797,27 @@ private fun MarkerInfoWindowCard(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.size(20.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Close info window",
+                        modifier = Modifier.size(14.dp)
+                    )
+                }
+            }
             Text(
                 text = headline,
                 style = MaterialTheme.typography.titleSmall,

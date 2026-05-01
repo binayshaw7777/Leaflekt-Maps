@@ -65,10 +65,6 @@ Add the library:
 ```kotlin
 dependencies {
     implementation("com.github.binayshaw7777.LeafleKT:leaflekt:0.5.0")
-
-    // Optional: Required only for async marker icon loading
-    // rememberLeaflektAsyncMarkerIcon uses Coil under the hood
-    implementation("io.coil-kt:coil-compose:2.7.0")
 }
 ```
 
@@ -125,29 +121,94 @@ fun SampleMap() {
 }
 ```
 
-## API Surface
+## API Reference
 
-Main entry point:
+### LeaflektMap
 
-```kotlin
-LeaflektMap(
-    modifier = Modifier,
-    cameraPositionState = rememberLeaflektCameraPositionState(),
-    contentDescription = null,
-    properties = DefaultLeaflektMapProperties,
-    uiSettings = DefaultLeaflektMapUiSettings,
-    onMapLoaded = null,
-    onReady = null,
-    onMapClick = null,
-    onCameraMoveStarted = null,
-    onCameraMove = null,
-    onCameraIdle = null,
-    onMarkerClick = null,
-    content = {}
-)
-```
+The primary container for the map.
 
-### Marker Clustering
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| `modifier` | `Modifier` | Layout modifier for the map. |
+| `cameraPositionState` | `LeaflektCameraPositionState` | Hoisted state for camera control. |
+| `properties` | `LeaflektMapProperties` | Map configuration (styles, zoom limits). |
+| `uiSettings` | `LeaflektMapUiSettings` | UI and gesture toggles. |
+| `onMapLoaded` | `(() -> Unit)?` | Called when Leaflet is initialized. |
+| `onMapClick` | `((LeaflektLatLng) -> Unit)?` | Called when the map is tapped. |
+| `onMarkerClick` | `((String) -> Unit)?` | Called when any marker is clicked. |
+| `content` | `@Composable () -> Unit` | Map children (Markers, Shapes, etc). |
+
+### LeaflektMarker
+
+Standard marker with bitmap icons or default Leaflet pins.
+
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `state` | `LeaflektMarkerState` | `remember...` | Hoisted state for position. |
+| `title` | `String?` | `null` | Title for default popup. |
+| `snippet` | `String?` | `null` | Secondary text for default popup. |
+| `icon` | `LeaflektMarkerIcon?` | `null` | Custom bitmap icon. |
+| `rotationDegrees`| `Float` | `0f` | Visual rotation of the marker. |
+| `visible` | `Boolean` | `true` | Visibility toggle. |
+| `alpha` | `Float` | `1.0f` | Opacity (0.0 to 1.0). |
+| `zIndex` | `Float` | `0f` | Drawing order (higher is on top). |
+| `infoWindow` | `@Composable () -> Unit`| `null` | Custom Compose UI popup. |
+| `onClick` | `() -> Boolean` | `{ false }` | Click handler (return true to consume). |
+
+### LeaflektMarker (Compose Icon)
+
+Marker where the icon itself is a Compose UI.
+
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `state` | `LeaflektMarkerState` | `remember...` | Hoisted state for position. |
+| `iconContent` | `@Composable () -> Unit`| - | Compose UI for the marker icon. |
+| `iconAnchorX` | `Float` | `0.5f` | Horizontal anchor (0 to 1). |
+| `iconAnchorY` | `Float` | `0.5f` | Vertical anchor (0 to 1). |
+| `zIndex` | `Float` | `0f` | Drawing order. |
+| `infoWindow` | `@Composable () -> Unit`| `null` | Custom Compose UI popup. |
+| `onClick` | `() -> Boolean` | `{ false }` | Click handler. |
+
+### Shapes (Polyline, Polygon, Circle)
+
+All shapes support `onClick: () -> Boolean` and `zIndex`.
+
+| Component | Key Properties |
+| :--- | :--- |
+| `LeaflektPolyline`| `points`, `color`, `width`, `pattern`, `geodesic`, `zIndex`, `onClick` |
+| `LeaflektPolygon` | `points`, `holes`, `fillColor`, `strokeColor`, `strokeWidth`, `zIndex`, `onClick` |
+| `LeaflektCircle`  | `center`, `radiusMeters`, `fillColor`, `strokeColor`, `strokeWidth`, `zIndex`, `onClick` |
+
+### Advanced Components
+
+#### LeaflektMarkerCluster
+Groups markers into clusters.
+- `options`: `MarkerClusterOptions` (Radius, coverage, etc)
+- `onClusterClick`: `(lat, lng, count) -> Unit`
+- `content`: `@Composable () -> Unit` (The markers to cluster)
+
+#### LeaflektOverlay
+Pins any Composable to map coordinates.
+- `position`: `LeaflektLatLng`
+- `anchorFractionX` / `anchorFractionY`: `Float` (Alignment)
+- `content`: `@Composable () -> Unit`
+
+### Configuration
+
+#### LeaflektMapProperties
+- `mapStyle`: `LeaflektMapStyle` (Default: `OpenStreetMap`)
+- `automaticThemeSync`: `Boolean` (Sync with System Dark/Light mode)
+- `minZoom` / `maxZoom`: `Double` (Zoom constraints)
+
+#### LeaflektMapUiSettings
+- `zoomControlsEnabled`: `Boolean` (Visible +/- buttons)
+- `scrollGesturesEnabled`: `Boolean` (Pan support)
+- `zoomGesturesEnabled`: `Boolean` (Pinch/Double-tap zoom)
+- `rotateGesturesEnabled`: `Boolean` (Two-finger rotation)
+- `showCurrentLocation`: `Boolean` (Enable GPS blue dot)
+- `currentLocationIcon`: `LeaflektCurrentLocationIcon?` (Custom GPS icon)
+
+### Marker Icons
 
 Group large numbers of markers into clusters automatically:
 
@@ -192,7 +253,9 @@ LeaflektMap(
 
 ## Marker Icons
 
-Leaflekt supports synchronous bitmaps, asynchronous image loading via Coil, and native Compose UI overlays.
+Leaflekt supports synchronous bitmaps and native Compose UI overlays. If your app wants remote
+images, load them with your preferred image library and convert the decoded result into a
+`LeaflektMarkerIcon`.
 
 <!-- MEDIA SUGGESTION: ICON TYPES SHOWCASE
      Suggestion: A horizontal row showing 3 markers:
@@ -221,20 +284,10 @@ LeaflektMarker(
      Suggestion: A short GIF showing a car or bike marker rotating 360 degrees smoothly while staying centered on a coordinate.
 -->
 
-### Asynchronous (Coil-powered) API
+### App-Level Remote Images
 
-```kotlin
-val remoteIcon = rememberLeaflektAsyncMarkerIcon(
-    model = "https://example.com/marker.png",
-    widthPx = 64,
-    heightPx = 64
-)
-
-LeaflektMarker(
-    position = LeaflektLatLng(22.5726, 88.3639),
-    icon = remoteIcon.value
-)
-```
+The sample app demonstrates a Coil-based helper for remote marker icons, but the SDK itself does
+not depend on Coil, Glide, or any specific image pipeline.
 
 ### Composable Marker Icons
 
@@ -308,7 +361,7 @@ Implemented:
 - [x] Click callbacks for all map entities
 - [x] `MapEffect` for imperative map extensions
 - [x] SDK current location overlay (with pulse and custom icons)
-- [x] Async image loading for markers (Coil-powered)
+- [x] Bitmap marker icons
 - [x] Native Compose Overlays (`iconContent`)
 - [x] Info window customization (initial visibility, anchor, and custom UI)
 - [x] Zoom bounds (min/max constraints)

@@ -52,7 +52,7 @@ import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.binayshaw7777.leaflekt.library.LeaflektMapStyle
+import com.binayshaw7777.leaflekt.library.map.LeaflektMapStyle
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -204,7 +204,8 @@ internal fun MapStyleSheet(
                 .padding(horizontal = 16.dp, vertical = 20.dp)
                 .navigationBarsPadding()
         ) {
-            FlowRow(
+             @Suppress("ExperimentalMaterial3Api")
+             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {

@@ -48,19 +48,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.binayshaw7777.leaflekt.library.LeaflektCameraPosition
-import com.binayshaw7777.leaflekt.library.LeaflektCircle
-import com.binayshaw7777.leaflekt.library.LeaflektController
-import com.binayshaw7777.leaflekt.library.LeaflektLatLng
-import com.binayshaw7777.leaflekt.library.LeaflektMap
-import com.binayshaw7777.leaflekt.library.LeaflektMapProperties
-import com.binayshaw7777.leaflekt.library.LeaflektMapStyle
-import com.binayshaw7777.leaflekt.library.LeaflektMapUiSettings
-import com.binayshaw7777.leaflekt.library.LeaflektMarker
-import com.binayshaw7777.leaflekt.library.LeaflektPolygon
-import com.binayshaw7777.leaflekt.library.LeaflektPolyline
-import com.binayshaw7777.leaflekt.library.LeaflektStrokePattern
-import com.binayshaw7777.leaflekt.library.rememberLeaflektCameraPositionState
+import com.binayshaw7777.leaflekt.library.camera.LeaflektCameraPosition
+import com.binayshaw7777.leaflekt.library.camera.LeaflektLatLng
+import com.binayshaw7777.leaflekt.library.camera.rememberLeaflektCameraPositionState
+import com.binayshaw7777.leaflekt.library.circle.LeaflektCircle
+import com.binayshaw7777.leaflekt.library.controller.LeaflektController
+import com.binayshaw7777.leaflekt.library.map.LeaflektMap
+import com.binayshaw7777.leaflekt.library.map.LeaflektMapProperties
+import com.binayshaw7777.leaflekt.library.map.LeaflektMapStyle
+import com.binayshaw7777.leaflekt.library.map.LeaflektMapUiSettings
+import com.binayshaw7777.leaflekt.library.marker.LeaflektMarker
+import com.binayshaw7777.leaflekt.library.polygon.LeaflektPolygon
+import com.binayshaw7777.leaflekt.library.polyline.LeaflektPolyline
+import com.binayshaw7777.leaflekt.library.shape.LeaflektStrokePattern
 import com.binayshaw7777.leaflekt.ui.theme.LeafleKTTheme
 
 class MainActivity : ComponentActivity() {
@@ -249,6 +249,7 @@ private fun LeaflektDemoScreen(modifier: Modifier = Modifier) {
                         isPolygonSelected = false
                         isCircleSelected = false
                         lastTap = "Polyline click: demo-polyline"
+                        true
                     }
                 )
 
@@ -266,6 +267,7 @@ private fun LeaflektDemoScreen(modifier: Modifier = Modifier) {
                         isPolygonSelected = true
                         isCircleSelected = false
                         lastTap = "Polygon click: demo-polygon"
+                        true
                     }
                 )
 
@@ -284,6 +286,7 @@ private fun LeaflektDemoScreen(modifier: Modifier = Modifier) {
                         isPolygonSelected = false
                         isCircleSelected = true
                         lastTap = "Circle click: demo-circle"
+                        true
                     }
                 )
             }

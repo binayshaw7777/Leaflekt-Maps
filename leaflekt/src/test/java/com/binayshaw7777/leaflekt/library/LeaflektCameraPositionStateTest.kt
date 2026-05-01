@@ -1,5 +1,8 @@
 package com.binayshaw7777.leaflekt.library
 
+import com.binayshaw7777.leaflekt.library.camera.LeaflektCameraPosition
+import com.binayshaw7777.leaflekt.library.camera.LeaflektCameraPositionState
+import com.binayshaw7777.leaflekt.library.camera.LeaflektLatLng
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

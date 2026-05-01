@@ -200,9 +200,9 @@
             }
         }
 
-        function createMap(lat, lng, zoom, bearing, minZoom, maxZoom) {
+        function createMap(lat, lng, zoom, bearing, minZoom, maxZoom, restrictToWorldBounds) {
             activeBearing = Number(bearing ?? DEFAULT_BEARING);
-            map = L.map("map", {
+            const mapOptions = {
                 zoomControl: false,
                 zoomSnap: false,
                 minZoom: minZoom,
@@ -211,7 +211,14 @@
                 touchRotate: touchRotateEnabled,
                 bearing: activeBearing,
                 rotateControl: false
-            }).setView([lat, lng], zoom);
+            };
+
+            if (restrictToWorldBounds) {
+                mapOptions.maxBounds = [[-90, -180], [90, 180]];
+                mapOptions.maxBoundsViscosity = 1.0;
+            }
+
+            map = L.map("map", mapOptions).setView([lat, lng], zoom);
 
             applyZoomControls();
             replaceTileLayer(activeMapStyle);
@@ -261,11 +268,11 @@
             }, 150);
         }
 
-        function ensureMap(lat, lng, zoom, bearing, minZoom, maxZoom) {
+        function ensureMap(lat, lng, zoom, bearing, minZoom, maxZoom, restrictToWorldBounds) {
             if (map !== null) {
                 return map;
             }
-            return createMap(lat, lng, zoom, bearing, minZoom, maxZoom);
+            return createMap(lat, lng, zoom, bearing, minZoom, maxZoom, restrictToWorldBounds);
         }
 
         function createTileLayer(style) {
@@ -380,7 +387,8 @@
                 {
                     icon: createMarkerIcon(marker),
                     rotationAngle: Number(marker.rotationDegrees || 0),
-                    rotationOrigin: createMarkerRotationOrigin(marker)
+                    rotationOrigin: createMarkerRotationOrigin(marker),
+                    zIndexOffset: Number(marker.zIndex || 0)
                 }
             );
 
@@ -389,7 +397,14 @@
                 markerLayer.bindPopup(popupContent);
             }
 
-            markerLayer.on("click", function () {
+            markerLayer.on("click", function (event) {
+                if (event) {
+                    if (event.originalEvent) {
+                        L.DomEvent.stopPropagation(event.originalEvent);
+                    } else if (event.domEvent) {
+                        L.DomEvent.stopPropagation(event.domEvent);
+                    }
+                }
                 notifyMarkerClick(markerId);
             });
 
@@ -769,8 +784,8 @@
         }
 
         window.LeaflektBridge = {
-            initMap: function (lat, lng, zoom, bearing, minZoom, maxZoom) {
-                ensureMap(lat, lng, zoom, bearing, minZoom, maxZoom);
+            initMap: function (lat, lng, zoom, bearing, minZoom, maxZoom, restrictToWorldBounds) {
+                ensureMap(lat, lng, zoom, bearing, minZoom, maxZoom, restrictToWorldBounds);
             },
             setZoomControlsEnabled: function (isEnabled) {
                 isZoomControlEnabled = Boolean(isEnabled);
@@ -840,7 +855,8 @@
                         icon: item.icon || null,
                         rotationDegrees: Number(item.rotationDegrees || 0),
                         visible: item.visible ?? true,
-                        alpha: Number(item.alpha ?? 1.0)
+                        alpha: Number(item.alpha ?? 1.0),
+                        zIndex: Number(item.zIndex || 0)
                     }, clusterId);
                 });
             },
@@ -855,6 +871,7 @@
                 if (entry) {
                     const markerLayer = entry.layer;
                     markerLayer.setLatLng([marker.lat, marker.lng]);
+                    markerLayer.setZIndexOffset(Number(marker.zIndex || 0));
                     markerLayer.options.rotationAngle = Number(marker.rotationDegrees || 0);
                     markerLayer.options.rotationOrigin = createMarkerRotationOrigin(marker);
                     markerLayer.setIcon(createMarkerIcon(marker));
