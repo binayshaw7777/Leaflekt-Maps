@@ -17,7 +17,13 @@
 package com.binayshaw7777.leaflekt.library
 
 import androidx.compose.ui.graphics.Color
+import com.binayshaw7777.leaflekt.internal.script.LeaflektScriptBuilder
 import com.binayshaw7777.leaflekt.library.camera.LatLng
+import com.binayshaw7777.leaflekt.library.circle.CircleInfo
+import com.binayshaw7777.leaflekt.library.marker.MarkerIconInfo
+import com.binayshaw7777.leaflekt.library.marker.MarkerInfo
+import com.binayshaw7777.leaflekt.library.polygon.PolygonInfo
+import com.binayshaw7777.leaflekt.library.polyline.PolylineInfo
 import org.junit.Assert.assertTrue
 import org.junit.Test
 

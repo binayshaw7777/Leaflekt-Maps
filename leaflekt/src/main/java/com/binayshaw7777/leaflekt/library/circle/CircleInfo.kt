@@ -9,7 +9,7 @@ import com.binayshaw7777.leaflekt.library.shape.LeaflektStrokePattern
  *
  * `zIndex` is applied as a best-effort draw order among vector layers.
  */
-data class CircleInfo(
+internal data class CircleInfo(
     val id: String,
     val center: LatLng,
     val clickable: Boolean = false,

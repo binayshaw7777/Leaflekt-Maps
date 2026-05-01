@@ -12,7 +12,7 @@ import com.binayshaw7777.leaflekt.library.shape.LeaflektStrokePattern
  *
  * `zIndex` is applied as a best-effort draw order among vector layers.
  */
-data class PolygonInfo(
+internal data class PolygonInfo(
     val id: String,
     val points: List<LatLng>,
     val clickable: Boolean = false,

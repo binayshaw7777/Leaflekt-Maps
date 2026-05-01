@@ -31,8 +31,8 @@ class MapController internal constructor() {
     internal val projectionState = mutableStateMapOf<LatLng, MapOverlayProjection>()
     private val overlayPointRefCount = mutableMapOf<LatLng, Int>()
 
-    fun registerOverlayPoint(latLng: LatLng) {
-        val count = overlayPointRefCount.getOrDefault(latLng, 0)
+    internal fun registerOverlayPoint(latLng: LatLng) {
+        val count = (overlayPointRefCount[latLng] ?: 0)
         overlayPointRefCount[latLng] = count + 1
         
         if (count == 0) {
@@ -40,8 +40,8 @@ class MapController internal constructor() {
         }
     }
 
-    fun unregisterOverlayPoint(latLng: LatLng) {
-        val count = overlayPointRefCount.getOrDefault(latLng, 0)
+    internal fun unregisterOverlayPoint(latLng: LatLng) {
+        val count = (overlayPointRefCount[latLng] ?: 0)
         if (count <= 1) {
             overlayPointRefCount.remove(latLng)
             enqueueOrRun("window.LeaflektBridge.unregisterOverlayPoint(${latLng.latitude}, ${latLng.longitude});")
@@ -250,6 +250,20 @@ class MapController internal constructor() {
 
     internal fun unregisterCurrentLocationCenteringAction() {
         currentLocationCenteringAction = null
+    }
+
+    internal fun releaseMapSession() {
+        webView = null
+        isMapReady = false
+        pendingScripts.clear()
+        markerClickHandlers.clear()
+        clusterClickHandlers.clear()
+        polylineClickHandlers.clear()
+        polygonClickHandlers.clear()
+        circleClickHandlers.clear()
+        currentLocationCenteringAction = null
+        projectionState.clear()
+        overlayPointRefCount.clear()
     }
 
     private fun enqueueOrRun(script: String) {

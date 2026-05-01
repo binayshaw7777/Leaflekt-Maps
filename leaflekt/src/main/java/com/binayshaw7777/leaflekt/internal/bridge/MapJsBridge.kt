@@ -15,6 +15,8 @@ internal class LeaflektJsBridge(
     private val onCircleClick: (String) -> Unit,
     private val onProjectionChanged: (String) -> Unit
 ) {
+    private val cameraMoveDispatchGate = CameraMoveDispatchGate()
+
     @JavascriptInterface
     fun onMapReady() {
         onMapReady.invoke()
@@ -27,16 +29,20 @@ internal class LeaflektJsBridge(
 
     @JavascriptInterface
     fun onCameraMoveStarted(lat: Double, lng: Double, zoom: Double, bearing: Double) {
+        cameraMoveDispatchGate.restart()
         onCameraMoveStarted.invoke(lat, lng, zoom, bearing)
     }
 
     @JavascriptInterface
     fun onCameraMove(lat: Double, lng: Double, zoom: Double, bearing: Double) {
-        onCameraMove.invoke(lat, lng, zoom, bearing)
+        if (cameraMoveDispatchGate.shouldDispatch()) {
+            onCameraMove.invoke(lat, lng, zoom, bearing)
+        }
     }
 
     @JavascriptInterface
     fun onCameraIdle(lat: Double, lng: Double, zoom: Double, bearing: Double) {
+        cameraMoveDispatchGate.restart()
         onCameraIdle.invoke(lat, lng, zoom, bearing)
     }
 
@@ -68,5 +74,9 @@ internal class LeaflektJsBridge(
     @JavascriptInterface
     fun onCircleClick(circleId: String) {
         onCircleClick.invoke(circleId)
+    }
+
+    internal fun release() {
+        cameraMoveDispatchGate.restart()
     }
 }

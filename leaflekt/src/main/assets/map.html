@@ -44,6 +44,7 @@
             maxZoom: 19,
             subdomains: null
         };
+        const CAMERA_MOVE_REPORT_INTERVAL_MS = 64;
 
         let map = null;
         let activeTileLayer = null;
@@ -52,6 +53,7 @@
         let isZoomControlEnabled = true;
         let isCameraMoving = false;
         let cameraIdleHandle = null;
+        let lastCameraMoveReportAt = 0;
         let activeBearing = DEFAULT_BEARING;
         let vectorDrawSequence = 0;
         let touchRotateEnabled = false;
@@ -511,6 +513,7 @@
                 return;
             }
 
+            lastCameraMoveReportAt = 0;
             isCameraMoving = true;
             notifyCameraMoveStarted(snapshot.lat, snapshot.lng, snapshot.zoom, snapshot.bearing);
         }
@@ -522,6 +525,9 @@
             }
 
             reportCameraMoveStarted();
+            if (!shouldReportCameraMoveNow()) {
+                return;
+            }
             notifyCameraMove(snapshot.lat, snapshot.lng, snapshot.zoom, snapshot.bearing);
         }
 
@@ -534,9 +540,20 @@
                     return;
                 }
 
+                lastCameraMoveReportAt = 0;
                 isCameraMoving = false;
                 notifyCameraIdle(snapshot.lat, snapshot.lng, snapshot.zoom, snapshot.bearing);
             }, 48);
+        }
+
+        function shouldReportCameraMoveNow() {
+            const now = Date.now();
+            if (now - lastCameraMoveReportAt < CAMERA_MOVE_REPORT_INTERVAL_MS) {
+                return false;
+            }
+
+            lastCameraMoveReportAt = now;
+            return true;
         }
 
         function bindCameraLifecycleCallbacks() {
@@ -546,6 +563,7 @@
 
             map.on("movestart zoomstart rotatestart", function () {
                 cancelCameraIdleReport();
+                lastCameraMoveReportAt = 0;
                 reportCameraMoveStarted();
             });
 

@@ -46,12 +46,12 @@ import com.binayshaw7777.leaflekt.library.overlay.MapOverlay
 /**
  * CompositionLocal used to provide the [MapController] to map children.
  */
-val LocalMapController = compositionLocalOf<MapController?> { null }
+internal val LocalMapController = compositionLocalOf<MapController?> { null }
 
 /**
  * CompositionLocal used to provide the cluster ID to markers inside a [MarkerCluster].
  */
-val LocalMarkerClusterId = compositionLocalOf<String?> { null }
+internal val LocalMarkerClusterId = compositionLocalOf<String?> { null }
 
 /**
  * CompositionLocal used to provide the [com.binayshaw7777.leaflekt.library.camera.CameraPositionState] to map children.
@@ -291,7 +291,8 @@ fun MapView(
 
     DisposableEffect(Unit) {
         onDispose {
-            controller.setWebView(null)
+            jsBridge.release()
+            controller.releaseMapSession()
         }
     }
 }

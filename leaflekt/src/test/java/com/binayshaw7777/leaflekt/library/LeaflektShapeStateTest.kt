@@ -1,5 +1,8 @@
 package com.binayshaw7777.leaflekt.library
 
+import com.binayshaw7777.leaflekt.library.circle.CircleState
+import com.binayshaw7777.leaflekt.library.polygon.PolygonState
+import com.binayshaw7777.leaflekt.library.polyline.PolylineState
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
