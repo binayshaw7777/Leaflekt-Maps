@@ -4,20 +4,20 @@ import android.webkit.WebView
 import androidx.compose.runtime.mutableStateMapOf
 import com.binayshaw7777.leaflekt.internal.projection.MapProjection
 import com.binayshaw7777.leaflekt.internal.script.LeaflektScriptBuilder
-import com.binayshaw7777.leaflekt.internal.serialization.LeaflektMapJson
-import com.binayshaw7777.leaflekt.library.camera.LeaflektLatLng
-import com.binayshaw7777.leaflekt.library.circle.LeaflektCircleInfo
+import com.binayshaw7777.leaflekt.internal.serialization.MapViewJson
+import com.binayshaw7777.leaflekt.library.camera.LatLng
+import com.binayshaw7777.leaflekt.library.circle.CircleInfo
 import com.binayshaw7777.leaflekt.library.cluster.MarkerClusterOptions
-import com.binayshaw7777.leaflekt.library.map.LeaflektMapStyle
-import com.binayshaw7777.leaflekt.library.marker.LeaflektMarkerInfo
-import com.binayshaw7777.leaflekt.library.polygon.LeaflektPolygonInfo
-import com.binayshaw7777.leaflekt.library.polyline.LeaflektPolylineInfo
+import com.binayshaw7777.leaflekt.library.map.MapStyle
+import com.binayshaw7777.leaflekt.library.marker.MarkerInfo
+import com.binayshaw7777.leaflekt.library.polygon.PolygonInfo
+import com.binayshaw7777.leaflekt.library.polyline.PolylineInfo
 import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
  * Stateful command gateway from Compose into the Leaflekt JavaScript runtime.
  */
-class LeaflektController internal constructor() {
+class MapController internal constructor() {
     private var webView: WebView? = null
     private val pendingScripts = ConcurrentLinkedQueue<String>()
     private val markerClickHandlers = mutableMapOf<String, () -> Boolean>()
@@ -28,10 +28,10 @@ class LeaflektController internal constructor() {
     private var currentLocationCenteringAction: ((Double) -> Unit)? = null
     private var isMapReady = false
 
-    internal val projectionState = mutableStateMapOf<LeaflektLatLng, MapOverlayProjection>()
-    private val overlayPointRefCount = mutableMapOf<LeaflektLatLng, Int>()
+    internal val projectionState = mutableStateMapOf<LatLng, MapOverlayProjection>()
+    private val overlayPointRefCount = mutableMapOf<LatLng, Int>()
 
-    fun registerOverlayPoint(latLng: LeaflektLatLng) {
+    fun registerOverlayPoint(latLng: LatLng) {
         val count = overlayPointRefCount.getOrDefault(latLng, 0)
         overlayPointRefCount[latLng] = count + 1
         
@@ -40,7 +40,7 @@ class LeaflektController internal constructor() {
         }
     }
 
-    fun unregisterOverlayPoint(latLng: LeaflektLatLng) {
+    fun unregisterOverlayPoint(latLng: LatLng) {
         val count = overlayPointRefCount.getOrDefault(latLng, 0)
         if (count <= 1) {
             overlayPointRefCount.remove(latLng)
@@ -53,9 +53,9 @@ class LeaflektController internal constructor() {
 
     internal fun onProjectionChanged(projectionsJson: String) {
         try {
-            val list: List<MapProjection> = LeaflektMapJson.decodeFromString(projectionsJson)
+            val list: List<MapProjection> = MapViewJson.decodeFromString(projectionsJson)
             list.forEach { projection ->
-                projectionState[LeaflektLatLng(projection.lat, projection.lng)] = MapOverlayProjection(
+                projectionState[LatLng(projection.lat, projection.lng)] = MapOverlayProjection(
                     xFraction = projection.xFraction.toFloat(),
                     yFraction = projection.yFraction.toFloat()
                 )
@@ -100,7 +100,7 @@ class LeaflektController internal constructor() {
         enqueueOrRun(LeaflektScriptBuilder.setBearingScript(bearing))
     }
 
-    fun setMapStyle(style: LeaflektMapStyle) {
+    fun setMapStyle(style: MapStyle) {
         enqueueOrRun(LeaflektScriptBuilder.setMapStyleScript(style))
     }
 
@@ -118,15 +118,15 @@ class LeaflektController internal constructor() {
         enqueueOrRun(script)
     }
 
-    internal fun addMarker(marker: LeaflektMarkerInfo, clusterId: String? = null) {
+    internal fun addMarker(marker: MarkerInfo, clusterId: String? = null) {
         enqueueOrRun(LeaflektScriptBuilder.addMarkersScript(listOf(marker), clusterId))
     }
 
-    internal fun addMarkers(markers: List<LeaflektMarkerInfo>, clusterId: String? = null) {
+    internal fun addMarkers(markers: List<MarkerInfo>, clusterId: String? = null) {
         enqueueOrRun(LeaflektScriptBuilder.addMarkersScript(markers, clusterId))
     }
 
-    internal fun updateMarker(marker: LeaflektMarkerInfo) {
+    internal fun updateMarker(marker: MarkerInfo) {
         enqueueOrRun(LeaflektScriptBuilder.updateMarkerScript(marker))
     }
 
@@ -147,11 +147,11 @@ class LeaflektController internal constructor() {
     }
 
     internal fun showMarkerInfoWindow(markerId: String) {
-        enqueueOrRun("window.LeaflektBridge.showMarkerInfoWindow(${LeaflektMapJson.encodeString(markerId)});")
+        enqueueOrRun("window.LeaflektBridge.showMarkerInfoWindow(${MapViewJson.encodeString(markerId)});")
     }
 
     internal fun hideMarkerInfoWindow(markerId: String) {
-        enqueueOrRun("window.LeaflektBridge.hideMarkerInfoWindow(${LeaflektMapJson.encodeString(markerId)});")
+        enqueueOrRun("window.LeaflektBridge.hideMarkerInfoWindow(${MapViewJson.encodeString(markerId)});")
     }
 
     internal fun registerMarkerClick(markerId: String, onClick: () -> Boolean) {
@@ -170,11 +170,11 @@ class LeaflektController internal constructor() {
         clusterClickHandlers.remove(clusterId)
     }
 
-    internal fun addPolyline(polyline: LeaflektPolylineInfo) {
+    internal fun addPolyline(polyline: PolylineInfo) {
         enqueueOrRun(LeaflektScriptBuilder.addPolylineScript(polyline))
     }
 
-    internal fun updatePolyline(polyline: LeaflektPolylineInfo) {
+    internal fun updatePolyline(polyline: PolylineInfo) {
         enqueueOrRun(LeaflektScriptBuilder.updatePolylineScript(polyline))
     }
 
@@ -190,11 +190,11 @@ class LeaflektController internal constructor() {
         polylineClickHandlers.remove(polylineId)
     }
 
-    internal fun addPolygon(polygon: LeaflektPolygonInfo) {
+    internal fun addPolygon(polygon: PolygonInfo) {
         enqueueOrRun(LeaflektScriptBuilder.addPolygonScript(polygon))
     }
 
-    internal fun updatePolygon(polygon: LeaflektPolygonInfo) {
+    internal fun updatePolygon(polygon: PolygonInfo) {
         enqueueOrRun(LeaflektScriptBuilder.updatePolygonScript(polygon))
     }
 
@@ -210,11 +210,11 @@ class LeaflektController internal constructor() {
         polygonClickHandlers.remove(polygonId)
     }
 
-    internal fun addCircle(circle: LeaflektCircleInfo) {
+    internal fun addCircle(circle: CircleInfo) {
         enqueueOrRun(LeaflektScriptBuilder.addCircleScript(circle))
     }
 
-    internal fun updateCircle(circle: LeaflektCircleInfo) {
+    internal fun updateCircle(circle: CircleInfo) {
         enqueueOrRun(LeaflektScriptBuilder.updateCircleScript(circle))
     }
 
@@ -291,3 +291,4 @@ internal data class MapOverlayProjection(
     val xFraction: Float,
     val yFraction: Float
 )
+

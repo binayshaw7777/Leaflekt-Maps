@@ -2,13 +2,13 @@ package com.binayshaw7777.leaflekt.internal.script
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import com.binayshaw7777.leaflekt.internal.serialization.LeaflektMapJson
-import com.binayshaw7777.leaflekt.library.circle.LeaflektCircleInfo
+import com.binayshaw7777.leaflekt.internal.serialization.MapViewJson
+import com.binayshaw7777.leaflekt.library.circle.CircleInfo
 import com.binayshaw7777.leaflekt.library.cluster.MarkerClusterOptions
-import com.binayshaw7777.leaflekt.library.map.LeaflektMapStyle
-import com.binayshaw7777.leaflekt.library.marker.LeaflektMarkerInfo
-import com.binayshaw7777.leaflekt.library.polygon.LeaflektPolygonInfo
-import com.binayshaw7777.leaflekt.library.polyline.LeaflektPolylineInfo
+import com.binayshaw7777.leaflekt.library.map.MapStyle
+import com.binayshaw7777.leaflekt.library.marker.MarkerInfo
+import com.binayshaw7777.leaflekt.library.polygon.PolygonInfo
+import com.binayshaw7777.leaflekt.library.polyline.PolylineInfo
 import com.binayshaw7777.leaflekt.library.shape.LeaflektStrokePattern
 
 /**
@@ -35,7 +35,7 @@ internal object LeaflektScriptBuilder {
         return "window.LeaflektBridge.setRotateGesturesEnabled($isEnabled);"
     }
 
-    fun setMapStyleScript(style: LeaflektMapStyle): String {
+    fun setMapStyleScript(style: MapStyle): String {
         return "window.LeaflektBridge.setMapStyle(${style.toJson()});"
     }
 
@@ -47,13 +47,13 @@ internal object LeaflektScriptBuilder {
         return "window.LeaflektBridge.setBearing($bearing);"
     }
 
-    fun addMarkersScript(markers: List<LeaflektMarkerInfo>, clusterId: String? = null): String {
+    fun addMarkersScript(markers: List<MarkerInfo>, clusterId: String? = null): String {
         val payload = markers.joinToString(prefix = "[", postfix = "]") { it.toJson() }
-        val clusterArg = clusterId?.let { LeaflektMapJson.encodeString(it) } ?: "null"
+        val clusterArg = clusterId?.let { MapViewJson.encodeString(it) } ?: "null"
         return "window.LeaflektBridge.addMarkers($payload, $clusterArg);"
     }
 
-    fun updateMarkerScript(marker: LeaflektMarkerInfo): String {
+    fun updateMarkerScript(marker: MarkerInfo): String {
         return "window.LeaflektBridge.updateMarker(${marker.toJson()});"
     }
 
@@ -66,54 +66,54 @@ internal object LeaflektScriptBuilder {
     }
 
     fun createMarkerClusterGroupScript(clusterId: String, options: MarkerClusterOptions): String {
-        return "window.LeaflektBridge.createMarkerClusterGroup(${LeaflektMapJson.encodeString(clusterId)}, ${LeaflektMapJson.encodeMarkerClusterOptions(options)});"
+        return "window.LeaflektBridge.createMarkerClusterGroup(${MapViewJson.encodeString(clusterId)}, ${MapViewJson.encodeMarkerClusterOptions(options)});"
     }
 
     fun removeMarkerClusterGroupScript(clusterId: String): String {
-        return "window.LeaflektBridge.removeMarkerClusterGroup(${LeaflektMapJson.encodeString(clusterId)});"
+        return "window.LeaflektBridge.removeMarkerClusterGroup(${MapViewJson.encodeString(clusterId)});"
     }
 
-    fun addPolylineScript(polyline: LeaflektPolylineInfo): String {
+    fun addPolylineScript(polyline: PolylineInfo): String {
         return "window.LeaflektBridge.addPolyline(${polyline.toJson()});"
     }
 
-    fun updatePolylineScript(polyline: LeaflektPolylineInfo): String {
+    fun updatePolylineScript(polyline: PolylineInfo): String {
         return "window.LeaflektBridge.updatePolyline(${polyline.toJson()});"
     }
 
     fun removePolylineScript(polylineId: String): String {
-        return "window.LeaflektBridge.removePolyline(${LeaflektMapJson.encodeString(polylineId)});"
+        return "window.LeaflektBridge.removePolyline(${MapViewJson.encodeString(polylineId)});"
     }
 
-    fun addPolygonScript(polygon: LeaflektPolygonInfo): String {
+    fun addPolygonScript(polygon: PolygonInfo): String {
         return "window.LeaflektBridge.addPolygon(${polygon.toJson()});"
     }
 
-    fun updatePolygonScript(polygon: LeaflektPolygonInfo): String {
+    fun updatePolygonScript(polygon: PolygonInfo): String {
         return "window.LeaflektBridge.updatePolygon(${polygon.toJson()});"
     }
 
     fun removePolygonScript(polygonId: String): String {
-        return "window.LeaflektBridge.removePolygon(${LeaflektMapJson.encodeString(polygonId)});"
+        return "window.LeaflektBridge.removePolygon(${MapViewJson.encodeString(polygonId)});"
     }
 
-    fun addCircleScript(circle: LeaflektCircleInfo): String {
+    fun addCircleScript(circle: CircleInfo): String {
         return "window.LeaflektBridge.addCircle(${circle.toJson()});"
     }
 
-    fun updateCircleScript(circle: LeaflektCircleInfo): String {
+    fun updateCircleScript(circle: CircleInfo): String {
         return "window.LeaflektBridge.updateCircle(${circle.toJson()});"
     }
 
     fun removeCircleScript(circleId: String): String {
-        return "window.LeaflektBridge.removeCircle(${LeaflektMapJson.encodeString(circleId)});"
+        return "window.LeaflektBridge.removeCircle(${MapViewJson.encodeString(circleId)});"
     }
 
-    private fun LeaflektMarkerInfo.toJson(): String {
+    private fun MarkerInfo.toJson(): String {
         val iconJson = icon?.let {
             """
                 {
-                    "dataUrl": ${LeaflektMapJson.encodeString(it.dataUrl)},
+                    "dataUrl": ${MapViewJson.encodeString(it.dataUrl)},
                     "widthPx": ${it.widthPx},
                     "heightPx": ${it.heightPx},
                     "anchorFractionX": ${it.anchorFractionX},
@@ -124,11 +124,11 @@ internal object LeaflektScriptBuilder {
 
         return """
             {
-                "id": ${LeaflektMapJson.encodeString(id ?: "")},
+                "id": ${MapViewJson.encodeString(id ?: "")},
                 "lat": $lat,
                 "lng": $lng,
-                "title": ${LeaflektMapJson.encodeNullableString(title)},
-                "snippet": ${LeaflektMapJson.encodeNullableString(snippet)},
+                "title": ${MapViewJson.encodeNullableString(title)},
+                "snippet": ${MapViewJson.encodeNullableString(snippet)},
                 "visible": $visible,
                 "alpha": $alpha,
                 "zIndex": $zIndex,
@@ -138,24 +138,24 @@ internal object LeaflektScriptBuilder {
         """.trimIndent()
     }
 
-    private fun LeaflektMapStyle.toJson(): String {
-        val subdomainsJson = subdomains?.let(LeaflektMapJson::encodeString) ?: "null"
+    private fun MapStyle.toJson(): String {
+        val subdomainsJson = subdomains?.let(MapViewJson::encodeString) ?: "null"
         return """
             {
-                "id": ${LeaflektMapJson.encodeString(id)},
-                "tileUrlTemplate": ${LeaflektMapJson.encodeString(url)},
-                "attributionHtml": ${LeaflektMapJson.encodeString(attribution)},
+                "id": ${MapViewJson.encodeString(id)},
+                "tileUrlTemplate": ${MapViewJson.encodeString(url)},
+                "attributionHtml": ${MapViewJson.encodeString(attribution)},
                 "maxZoom": $maxZoom,
                 "subdomains": $subdomainsJson
             }
         """.trimIndent()
     }
 
-    private fun LeaflektPolylineInfo.toJson(): String {
+    private fun PolylineInfo.toJson(): String {
         return """
             {
-                "id": ${LeaflektMapJson.encodeString(id)},
-                "points": ${LeaflektMapJson.encodeLatLngList(points)},
+                "id": ${MapViewJson.encodeString(id)},
+                "points": ${MapViewJson.encodeLatLngList(points)},
                 "clickable": $clickable,
                 "color": ${color.toLeaflektCssColor(alpha)},
                 "geodesic": $geodesic,
@@ -167,15 +167,15 @@ internal object LeaflektScriptBuilder {
         """.trimIndent()
     }
 
-    private fun LeaflektPolygonInfo.toJson(): String {
+    private fun PolygonInfo.toJson(): String {
         return """
             {
-                "id": ${LeaflektMapJson.encodeString(id)},
-                "points": ${LeaflektMapJson.encodeLatLngList(points)},
+                "id": ${MapViewJson.encodeString(id)},
+                "points": ${MapViewJson.encodeLatLngList(points)},
                 "clickable": $clickable,
                 "fillColor": ${fillColor.toLeaflektCssColor(fillOpacity)},
                 "geodesic": $geodesic,
-                "holes": ${LeaflektMapJson.encodeLatLngHoles(holes)},
+                "holes": ${MapViewJson.encodeLatLngHoles(holes)},
                 "strokeColor": ${strokeColor.toLeaflektCssColor(strokeOpacity)},
                 "strokePattern": ${strokePattern.toJson()},
                 "strokeWidth": $strokeWidth,
@@ -185,11 +185,11 @@ internal object LeaflektScriptBuilder {
         """.trimIndent()
     }
 
-    private fun LeaflektCircleInfo.toJson(): String {
+    private fun CircleInfo.toJson(): String {
         return """
             {
-                "id": ${LeaflektMapJson.encodeString(id)},
-                "center": ${LeaflektMapJson.encodeLatLng(center)},
+                "id": ${MapViewJson.encodeString(id)},
+                "center": ${MapViewJson.encodeLatLng(center)},
                 "clickable": $clickable,
                 "fillColor": ${fillColor.toLeaflektCssColor(fillOpacity)},
                 "radiusMeters": $radiusMeters,
@@ -222,8 +222,9 @@ internal object LeaflektScriptBuilder {
         val green = argb shr 8 and 0xFF
         val blue = argb and 0xFF
         val resolvedAlpha = ((argb ushr 24) and 0xFF) / 255f
-        return LeaflektMapJson.encodeString(
+        return MapViewJson.encodeString(
             "rgba($red,$green,$blue,${"%.3f".format(java.util.Locale.US, resolvedAlpha)})"
         )
     }
 }
+

@@ -5,10 +5,10 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
-import com.binayshaw7777.leaflekt.library.camera.LeaflektLatLng
-import com.binayshaw7777.leaflekt.library.map.LeaflektMap
-import com.binayshaw7777.leaflekt.library.map.LeaflektMapComposable
-import com.binayshaw7777.leaflekt.library.map.LocalLeaflektController
+import com.binayshaw7777.leaflekt.library.camera.LatLng
+import com.binayshaw7777.leaflekt.library.map.MapView
+import com.binayshaw7777.leaflekt.library.map.MapComposable
+import com.binayshaw7777.leaflekt.library.map.LocalMapController
 import com.binayshaw7777.leaflekt.library.shape.DefaultLeaflektSelectedStrokeColor
 import com.binayshaw7777.leaflekt.library.shape.LeaflektStrokePattern
 import com.binayshaw7777.leaflekt.library.shape.SelectedLeaflektZIndexBoost
@@ -16,18 +16,18 @@ import kotlin.math.max
 import java.util.UUID
 
 /**
- * A declarative polyline overlay that can be placed inside a [LeaflektMap] content block.
+ * A declarative polyline overlay that can be placed inside a [MapView] content block.
  *
  * This component follows the Jetpack Compose declarative pattern. It adds a polyline to the
  * underlying Leaflet.js map when it enters the composition and removes it when it leaves.
  *
  * ### Usage Example:
  * ```kotlin
- * LeaflektMap {
- *     LeaflektPolyline(
+ * MapView {
+ *     Polyline(
  *         points = listOf(
- *             LeaflektLatLng(22.57, 88.36),
- *             LeaflektLatLng(22.58, 88.37)
+ *             LatLng(22.57, 88.36),
+ *             LatLng(22.58, 88.37)
  *         ),
  *         color = Color.Blue,
  *         width = 4f
@@ -35,7 +35,7 @@ import java.util.UUID
  * }
  * ```
  *
- * @param state The [LeaflektPolylineState] to be used to control or observe the polyline's properties.
+ * @param state The [PolylineState] to be used to control or observe the polyline's properties.
  * @param clickable Whether the polyline is interactive and can receive click events.
  * @param color The color of the polyline.
  * @param geodesic Whether the polyline edges follow a geodesic path. Note: Leaflet currently
@@ -54,9 +54,9 @@ import java.util.UUID
  * the event to bubble up.
  */
 @Composable
-@LeaflektMapComposable
-fun LeaflektPolyline(
-    state: LeaflektPolylineState = rememberLeaflektPolylineState(),
+@MapComposable
+fun Polyline(
+    state: PolylineState = rememberPolylineState(),
     clickable: Boolean = false,
     color: Color = Color.Black,
     geodesic: Boolean = false,
@@ -71,7 +71,7 @@ fun LeaflektPolyline(
     id: String = remember { UUID.randomUUID().toString() },
     onClick: () -> Boolean = { false }
 ) {
-    val controller = LocalLeaflektController.current ?: return
+    val controller = LocalMapController.current ?: return
     if (state.points.isEmpty()) {
         return
     }
@@ -81,7 +81,7 @@ fun LeaflektPolyline(
 
     DisposableEffect(id) {
         controller.addPolyline(
-            LeaflektPolylineInfo(
+            PolylineInfo(
                 id = id,
                 points = state.points,
                 clickable = clickable,
@@ -125,7 +125,7 @@ fun LeaflektPolyline(
         selectedZIndexBoost
     ) {
         controller.updatePolyline(
-            LeaflektPolylineInfo(
+            PolylineInfo(
                 id = id,
                 points = state.points,
                 clickable = clickable,
@@ -142,9 +142,9 @@ fun LeaflektPolyline(
 }
 
 /**
- * A declarative polyline overlay that can be placed inside a [LeaflektMap] content block.
+ * A declarative polyline overlay that can be placed inside a [MapView] content block.
  *
- * This is a convenience overload that takes a list of points instead of a [LeaflektPolylineState].
+ * This is a convenience overload that takes a list of points instead of a [PolylineState].
  * Use this for static polylines that don't need programmatic movement or selection control.
  *
  * @param points The coordinates defining the polyline's path.
@@ -164,9 +164,9 @@ fun LeaflektPolyline(
  * @param onClick Click handler. Return `true` to consume the event.
  */
 @Composable
-@LeaflektMapComposable
-fun LeaflektPolyline(
-    points: List<LeaflektLatLng>,
+@MapComposable
+fun Polyline(
+    points: List<LatLng>,
     clickable: Boolean = false,
     color: Color = Color.Black,
     geodesic: Boolean = false,
@@ -182,8 +182,8 @@ fun LeaflektPolyline(
     id: String = remember { UUID.randomUUID().toString() },
     onClick: () -> Boolean = { false }
 ) {
-    LeaflektPolyline(
-        state = rememberLeaflektPolylineState(points = points).apply { isSelected = selected },
+    Polyline(
+        state = rememberPolylineState(points = points).apply { isSelected = selected },
         clickable = clickable,
         color = color,
         geodesic = geodesic,
@@ -201,3 +201,4 @@ fun LeaflektPolyline(
 }
 
 private const val SelectedLeaflektStrokeWidthBoost = 4f
+

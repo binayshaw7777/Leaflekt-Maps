@@ -50,24 +50,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.binayshaw7777.leaflekt.library.camera.LeaflektCameraPosition
-import com.binayshaw7777.leaflekt.library.camera.LeaflektLatLng
-import com.binayshaw7777.leaflekt.library.camera.rememberLeaflektCameraPositionState
-import com.binayshaw7777.leaflekt.library.cluster.LeaflektMarkerCluster
+import com.binayshaw7777.leaflekt.library.camera.CameraPosition
+import com.binayshaw7777.leaflekt.library.camera.LatLng
+import com.binayshaw7777.leaflekt.library.camera.rememberCameraPositionState
+import com.binayshaw7777.leaflekt.library.cluster.MarkerCluster
 import com.binayshaw7777.leaflekt.library.cluster.MarkerClusterOptions
-import com.binayshaw7777.leaflekt.library.controller.LeaflektController
-import com.binayshaw7777.leaflekt.library.map.LeaflektMap
-import com.binayshaw7777.leaflekt.library.map.LeaflektMapProperties
-import com.binayshaw7777.leaflekt.library.map.LeaflektMapStyle
-import com.binayshaw7777.leaflekt.library.map.LeaflektMapUiSettings
-import com.binayshaw7777.leaflekt.library.marker.LeaflektMarker
-import com.binayshaw7777.leaflekt.library.marker.rememberLeaflektMarkerState
-import com.binayshaw7777.leaflekt.library.polyline.LeaflektPolyline
+import com.binayshaw7777.leaflekt.library.controller.MapController
+import com.binayshaw7777.leaflekt.library.map.MapView
+import com.binayshaw7777.leaflekt.library.map.MapProperties
+import com.binayshaw7777.leaflekt.library.map.MapStyle
+import com.binayshaw7777.leaflekt.library.map.MapUiSettings
+import com.binayshaw7777.leaflekt.library.marker.Marker
+import com.binayshaw7777.leaflekt.library.marker.rememberMarkerState
+import com.binayshaw7777.leaflekt.library.polyline.Polyline
 
 @Composable
 internal fun SampleAppScreen(viewModel: OlaMapsViewModel = viewModel()) {
     var selectedTab by rememberSaveable { mutableStateOf(SampleTab.Explore) }
-    var selectedMapStyle by rememberSaveable { mutableStateOf(LeaflektMapStyle.CartoDark) }
+    var selectedMapStyle by rememberSaveable { mutableStateOf(MapStyle.CartoDark) }
 
     Scaffold(
         bottomBar = {
@@ -118,8 +118,8 @@ internal fun SampleAppScreen(viewModel: OlaMapsViewModel = viewModel()) {
 internal fun ExploreMapScreen(
     modifier: Modifier = Modifier,
     viewModel: OlaMapsViewModel,
-    selectedMapStyle: LeaflektMapStyle,
-    onMapStyleChange: (LeaflektMapStyle) -> Unit
+    selectedMapStyle: MapStyle,
+    onMapStyleChange: (MapStyle) -> Unit
 ) {
     val searchQuery by viewModel.exploreSearchQuery.collectAsState()
     val predictions by viewModel.explorePredictions.collectAsState()
@@ -129,22 +129,22 @@ internal fun ExploreMapScreen(
     var expanded by rememberSaveable { mutableStateOf(false) }
     var showMapStyleSheet by rememberSaveable { mutableStateOf(false) }
     var selectedZoom by rememberSaveable { mutableFloatStateOf(12f) }
-    var mapController by remember { mutableStateOf<LeaflektController?>(null) }
+    var mapController by remember { mutableStateOf<MapController?>(null) }
     val explorePlace = selectedPlace
     val selectedPlaceLocation = explorePlace?.geometry?.location
 
-     val cameraPositionState = rememberLeaflektCameraPositionState {
-         position = LeaflektCameraPosition(
-             target = LeaflektLatLng(latitude = 22.5726, longitude = 88.3639),
+     val cameraPositionState = rememberCameraPositionState {
+         position = CameraPosition(
+             target = LatLng(latitude = 22.5726, longitude = 88.3639),
              zoom = 12.0
          )
      }
-     val markerState = rememberLeaflektMarkerState()
-     val featuredMarkerState = rememberLeaflektMarkerState(
-         position = LeaflektLatLng(22.5726 + 0.01, 88.3639 + 0.01)
+     val markerState = rememberMarkerState()
+     val featuredMarkerState = rememberMarkerState(
+         position = LatLng(22.5726 + 0.01, 88.3639 + 0.01)
      )
-     val historicalSiteMarkerState = rememberLeaflektMarkerState(
-         position = LeaflektLatLng(22.5448, 88.3426)
+     val historicalSiteMarkerState = rememberMarkerState(
+         position = LatLng(22.5448, 88.3426)
      )
 
      // Demo: Async marker icon loaded from a remote URL
@@ -162,9 +162,9 @@ internal fun ExploreMapScreen(
              markerState.hideInfoWindow()
              return@LaunchedEffect
          }
-         markerState.position = LeaflektLatLng(location.lat, location.lng)
-         cameraPositionState.position = LeaflektCameraPosition(
-             target = LeaflektLatLng(location.lat, location.lng),
+         markerState.position = LatLng(location.lat, location.lng)
+         cameraPositionState.position = CameraPosition(
+             target = LatLng(location.lat, location.lng),
              zoom = 15.0
          )
          markerState.showInfoWindow()
@@ -187,13 +187,13 @@ internal fun ExploreMapScreen(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        LeaflektMap(
+        MapView(
             modifier = Modifier.fillMaxSize(),
-            properties = LeaflektMapProperties(
+            properties = MapProperties(
                 mapStyle = selectedMapStyle,
                 automaticThemeSync = false
             ),
-            uiSettings = LeaflektMapUiSettings(
+            uiSettings = MapUiSettings(
                 zoomControlsEnabled = false,
                 rotateGesturesEnabled = true,
                 showCurrentLocation = true
@@ -208,7 +208,7 @@ internal fun ExploreMapScreen(
                 historicalSiteMarkerState.hideInfoWindow()
             }
              ) {
-                  LeaflektMarker(
+                  Marker(
                       state = markerState,
                       title = explorePlace?.headline(),
                       snippet = explorePlace?.supportingLine(),
@@ -225,7 +225,7 @@ internal fun ExploreMapScreen(
                   )
 
                   // Demo: Composable marker icon (a star) at a fixed offset
-                  LeaflektMarker(
+                  Marker(
                       state = featuredMarkerState,
                       iconContent = {
                           Surface(
@@ -258,7 +258,7 @@ internal fun ExploreMapScreen(
                   )
 
              // Demo: Async icon marker (Victoria Memorial)
-             LeaflektMarker(
+             Marker(
                  state = historicalSiteMarkerState,
                  icon = demoAsyncIcon.value,
                  infoWindow = {
@@ -328,8 +328,8 @@ internal fun ExploreMapScreen(
 internal fun DirectionsMapScreen(
     modifier: Modifier = Modifier,
     viewModel: OlaMapsViewModel,
-    selectedMapStyle: LeaflektMapStyle,
-    onMapStyleChange: (LeaflektMapStyle) -> Unit
+    selectedMapStyle: MapStyle,
+    onMapStyleChange: (MapStyle) -> Unit
 ) {
     val originPlace by viewModel.selectedOriginPlace.collectAsState()
     val destinationPlace by viewModel.selectedDestinationPlace.collectAsState()
@@ -344,13 +344,13 @@ internal fun DirectionsMapScreen(
     var showDirectionsSearchSheet by rememberSaveable { mutableStateOf(false) }
     var showMapStyleSheet by rememberSaveable { mutableStateOf(false) }
     var selectedZoom by rememberSaveable { mutableFloatStateOf(12f) }
-    var mapController by remember { mutableStateOf<LeaflektController?>(null) }
-    val originMarkerState = rememberLeaflektMarkerState()
-    val destinationMarkerState = rememberLeaflektMarkerState()
+    var mapController by remember { mutableStateOf<MapController?>(null) }
+    val originMarkerState = rememberMarkerState()
+    val destinationMarkerState = rememberMarkerState()
 
-    val cameraPositionState = rememberLeaflektCameraPositionState {
-        position = LeaflektCameraPosition(
-            target = LeaflektLatLng(latitude = 22.5726, longitude = 88.3639),
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition(
+            target = LatLng(latitude = 22.5726, longitude = 88.3639),
             zoom = 12.0
         )
     }
@@ -359,20 +359,20 @@ internal fun DirectionsMapScreen(
 
     LaunchedEffect(originPlace) {
         val location = originPlace?.geometry?.location ?: return@LaunchedEffect
-        originMarkerState.position = LeaflektLatLng(location.lat, location.lng)
+        originMarkerState.position = LatLng(location.lat, location.lng)
         originMarkerState.showInfoWindow()
     }
 
     LaunchedEffect(destinationPlace) {
         val location = destinationPlace?.geometry?.location ?: return@LaunchedEffect
-        destinationMarkerState.position = LeaflektLatLng(location.lat, location.lng)
+        destinationMarkerState.position = LatLng(location.lat, location.lng)
         destinationMarkerState.showInfoWindow()
     }
 
     LaunchedEffect(originPlace, destinationPlace, activeRoute) {
         val route = activeRoute
         if (route != null) {
-            cameraPositionState.position = LeaflektCameraPosition(
+            cameraPositionState.position = CameraPosition(
                 target = route.cameraTarget(),
                 zoom = route.recommendedZoom()
             )
@@ -382,13 +382,13 @@ internal fun DirectionsMapScreen(
         val originLocation = originPlace?.geometry?.location
         val destinationLocation = destinationPlace?.geometry?.location
         val fallbackTarget = when {
-            originLocation != null && destinationLocation != null -> LeaflektLatLng(
+            originLocation != null && destinationLocation != null -> LatLng(
                 latitude = (originLocation.lat + destinationLocation.lat) / 2,
                 longitude = (originLocation.lng + destinationLocation.lng) / 2
             )
 
-            originLocation != null -> LeaflektLatLng(originLocation.lat, originLocation.lng)
-            destinationLocation != null -> LeaflektLatLng(
+            originLocation != null -> LatLng(originLocation.lat, originLocation.lng)
+            destinationLocation != null -> LatLng(
                 destinationLocation.lat,
                 destinationLocation.lng
             )
@@ -396,7 +396,7 @@ internal fun DirectionsMapScreen(
             else -> null
         } ?: return@LaunchedEffect
 
-        cameraPositionState.position = LeaflektCameraPosition(
+        cameraPositionState.position = CameraPosition(
             target = fallbackTarget,
             zoom = 12.5
         )
@@ -441,13 +441,13 @@ internal fun DirectionsMapScreen(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        LeaflektMap(
+        MapView(
             modifier = Modifier.fillMaxSize(),
-            properties = LeaflektMapProperties(
+            properties = MapProperties(
                 mapStyle = selectedMapStyle,
                 automaticThemeSync = false
             ),
-            uiSettings = LeaflektMapUiSettings(
+            uiSettings = MapUiSettings(
                 zoomControlsEnabled = false,
                 rotateGesturesEnabled = true,
                 showCurrentLocation = true
@@ -462,7 +462,7 @@ internal fun DirectionsMapScreen(
             }
         ) {
             activeRoute?.let { route ->
-                LeaflektPolyline(
+                Polyline(
                     points = route.points,
                     color = Color(0xFF0A84FF),
                     width = 8f,
@@ -471,9 +471,9 @@ internal fun DirectionsMapScreen(
             }
 
              originPlace?.geometry?.location?.let { location ->
-                 LeaflektMarker(
+                 Marker(
                      state = originMarkerState.apply {
-                         position = LeaflektLatLng(location.lat, location.lng)
+                         position = LatLng(location.lat, location.lng)
                      },
                      title = "Origin",
                      snippet = originPlace?.headline(),
@@ -491,9 +491,9 @@ internal fun DirectionsMapScreen(
              }
 
              destinationPlace?.geometry?.location?.let { location ->
-                 LeaflektMarker(
+                 Marker(
                      state = destinationMarkerState.apply {
-                         position = LeaflektLatLng(location.lat, location.lng)
+                         position = LatLng(location.lat, location.lng)
                      },
                      title = "Destination",
                      snippet = destinationPlace?.headline(),
@@ -522,7 +522,7 @@ internal fun DirectionsMapScreen(
                         anchorFractionX = 0.5f,
                         anchorFractionY = 0.5f
                     )
-                    LeaflektMarker(
+                    Marker(
                         position = midPoint,
                         icon = demoBikeIcon.value,
                         alpha = 0.9f
@@ -595,8 +595,8 @@ internal fun DirectionsMapScreen(
 internal fun ClusteringMapScreen(
     modifier: Modifier = Modifier,
     viewModel: OlaMapsViewModel,
-    selectedMapStyle: LeaflektMapStyle,
-    onMapStyleChange: (LeaflektMapStyle) -> Unit
+    selectedMapStyle: MapStyle,
+    onMapStyleChange: (MapStyle) -> Unit
 ) {
     val searchQuery by viewModel.exploreSearchQuery.collectAsState()
     val predictions by viewModel.explorePredictions.collectAsState()
@@ -604,16 +604,16 @@ internal fun ClusteringMapScreen(
     val selectedPlace by viewModel.selectedExplorePlace.collectAsState()
 
     var showMapStyleSheet by rememberSaveable { mutableStateOf(false) }
-    var mapController by remember { mutableStateOf<LeaflektController?>(null) }
+    var mapController by remember { mutableStateOf<MapController?>(null) }
     var expanded by rememberSaveable { mutableStateOf(false) }
 
-    val cameraPositionState = rememberLeaflektCameraPositionState {
-        position = LeaflektCameraPosition(
-            target = LeaflektLatLng(22.5726, 88.3639),
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition(
+            target = LatLng(22.5726, 88.3639),
             zoom = 11.0
         )
     }
-    val markerState = rememberLeaflektMarkerState()
+    val markerState = rememberMarkerState()
 
     LaunchedEffect(selectedPlace) {
         val location = selectedPlace?.geometry?.location
@@ -621,8 +621,8 @@ internal fun ClusteringMapScreen(
             markerState.hideInfoWindow()
             return@LaunchedEffect
         }
-        cameraPositionState.position = LeaflektCameraPosition(
-            target = LeaflektLatLng(location.lat, location.lng),
+        cameraPositionState.position = CameraPosition(
+            target = LatLng(location.lat, location.lng),
             zoom = 15.0
         )
         markerState.showInfoWindow()
@@ -631,7 +631,7 @@ internal fun ClusteringMapScreen(
     // Generate some random points around Kolkata for clustering
     val clusterPoints = remember {
         List(100) {
-            LeaflektLatLng(
+            LatLng(
                 latitude = 22.5726 + (Math.random() - 0.5) * 0.2,
                 longitude = 88.3639 + (Math.random() - 0.5) * 0.2
             )
@@ -652,13 +652,13 @@ internal fun ClusteringMapScreen(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        LeaflektMap(
+        MapView(
             modifier = Modifier.fillMaxSize(),
-            properties = LeaflektMapProperties(
+            properties = MapProperties(
                 mapStyle = selectedMapStyle,
                 automaticThemeSync = false
             ),
-            uiSettings = LeaflektMapUiSettings(
+            uiSettings = MapUiSettings(
                 zoomControlsEnabled = false,
                 rotateGesturesEnabled = true,
                 showCurrentLocation = true
@@ -674,9 +674,9 @@ internal fun ClusteringMapScreen(
             if (selectedPlace != null) {
                 val location = selectedPlace?.geometry?.location
                 if (location != null) {
-                    LeaflektMarker(
+                    Marker(
                         state = markerState.apply {
-                            position = LeaflektLatLng(location.lat, location.lng)
+                            position = LatLng(location.lat, location.lng)
                         },
                         title = selectedPlace?.headline(),
                         snippet = selectedPlace?.supportingLine(),
@@ -693,7 +693,7 @@ internal fun ClusteringMapScreen(
                 }
             }
 
-            LeaflektMarkerCluster(
+            MarkerCluster(
                 options = MarkerClusterOptions(
                     maxClusterRadius = 80,
                     showCoverageOnHover = false
@@ -703,7 +703,7 @@ internal fun ClusteringMapScreen(
                 }
             ) {
                 clusterPoints.forEachIndexed { index, point ->
-                    LeaflektMarker(
+                    Marker(
                         position = point,
                         title = "Marker #$index",
                         snippet = "Clustered point"
@@ -1018,7 +1018,7 @@ private enum class SampleTab(
     Clustering(label = "Clustering", icon = Icons.Default.Layers)
 }
 
-private fun List<LeaflektLatLng>.routeStartHeadingDegrees(): Float? {
+private fun List<LatLng>.routeStartHeadingDegrees(): Float? {
     if (size < 2) {
         return null
     }
@@ -1026,7 +1026,7 @@ private fun List<LeaflektLatLng>.routeStartHeadingDegrees(): Float? {
     return first().headingTo(this[1])
 }
 
-private fun List<LeaflektLatLng>.routeEndHeadingDegrees(): Float? {
+private fun List<LatLng>.routeEndHeadingDegrees(): Float? {
     if (size < 2) {
         return null
     }
@@ -1034,7 +1034,7 @@ private fun List<LeaflektLatLng>.routeEndHeadingDegrees(): Float? {
     return this[size - 2].headingTo(last())
 }
 
-private fun LeaflektLatLng.headingTo(other: LeaflektLatLng): Float {
+private fun LatLng.headingTo(other: LatLng): Float {
     val startLatitude = Math.toRadians(latitude)
     val endLatitude = Math.toRadians(other.latitude)
     val longitudeDelta = Math.toRadians(other.longitude - longitude)
@@ -1044,3 +1044,4 @@ private fun LeaflektLatLng.headingTo(other: LeaflektLatLng): Float {
     val heading = Math.toDegrees(kotlin.math.atan2(y, x))
     return ((heading + 360.0) % 360.0).toFloat()
 }
+

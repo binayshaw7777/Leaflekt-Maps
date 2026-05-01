@@ -1,20 +1,24 @@
-package com.binayshaw7777.leaflekt.library.circle
+package com.binayshaw7777.leaflekt.library.polygon
 
 import androidx.compose.ui.graphics.Color
-import com.binayshaw7777.leaflekt.library.camera.LeaflektLatLng
+import com.binayshaw7777.leaflekt.library.camera.LatLng
 import com.binayshaw7777.leaflekt.library.shape.LeaflektStrokePattern
 
 /**
- * Circle configuration sent to the Leaflet runtime.
+ * Polygon configuration sent to the Leaflet runtime.
+ *
+ * `geodesic` is retained for source compatibility, but Leaflet renders the polygon edges as
+ * normal projected segments.
  *
  * `zIndex` is applied as a best-effort draw order among vector layers.
  */
-data class LeaflektCircleInfo(
+data class PolygonInfo(
     val id: String,
-    val center: LeaflektLatLng,
+    val points: List<LatLng>,
     val clickable: Boolean = false,
     val fillColor: Color = Color.Transparent,
-    val radiusMeters: Double = 10.0,
+    val geodesic: Boolean = false,
+    val holes: List<List<LatLng>> = emptyList(),
     val strokeColor: Color = Color.Black,
     val strokePattern: List<LeaflektStrokePattern>? = null,
     val strokeWidth: Float = 10f,
@@ -23,3 +27,4 @@ data class LeaflektCircleInfo(
     val fillOpacity: Float = 0.2f,
     val strokeOpacity: Float = 1f
 )
+

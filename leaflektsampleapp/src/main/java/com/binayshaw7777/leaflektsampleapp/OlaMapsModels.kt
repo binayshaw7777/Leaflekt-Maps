@@ -1,6 +1,6 @@
 package com.binayshaw7777.leaflektsampleapp
 
-import com.binayshaw7777.leaflekt.library.camera.LeaflektLatLng
+import com.binayshaw7777.leaflekt.library.camera.LatLng
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonArray
@@ -85,15 +85,15 @@ enum class DirectionsEndpoint {
 }
 
 data class DirectionsRoute(
-    val points: List<LeaflektLatLng>,
+    val points: List<LatLng>,
     val distanceMeters: Double?,
     val durationSeconds: Double?,
     val summary: String? = null
 ) {
-    fun cameraTarget(): LeaflektLatLng {
-        val firstPoint = points.firstOrNull() ?: LeaflektLatLng(22.5726, 88.3639)
+    fun cameraTarget(): LatLng {
+        val firstPoint = points.firstOrNull() ?: LatLng(22.5726, 88.3639)
         val lastPoint = points.lastOrNull() ?: firstPoint
-        return LeaflektLatLng(
+        return LatLng(
             latitude = (firstPoint.latitude + lastPoint.latitude) / 2,
             longitude = (firstPoint.longitude + lastPoint.longitude) / 2
         )
@@ -159,7 +159,7 @@ internal fun JsonElement.toDirectionsRoute(): DirectionsRoute? {
     )
 }
 
-private fun JsonObject.routePoints(): List<LeaflektLatLng> {
+private fun JsonObject.routePoints(): List<LatLng> {
     return decodePolylineSource(this["overview_polyline"])
         ?: decodePolylineSource(this["overviewPolyline"])
         ?: decodePolylineSource(this["geometry"])
@@ -183,7 +183,7 @@ private fun JsonObject.routeDurationSeconds(): Double? {
         ?: sumLegValue("duration_seconds")
 }
 
-private fun JsonObject.routeStepPoints(): List<LeaflektLatLng>? {
+private fun JsonObject.routeStepPoints(): List<LatLng>? {
     val legs = this["legs"]?.jsonArray ?: return null
     val points = buildList {
         legs.forEach { legElement ->
@@ -199,7 +199,7 @@ private fun JsonObject.routeStepPoints(): List<LeaflektLatLng>? {
     return points.removeAdjacentDuplicates().takeIf { it.isNotEmpty() }
 }
 
-private fun decodePolylineSource(source: JsonElement?): List<LeaflektLatLng>? {
+private fun decodePolylineSource(source: JsonElement?): List<LatLng>? {
     if (source == null) {
         return null
     }
@@ -229,7 +229,7 @@ private fun decodePolylineSource(source: JsonElement?): List<LeaflektLatLng>? {
     }
 }
 
-private fun JsonArray.toRoutePoints(): List<LeaflektLatLng>? {
+private fun JsonArray.toRoutePoints(): List<LatLng>? {
     val points = mapNotNull { coordinate ->
         val items = coordinate.jsonArrayOrNull() ?: return@mapNotNull null
         if (items.size < 2) {
@@ -238,7 +238,7 @@ private fun JsonArray.toRoutePoints(): List<LeaflektLatLng>? {
 
         val firstValue = items[0].jsonPrimitive.doubleOrNull ?: return@mapNotNull null
         val secondValue = items[1].jsonPrimitive.doubleOrNull ?: return@mapNotNull null
-        LeaflektLatLng(latitude = secondValue, longitude = firstValue)
+        LatLng(latitude = secondValue, longitude = firstValue)
     }
 
     return points.takeIf { it.isNotEmpty() }
@@ -264,7 +264,7 @@ private fun JsonElement.jsonArrayOrNull(): JsonArray? {
     return this as? JsonArray
 }
 
-private fun List<LeaflektLatLng>.removeAdjacentDuplicates(): List<LeaflektLatLng> {
+private fun List<LatLng>.removeAdjacentDuplicates(): List<LatLng> {
     if (isEmpty()) {
         return this
     }
@@ -280,12 +280,12 @@ private fun List<LeaflektLatLng>.removeAdjacentDuplicates(): List<LeaflektLatLng
     }
 }
 
-private fun decodePolyline(encodedPolyline: String): List<LeaflektLatLng> {
+private fun decodePolyline(encodedPolyline: String): List<LatLng> {
     if (encodedPolyline.isBlank()) {
         return emptyList()
     }
 
-    val points = mutableListOf<LeaflektLatLng>()
+    val points = mutableListOf<LatLng>()
     var index = 0
     var latitude = 0
     var longitude = 0
@@ -294,7 +294,7 @@ private fun decodePolyline(encodedPolyline: String): List<LeaflektLatLng> {
         latitude += decodePolylineValue(encodedPolyline) { index++ }
         longitude += decodePolylineValue(encodedPolyline) { index++ }
 
-        points += LeaflektLatLng(
+        points += LatLng(
             latitude = latitude / 1E5,
             longitude = longitude / 1E5
         )
@@ -324,3 +324,4 @@ private fun decodePolylineValue(
         result shr 1
     }
 }
+

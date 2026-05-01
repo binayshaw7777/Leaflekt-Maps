@@ -8,7 +8,7 @@ class LeaflektShapeStateTest {
 
     @Test
     fun polylineStateToggleSelectionUpdatesSelectionFlag() {
-        val state = LeaflektPolylineState()
+        val state = PolylineState()
 
         assertFalse(state.isSelected)
 
@@ -21,7 +21,7 @@ class LeaflektShapeStateTest {
 
     @Test
     fun polygonStateSelectUpdatesSelectionFlag() {
-        val state = LeaflektPolygonState()
+        val state = PolygonState()
 
         state.select()
 
@@ -30,7 +30,7 @@ class LeaflektShapeStateTest {
 
     @Test
     fun circleStateToggleSelectionUpdatesSelectionFlag() {
-        val state = LeaflektCircleState()
+        val state = CircleState()
 
         state.toggleSelection()
         assertTrue(state.isSelected)
@@ -39,3 +39,4 @@ class LeaflektShapeStateTest {
         assertFalse(state.isSelected)
     }
 }
+

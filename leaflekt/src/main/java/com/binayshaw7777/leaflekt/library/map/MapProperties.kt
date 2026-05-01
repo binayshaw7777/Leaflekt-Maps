@@ -29,14 +29,14 @@ import java.util.Objects
  * @property maxZoom Maximum allowed zoom level. Prevents over-zooming beyond tile detail.
  * Defaults to 19.0 (typical max for most tile providers).
  */
-class LeaflektMapProperties(
-    val mapStyle: LeaflektMapStyle = LeaflektMapStyle.OpenStreetMap,
+class MapProperties(
+    val mapStyle: MapStyle = MapStyle.OpenStreetMap,
     val automaticThemeSync: Boolean = false,
     val minZoom: Double = 2.0,
     val maxZoom: Double = 19.0,
     val restrictToWorldBounds: Boolean = true
 ) {
-    override fun toString(): String = "LeaflektMapProperties(" +
+    override fun toString(): String = "MapProperties(" +
             "mapStyle=$mapStyle, " +
             "automaticThemeSync=$automaticThemeSync, " +
             "minZoom=$minZoom, " +
@@ -44,7 +44,7 @@ class LeaflektMapProperties(
             "restrictToWorldBounds=$restrictToWorldBounds)"
 
     override fun equals(other: Any?): Boolean =
-        other is LeaflektMapProperties &&
+        other is MapProperties &&
                 mapStyle == other.mapStyle &&
                 automaticThemeSync == other.automaticThemeSync &&
                 minZoom == other.minZoom &&
@@ -54,15 +54,15 @@ class LeaflektMapProperties(
     override fun hashCode(): Int = Objects.hash(mapStyle, automaticThemeSync, minZoom, maxZoom, restrictToWorldBounds)
 
     /**
-     * Returns a copy of this [LeaflektMapProperties] with the specified properties updated.
+     * Returns a copy of this [MapProperties] with the specified properties updated.
      */
     fun copy(
-        mapStyle: LeaflektMapStyle = this.mapStyle,
+        mapStyle: MapStyle = this.mapStyle,
         automaticThemeSync: Boolean = this.automaticThemeSync,
         minZoom: Double = this.minZoom,
         maxZoom: Double = this.maxZoom,
         restrictToWorldBounds: Boolean = this.restrictToWorldBounds
-    ): LeaflektMapProperties = LeaflektMapProperties(
+    ): MapProperties = MapProperties(
         mapStyle = mapStyle,
         automaticThemeSync = automaticThemeSync,
         minZoom = minZoom,
@@ -71,4 +71,5 @@ class LeaflektMapProperties(
     )
 }
 
-val DefaultLeaflektMapProperties: LeaflektMapProperties = LeaflektMapProperties()
+val DefaultMapProperties: MapProperties = MapProperties()
+

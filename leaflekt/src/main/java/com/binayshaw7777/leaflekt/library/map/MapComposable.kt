@@ -11,4 +11,5 @@ import androidx.compose.runtime.ComposableTargetMarker
     AnnotationTarget.TYPE_PARAMETER,
 )
 @Retention(AnnotationRetention.BINARY)
-annotation class LeaflektMapComposable
+annotation class MapComposable
+

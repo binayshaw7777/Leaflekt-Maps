@@ -6,7 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import com.binayshaw7777.leaflekt.library.camera.LeaflektLatLng
+import com.binayshaw7777.leaflekt.library.camera.LatLng
 
 /**
  * A state object that can be hoisted to control and observe a polygon's state.
@@ -14,19 +14,19 @@ import com.binayshaw7777.leaflekt.library.camera.LeaflektLatLng
  * @param points the initial list of points defining the polygon's outer boundary
  * @param holes the initial list of holes within the polygon
  */
-class LeaflektPolygonState(
-    points: List<LeaflektLatLng> = emptyList(),
-    holes: List<List<LeaflektLatLng>> = emptyList()
+class PolygonState(
+    points: List<LatLng> = emptyList(),
+    holes: List<List<LatLng>> = emptyList()
 ) {
     /**
      * The list of coordinates defining the outer boundary of the polygon.
      */
-    var points: List<LeaflektLatLng> by mutableStateOf(points)
+    var points: List<LatLng> by mutableStateOf(points)
 
     /**
      * The list of coordinate lists, each defining a hole within the polygon.
      */
-    var holes: List<List<LeaflektLatLng>> by mutableStateOf(holes)
+    var holes: List<List<LatLng>> by mutableStateOf(holes)
 
     /**
      * Whether the polygon is currently in a "selected" state, which typically triggers
@@ -57,9 +57,9 @@ class LeaflektPolygonState(
 
     companion object {
         /**
-         * The default saver implementation for [LeaflektPolygonState].
+         * The default saver implementation for [PolygonState].
          */
-        val Saver: Saver<LeaflektPolygonState, *> = Saver(
+        val Saver: Saver<PolygonState, *> = Saver(
             save = { state ->
                 val pointsData = state.points.flatMap { listOf(it.latitude, it.longitude) }
                 val holesData = state.holes.flatMap { hole ->
@@ -75,19 +75,19 @@ class LeaflektPolygonState(
 
                 val pointsSize = list[index++].toInt()
                 val points = (0 until pointsSize step 2).map {
-                    LeaflektLatLng(list[index++], list[index++])
+                    LatLng(list[index++], list[index++])
                 }
 
                 val holesCount = list[index++].toInt()
                 val holes = (0 until holesCount).map {
                     val holeSize = list[index++].toInt()
                     (0 until holeSize step 2).map {
-                        LeaflektLatLng(list[index++], list[index++])
+                        LatLng(list[index++], list[index++])
                     }
                 }
 
                 val isSelected = list[index] == 1.0
-                LeaflektPolygonState(points, holes).apply {
+                PolygonState(points, holes).apply {
                     this.isSelected = isSelected
                 }
             }
@@ -96,15 +96,16 @@ class LeaflektPolygonState(
 }
 
 /**
- * Creates and [rememberSaveable]s a [LeaflektPolygonState].
+ * Creates and [rememberSaveable]s a [PolygonState].
  *
  * @param points the initial list of points defining the polygon's outer boundary
  * @param holes the initial list of holes within the polygon
  */
 @Composable
-fun rememberLeaflektPolygonState(
-    points: List<LeaflektLatLng> = emptyList(),
-    holes: List<List<LeaflektLatLng>> = emptyList()
-): LeaflektPolygonState = rememberSaveable(saver = LeaflektPolygonState.Saver) {
-    LeaflektPolygonState(points = points, holes = holes)
+fun rememberPolygonState(
+    points: List<LatLng> = emptyList(),
+    holes: List<List<LatLng>> = emptyList()
+): PolygonState = rememberSaveable(saver = PolygonState.Saver) {
+    PolygonState(points = points, holes = holes)
 }
+

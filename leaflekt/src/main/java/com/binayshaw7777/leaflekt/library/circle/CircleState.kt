@@ -7,7 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import com.binayshaw7777.leaflekt.library.camera.LeaflektLatLng
+import com.binayshaw7777.leaflekt.library.camera.LatLng
 
 /**
  * A state object that can be hoisted to control and observe a circle's state.
@@ -15,14 +15,14 @@ import com.binayshaw7777.leaflekt.library.camera.LeaflektLatLng
  * @param center the initial center coordinate of the circle
  * @param radiusMeters the initial radius of the circle in meters
  */
-class LeaflektCircleState(
-    center: LeaflektLatLng = LeaflektLatLng(0.0, 0.0),
+class CircleState(
+    center: LatLng = LatLng(0.0, 0.0),
     radiusMeters: Double = 10.0
 ) {
     /**
      * The current center coordinate of the circle.
      */
-    var center: LeaflektLatLng by mutableStateOf(center)
+    var center: LatLng by mutableStateOf(center)
 
     /**
      * The current radius of the circle in meters.
@@ -58,9 +58,9 @@ class LeaflektCircleState(
 
     companion object {
         /**
-         * The default saver implementation for [LeaflektCircleState].
+         * The default saver implementation for [CircleState].
          */
-        val Saver: Saver<LeaflektCircleState, *> = Saver(
+        val Saver: Saver<CircleState, *> = Saver(
             save = { state ->
                 listOf(
                     state.center.latitude,
@@ -71,8 +71,8 @@ class LeaflektCircleState(
             },
             restore = { values ->
                 val list = values.toList()
-                LeaflektCircleState(
-                    center = LeaflektLatLng(list[0], list[1]),
+                CircleState(
+                    center = LatLng(list[0], list[1]),
                     radiusMeters = list[2]
                 ).apply {
                     this.isSelected = list[3] == 1.0
@@ -83,15 +83,16 @@ class LeaflektCircleState(
 }
 
 /**
- * Creates and [rememberSaveable]s a [LeaflektCircleState].
+ * Creates and [rememberSaveable]s a [CircleState].
  *
  * @param center the initial center coordinate of the circle
  * @param radiusMeters the initial radius of the circle in meters
  */
 @Composable
-fun rememberLeaflektCircleState(
-    center: LeaflektLatLng = LeaflektLatLng(0.0, 0.0),
+fun rememberCircleState(
+    center: LatLng = LatLng(0.0, 0.0),
     radiusMeters: Double = 10.0
-): LeaflektCircleState = rememberSaveable(saver = LeaflektCircleState.Saver) {
-    LeaflektCircleState(center = center, radiusMeters = radiusMeters)
+): CircleState = rememberSaveable(saver = CircleState.Saver) {
+    CircleState(center = center, radiusMeters = radiusMeters)
 }
+

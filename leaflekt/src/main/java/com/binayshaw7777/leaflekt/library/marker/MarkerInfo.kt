@@ -13,7 +13,7 @@ package com.binayshaw7777.leaflekt.library.marker
  * @property visible Whether the marker is currently visible.
  * @property alpha The opacity of the marker (0.0 to 1.0).
  */
-internal data class LeaflektMarkerInfo(
+internal data class MarkerInfo(
     val id: String? = null,
     val lat: Double,
     val lng: Double,
@@ -22,14 +22,15 @@ internal data class LeaflektMarkerInfo(
     val visible: Boolean = true,
     val alpha: Float = 1.0f,
     val zIndex: Float = 0f,
-    val icon: LeaflektMarkerIconInfo? = null,
+    val icon: MarkerIconInfo? = null,
     val rotationDegrees: Float = 0f
 )
 
-internal data class LeaflektMarkerIconInfo(
+internal data class MarkerIconInfo(
     val dataUrl: String,
     val widthPx: Int,
     val heightPx: Int,
     val anchorFractionX: Float,
     val anchorFractionY: Float
 )
+

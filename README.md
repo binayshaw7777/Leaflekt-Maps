@@ -79,21 +79,21 @@ dependencies {
 ```kotlin
 @Composable
 fun SampleMap() {
-    val cameraPositionState = rememberLeaflektCameraPositionState {
-        position = LeaflektCameraPosition(
-            target = LeaflektLatLng(latitude = 22.5726, longitude = 88.3639),
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition(
+            target = LatLng(latitude = 22.5726, longitude = 88.3639),
             zoom = 12.0
         )
     }
 
-    LeaflektMap(
+    MapView(
         modifier = Modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState,
-        properties = LeaflektMapProperties(
-            mapStyle = LeaflektMapStyle.OpenStreetMap,
+        properties = MapProperties(
+            mapStyle = MapStyle.OpenStreetMap,
             automaticThemeSync = true // Sync with System Light/Dark mode
         ),
-        uiSettings = LeaflektMapUiSettings(
+        uiSettings = MapUiSettings(
             zoomControlsEnabled = true,
             rotateGesturesEnabled = true // Enable map rotation
         ),
@@ -101,16 +101,16 @@ fun SampleMap() {
             Log.d("LeafleKT", "Map click: $latLng")
         }
     ) {
-        LeaflektMarker(
-            position = LeaflektLatLng(22.5726, 88.3639),
+        Marker(
+            position = LatLng(22.5726, 88.3639),
             title = "Kolkata",
             rotationDegrees = 45f // Rotate marker clockwise
         )
 
-        LeaflektPolyline(
+        Polyline(
             points = listOf(
-                LeaflektLatLng(22.5726, 88.3639),
-                LeaflektLatLng(22.5826, 88.3939)
+                LatLng(22.5726, 88.3639),
+                LatLng(22.5826, 88.3939)
             ),
             color = Color(0xFF0B6E4F),
             width = 6f
@@ -123,31 +123,31 @@ fun SampleMap() {
 
 ## API Reference
 
-### LeaflektMap
+### MapView
 
 The primary container for the map.
 
 | Parameter | Type | Description |
 | :--- | :--- | :--- |
 | `modifier` | `Modifier` | Layout modifier for the map. |
-| `cameraPositionState` | `LeaflektCameraPositionState` | Hoisted state for camera control. |
-| `properties` | `LeaflektMapProperties` | Map configuration (styles, zoom limits). |
-| `uiSettings` | `LeaflektMapUiSettings` | UI and gesture toggles. |
+| `cameraPositionState` | `CameraPositionState` | Hoisted state for camera control. |
+| `properties` | `MapProperties` | Map configuration (styles, zoom limits). |
+| `uiSettings` | `MapUiSettings` | UI and gesture toggles. |
 | `onMapLoaded` | `(() -> Unit)?` | Called when Leaflet is initialized. |
-| `onMapClick` | `((LeaflektLatLng) -> Unit)?` | Called when the map is tapped. |
+| `onMapClick` | `((LatLng) -> Unit)?` | Called when the map is tapped. |
 | `onMarkerClick` | `((String) -> Unit)?` | Called when any marker is clicked. |
 | `content` | `@Composable () -> Unit` | Map children (Markers, Shapes, etc). |
 
-### LeaflektMarker
+### Marker
 
 Standard marker with bitmap icons or default Leaflet pins.
 
 | Parameter | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `state` | `LeaflektMarkerState` | `remember...` | Hoisted state for position. |
+| `state` | `MarkerState` | `remember...` | Hoisted state for position. |
 | `title` | `String?` | `null` | Title for default popup. |
 | `snippet` | `String?` | `null` | Secondary text for default popup. |
-| `icon` | `LeaflektMarkerIcon?` | `null` | Custom bitmap icon. |
+| `icon` | `MarkerIcon?` | `null` | Custom bitmap icon. |
 | `rotationDegrees`| `Float` | `0f` | Visual rotation of the marker. |
 | `visible` | `Boolean` | `true` | Visibility toggle. |
 | `alpha` | `Float` | `1.0f` | Opacity (0.0 to 1.0). |
@@ -155,13 +155,13 @@ Standard marker with bitmap icons or default Leaflet pins.
 | `infoWindow` | `@Composable () -> Unit`| `null` | Custom Compose UI popup. |
 | `onClick` | `() -> Boolean` | `{ false }` | Click handler (return true to consume). |
 
-### LeaflektMarker (Compose Icon)
+### Marker (Compose Icon)
 
 Marker where the icon itself is a Compose UI.
 
 | Parameter | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `state` | `LeaflektMarkerState` | `remember...` | Hoisted state for position. |
+| `state` | `MarkerState` | `remember...` | Hoisted state for position. |
 | `iconContent` | `@Composable () -> Unit`| - | Compose UI for the marker icon. |
 | `iconAnchorX` | `Float` | `0.5f` | Horizontal anchor (0 to 1). |
 | `iconAnchorY` | `Float` | `0.5f` | Vertical anchor (0 to 1). |
@@ -175,32 +175,32 @@ All shapes support `onClick: () -> Boolean` and `zIndex`.
 
 | Component | Key Properties |
 | :--- | :--- |
-| `LeaflektPolyline`| `points`, `color`, `width`, `pattern`, `geodesic`, `zIndex`, `onClick` |
-| `LeaflektPolygon` | `points`, `holes`, `fillColor`, `strokeColor`, `strokeWidth`, `zIndex`, `onClick` |
-| `LeaflektCircle`  | `center`, `radiusMeters`, `fillColor`, `strokeColor`, `strokeWidth`, `zIndex`, `onClick` |
+| `Polyline`| `points`, `color`, `width`, `pattern`, `geodesic`, `zIndex`, `onClick` |
+| `Polygon` | `points`, `holes`, `fillColor`, `strokeColor`, `strokeWidth`, `zIndex`, `onClick` |
+| `Circle`  | `center`, `radiusMeters`, `fillColor`, `strokeColor`, `strokeWidth`, `zIndex`, `onClick` |
 
 ### Advanced Components
 
-#### LeaflektMarkerCluster
+#### MarkerCluster
 Groups markers into clusters.
 - `options`: `MarkerClusterOptions` (Radius, coverage, etc)
 - `onClusterClick`: `(lat, lng, count) -> Unit`
 - `content`: `@Composable () -> Unit` (The markers to cluster)
 
-#### LeaflektOverlay
+#### MapOverlay
 Pins any Composable to map coordinates.
-- `position`: `LeaflektLatLng`
+- `position`: `LatLng`
 - `anchorFractionX` / `anchorFractionY`: `Float` (Alignment)
 - `content`: `@Composable () -> Unit`
 
 ### Configuration
 
-#### LeaflektMapProperties
-- `mapStyle`: `LeaflektMapStyle` (Default: `OpenStreetMap`)
+#### MapProperties
+- `mapStyle`: `MapStyle` (Default: `OpenStreetMap`)
 - `automaticThemeSync`: `Boolean` (Sync with System Dark/Light mode)
 - `minZoom` / `maxZoom`: `Double` (Zoom constraints)
 
-#### LeaflektMapUiSettings
+#### MapUiSettings
 - `zoomControlsEnabled`: `Boolean` (Visible +/- buttons)
 - `scrollGesturesEnabled`: `Boolean` (Pan support)
 - `zoomGesturesEnabled`: `Boolean` (Pinch/Double-tap zoom)
@@ -219,15 +219,15 @@ Group large numbers of markers into clusters automatically:
 -->
 
 ```kotlin
-LeaflektMap {
-    LeaflektMarkerCluster(
+MapView {
+    MarkerCluster(
         options = MarkerClusterOptions(
             maxClusterRadius = 80,
             showCoverageOnHover = true
         )
     ) {
         markers.forEach { m ->
-            LeaflektMarker(position = m.position)
+            Marker(position = m.position)
         }
     }
 }
@@ -238,12 +238,12 @@ LeaflektMap {
 Control the allowed zoom range and gesture support:
 
 ```kotlin
-LeaflektMap(
-    properties = LeaflektMapProperties(
+MapView(
+    properties = MapProperties(
         minZoom = 2.0,   // Prevent zooming out to blank space
         maxZoom = 18.0   // Limit detail zoom
     ),
-    uiSettings = LeaflektMapUiSettings(
+    uiSettings = MapUiSettings(
         zoomGesturesEnabled = true,
         scrollGesturesEnabled = true,
         rotateGesturesEnabled = true // Continuous map rotation
@@ -255,7 +255,7 @@ LeaflektMap(
 
 Leaflekt supports synchronous bitmaps and native Compose UI overlays. If your app wants remote
 images, load them with your preferred image library and convert the decoded result into a
-`LeaflektMarkerIcon`.
+`MarkerIcon`.
 
 <!-- MEDIA SUGGESTION: ICON TYPES SHOWCASE
      Suggestion: A horizontal row showing 3 markers:
@@ -267,9 +267,9 @@ images, load them with your preferred image library and convert the decoded resu
 ### Synchronous (Bitmap) API
 
 ```kotlin
-LeaflektMarker(
-    position = LeaflektLatLng(22.5726, 88.3639),
-    icon = LeaflektMarkerIcon(
+Marker(
+    position = LatLng(22.5726, 88.3639),
+    icon = MarkerIcon(
         bitmap = bikeBitmap,
         widthPx = 72,
         heightPx = 72,
@@ -294,8 +294,8 @@ not depend on Coil, Glide, or any specific image pipeline.
 Render any Compose UI as a marker:
 
 ```kotlin
-LeaflektMarker(
-    position = LeaflektLatLng(22.5726, 88.3639),
+Marker(
+    position = LatLng(22.5726, 88.3639),
     iconContent = {
         TextBadge(text = "99+", color = Color.Red)
     }
@@ -304,11 +304,11 @@ LeaflektMarker(
 
 ## Built-In Map Styles
 
-- `LeaflektMapStyle.OpenStreetMap`
-- `LeaflektMapStyle.CartoLight`
-- `LeaflektMapStyle.CartoDark`
-- `LeaflektMapStyle.OpenTopoMap`
-- `LeaflektMapStyle.EsriWorldImagery`
+- `MapStyle.OpenStreetMap`
+- `MapStyle.CartoLight`
+- `MapStyle.CartoDark`
+- `MapStyle.OpenTopoMap`
+- `MapStyle.EsriWorldImagery`
 
 <!-- MEDIA SUGGESTION: MAP STYLE GRID
      Suggestion: A 2x3 or 3x2 grid of 1:1 square screenshots showing:
@@ -325,9 +325,9 @@ LeafleKT provides first-class support for **Ola Maps**. Use the OLA tile provide
 -->
 
 ```kotlin
-LeaflektMap(
-    properties = LeaflektMapProperties(
-        mapStyle = LeaflektMapStyle.OlaMaps(apiKey = "YOUR_API_KEY")
+MapView(
+    properties = MapProperties(
+        mapStyle = MapStyle.OlaMaps(apiKey = "YOUR_API_KEY")
     )
 )
 ```
@@ -385,3 +385,4 @@ Planned:
 ## License
 
 Apache License 2.0. See [LICENSE](LICENSE).
+

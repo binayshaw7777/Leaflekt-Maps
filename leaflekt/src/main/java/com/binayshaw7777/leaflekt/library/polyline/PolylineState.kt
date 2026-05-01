@@ -6,10 +6,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import com.binayshaw7777.leaflekt.library.camera.LeaflektLatLng
+import com.binayshaw7777.leaflekt.library.camera.LatLng
 
-class LeaflektPolylineState(points: List<LeaflektLatLng> = emptyList()) {
-    var points: List<LeaflektLatLng> by mutableStateOf(points)
+class PolylineState(points: List<LatLng> = emptyList()) {
+    var points: List<LatLng> by mutableStateOf(points)
     var isSelected: Boolean by mutableStateOf(false)
 
     fun select() {
@@ -25,7 +25,7 @@ class LeaflektPolylineState(points: List<LeaflektLatLng> = emptyList()) {
     }
 
     companion object {
-        val Saver: Saver<LeaflektPolylineState, *> = Saver(
+        val Saver: Saver<PolylineState, *> = Saver(
             save = { state ->
                 state.points.flatMap { listOf(it.latitude, it.longitude) } + listOf(
                     if (state.isSelected) 1.0 else 0.0
@@ -35,9 +35,9 @@ class LeaflektPolylineState(points: List<LeaflektLatLng> = emptyList()) {
                 val savedValues = values.toList()
                 val isSelected = savedValues.lastOrNull() == 1.0
                 val points = savedValues.dropLast(1).chunked(2).map {
-                    LeaflektLatLng(it[0], it[1])
+                    LatLng(it[0], it[1])
                 }
-                LeaflektPolylineState(points).apply {
+                PolylineState(points).apply {
                     this.isSelected = isSelected
                 }
             }
@@ -46,8 +46,9 @@ class LeaflektPolylineState(points: List<LeaflektLatLng> = emptyList()) {
 }
 
 @Composable
-fun rememberLeaflektPolylineState(
-    points: List<LeaflektLatLng> = emptyList()
-): LeaflektPolylineState = rememberSaveable(saver = LeaflektPolylineState.Saver) {
-    LeaflektPolylineState(points)
+fun rememberPolylineState(
+    points: List<LatLng> = emptyList()
+): PolylineState = rememberSaveable(saver = PolylineState.Saver) {
+    PolylineState(points)
 }
+

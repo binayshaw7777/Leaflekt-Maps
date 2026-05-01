@@ -16,12 +16,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.webkit.WebViewAssetLoader
 import com.binayshaw7777.leaflekt.internal.bridge.LeaflektJsBridge
-import com.binayshaw7777.leaflekt.library.controller.LeaflektController
+import com.binayshaw7777.leaflekt.library.controller.MapController
 
 @Composable
 internal fun LeaflektWebView(
     modifier: Modifier,
-    controller: LeaflektController,
+    controller: MapController,
     jsBridge: LeaflektJsBridge,
     contentDescription: String?
 ) {
@@ -136,3 +136,4 @@ internal fun LeaflektWebView(
 }
 
 private const val TAG = "Leaflekt.WebView"
+

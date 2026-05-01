@@ -20,26 +20,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
-import com.binayshaw7777.leaflekt.library.map.LeaflektMap
-import com.binayshaw7777.leaflekt.library.map.LeaflektMapComposable
-import com.binayshaw7777.leaflekt.library.map.LocalLeaflektController
-import com.binayshaw7777.leaflekt.library.map.LocalLeaflektMarkerClusterId
-import com.binayshaw7777.leaflekt.library.marker.LeaflektMarker
+import com.binayshaw7777.leaflekt.library.map.MapView
+import com.binayshaw7777.leaflekt.library.map.MapComposable
+import com.binayshaw7777.leaflekt.library.map.LocalMapController
+import com.binayshaw7777.leaflekt.library.map.LocalMarkerClusterId
+import com.binayshaw7777.leaflekt.library.marker.Marker
 import java.util.UUID
 
 /**
- * A declarative marker cluster group that can be placed inside a [LeaflektMap] content block.
+ * A declarative marker cluster group that can be placed inside a [MapView] content block.
  *
- * All [LeaflektMarker]s placed inside the [content] block will be added to this cluster group.
+ * All [Marker]s placed inside the [content] block will be added to this cluster group.
  *
  * ### Usage Example:
  * ```kotlin
- * LeaflektMap {
- *     LeaflektMarkerCluster(
+ * MapView {
+ *     MarkerCluster(
  *         options = MarkerClusterOptions(maxClusterRadius = 100)
  *     ) {
- *         LeaflektMarker(position = LeaflektLatLng(22.5726, 88.3639))
- *         LeaflektMarker(position = LeaflektLatLng(22.5800, 88.3700))
+ *         Marker(position = LatLng(22.5726, 88.3639))
+ *         Marker(position = LatLng(22.5800, 88.3700))
  *     }
  * }
  * ```
@@ -50,14 +50,14 @@ import java.util.UUID
  * @param content The markers to be clustered.
  */
 @Composable
-@LeaflektMapComposable
-fun LeaflektMarkerCluster(
+@MapComposable
+fun MarkerCluster(
     id: String = remember { UUID.randomUUID().toString() },
     options: MarkerClusterOptions = MarkerClusterOptions(),
     onClusterClick: ((lat: Double, lng: Double, count: Int) -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
-    val controller = LocalLeaflektController.current ?: return
+    val controller = LocalMapController.current ?: return
 
     DisposableEffect(id, options) {
         controller.createMarkerClusterGroup(id, options)
@@ -75,7 +75,8 @@ fun LeaflektMarkerCluster(
         }
     }
 
-    CompositionLocalProvider(LocalLeaflektMarkerClusterId provides id) {
+    CompositionLocalProvider(LocalMarkerClusterId provides id) {
         content()
     }
 }
+

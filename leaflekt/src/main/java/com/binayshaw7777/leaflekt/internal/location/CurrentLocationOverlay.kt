@@ -23,15 +23,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
-import com.binayshaw7777.leaflekt.library.circle.LeaflektCircle
-import com.binayshaw7777.leaflekt.library.camera.LeaflektLatLng
-import com.binayshaw7777.leaflekt.library.controller.LeaflektController
+import com.binayshaw7777.leaflekt.library.circle.Circle
+import com.binayshaw7777.leaflekt.library.camera.LatLng
+import com.binayshaw7777.leaflekt.library.controller.MapController
 import com.binayshaw7777.leaflekt.library.location.LeaflektCurrentLocationIcon
-import com.binayshaw7777.leaflekt.library.map.LeaflektMapComposable
-import com.binayshaw7777.leaflekt.library.map.LeaflektMapUiSettings
-import com.binayshaw7777.leaflekt.library.map.LocalLeaflektController
-import com.binayshaw7777.leaflekt.library.marker.LeaflektMarkerIconInfo
-import com.binayshaw7777.leaflekt.library.marker.LeaflektMarkerInfo
+import com.binayshaw7777.leaflekt.library.map.MapComposable
+import com.binayshaw7777.leaflekt.library.map.MapUiSettings
+import com.binayshaw7777.leaflekt.library.map.LocalMapController
+import com.binayshaw7777.leaflekt.library.marker.MarkerIconInfo
+import com.binayshaw7777.leaflekt.library.marker.MarkerInfo
 import com.binayshaw7777.leaflekt.library.marker.buildMarkerIconInfo
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -40,16 +40,16 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 
 @Composable
-@LeaflektMapComposable
+@MapComposable
 internal fun LeaflektCurrentLocationOverlay(
-    uiSettings: LeaflektMapUiSettings
+    uiSettings: MapUiSettings
 ) {
     if (!uiSettings.showCurrentLocation) {
         return
     }
 
     val context = LocalContext.current
-    val controller = LocalLeaflektController.current ?: return
+    val controller = LocalMapController.current ?: return
     val fusedLocationClient = remember(context) {
         LocationServices.getFusedLocationProviderClient(context)
     }
@@ -170,7 +170,7 @@ internal fun LeaflektCurrentLocationOverlay(
     }
 
     currentLocation?.let { location ->
-        LeaflektCircle(
+        Circle(
             center = location.position,
             radiusMeters = location.accuracyMeters,
             fillColor = CurrentLocationBlue,
@@ -182,7 +182,7 @@ internal fun LeaflektCurrentLocationOverlay(
             id = CurrentLocationAccuracyId
         )
 
-        LeaflektCircle(
+        Circle(
             center = location.position,
             radiusMeters = location.pulseRadiusMeters(pulseRadiusScale),
             fillColor = CurrentLocationBlue,
@@ -195,7 +195,7 @@ internal fun LeaflektCurrentLocationOverlay(
         )
 
         if (customMarkerIcon == null) {
-            LeaflektCircle(
+            Circle(
                 center = location.position,
                 radiusMeters = 12.0,
                 fillColor = CurrentLocationBlue,
@@ -218,13 +218,13 @@ internal fun LeaflektCurrentLocationOverlay(
 
 @Composable
 private fun LeaflektCurrentLocationMarker(
-    controller: LeaflektController,
-    location: LeaflektLatLng,
-    icon: LeaflektMarkerIconInfo
+    controller: MapController,
+    location: LatLng,
+    icon: MarkerIconInfo
 ) {
     DisposableEffect(controller) {
         controller.addMarker(
-            LeaflektMarkerInfo(
+            MarkerInfo(
                 id = CurrentLocationMarkerId,
                 lat = location.latitude,
                 lng = location.longitude,
@@ -240,7 +240,7 @@ private fun LeaflektCurrentLocationMarker(
 
     LaunchedEffect(controller, location, icon) {
         controller.updateMarker(
-            LeaflektMarkerInfo(
+            MarkerInfo(
                 id = CurrentLocationMarkerId,
                 lat = location.latitude,
                 lng = location.longitude,
@@ -275,7 +275,7 @@ private fun Map<String, Boolean>.hasLocationPermission(): Boolean {
         this[Manifest.permission.ACCESS_COARSE_LOCATION] == true
 }
 
-private fun LeaflektCurrentLocationIcon.toMarkerIconInfo(): LeaflektMarkerIconInfo {
+private fun LeaflektCurrentLocationIcon.toMarkerIconInfo(): MarkerIconInfo {
     return buildMarkerIconInfo(
         bitmap = bitmap,
         widthPx = widthPx,
@@ -287,13 +287,13 @@ private fun LeaflektCurrentLocationIcon.toMarkerIconInfo(): LeaflektMarkerIconIn
 
 private fun Location.toResolvedCurrentLocation(): LeaflektResolvedCurrentLocation {
     return LeaflektResolvedCurrentLocation(
-        position = LeaflektLatLng(latitude = latitude, longitude = longitude),
+        position = LatLng(latitude = latitude, longitude = longitude),
         accuracyMeters = accuracy.toDouble().coerceIn(20.0, 300.0)
     )
 }
 
 private data class LeaflektResolvedCurrentLocation(
-    val position: LeaflektLatLng,
+    val position: LatLng,
     val accuracyMeters: Double
 ) {
     fun pulseRadiusMeters(pulseRadiusScale: Float): Double {
@@ -312,3 +312,4 @@ private const val CurrentLocationAccuracyId = "leaflekt-current-location-accurac
 private const val CurrentLocationPulseId = "leaflekt-current-location-pulse"
 private const val CurrentLocationDotId = "leaflekt-current-location-dot"
 private const val CurrentLocationMarkerId = "leaflekt-current-location-marker"
+

@@ -1,7 +1,7 @@
 package com.binayshaw7777.leaflekt.library.polyline
 
 import androidx.compose.ui.graphics.Color
-import com.binayshaw7777.leaflekt.library.camera.LeaflektLatLng
+import com.binayshaw7777.leaflekt.library.camera.LatLng
 import com.binayshaw7777.leaflekt.library.shape.LeaflektStrokePattern
 
 /**
@@ -12,9 +12,9 @@ import com.binayshaw7777.leaflekt.library.shape.LeaflektStrokePattern
  *
  * `zIndex` is applied as a best-effort draw order among vector layers.
  */
-data class LeaflektPolylineInfo(
+data class PolylineInfo(
     val id: String,
-    val points: List<LeaflektLatLng>,
+    val points: List<LatLng>,
     val clickable: Boolean = false,
     val color: Color = Color.Black,
     val geodesic: Boolean = false,
@@ -24,3 +24,4 @@ data class LeaflektPolylineInfo(
     val zIndex: Float = 0f,
     val alpha: Float = 1f
 )
+

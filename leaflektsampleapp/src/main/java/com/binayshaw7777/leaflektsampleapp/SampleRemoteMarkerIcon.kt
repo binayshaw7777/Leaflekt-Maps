@@ -13,7 +13,7 @@ import coil.Coil
 import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
-import com.binayshaw7777.leaflekt.library.marker.LeaflektMarkerIcon
+import com.binayshaw7777.leaflekt.library.marker.MarkerIcon
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -24,7 +24,7 @@ internal fun rememberSampleRemoteMarkerIcon(
     heightPx: Int? = null,
     anchorFractionX: Float = 0.5f,
     anchorFractionY: Float = 1f
-): State<LeaflektMarkerIcon?> {
+): State<MarkerIcon?> {
     val context: Context = LocalContext.current
 
     return produceState(
@@ -67,13 +67,13 @@ private fun Drawable.toMarkerBitmapIcon(
     heightPx: Int?,
     anchorFractionX: Float,
     anchorFractionY: Float
-): LeaflektMarkerIcon {
+): MarkerIcon {
     val markerBitmap = when (this) {
         is BitmapDrawable -> bitmap
         else -> toBitmap()
     }
 
-    return LeaflektMarkerIcon(
+    return MarkerIcon(
         bitmap = markerBitmap,
         widthPx = widthPx ?: markerBitmap.width,
         heightPx = heightPx ?: markerBitmap.height,
@@ -81,3 +81,4 @@ private fun Drawable.toMarkerBitmapIcon(
         anchorFractionY = anchorFractionY
     )
 }
+

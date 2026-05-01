@@ -23,7 +23,7 @@ import java.util.Objects
 /**
  * Default UI settings for the map. All gestures and standard controls are enabled by default.
  */
-val DefaultLeaflektMapUiSettings: LeaflektMapUiSettings = LeaflektMapUiSettings()
+val DefaultMapUiSettings: MapUiSettings = MapUiSettings()
 
 /**
  * Data-like class for UI-related settings on the Leaflekt map.
@@ -32,8 +32,8 @@ val DefaultLeaflektMapUiSettings: LeaflektMapUiSettings = LeaflektMapUiSettings(
  * 
  * ### Usage Example:
  * ```kotlin
- * LeaflektMap(
- *     uiSettings = LeaflektMapUiSettings(
+ * MapView(
+ *     uiSettings = MapUiSettings(
  *         zoomControlsEnabled = false,
  *         scrollGesturesEnabled = true,
  *         zoomGesturesEnabled = false
@@ -47,7 +47,7 @@ val DefaultLeaflektMapUiSettings: LeaflektMapUiSettings = LeaflektMapUiSettings(
  * @param rotateGesturesEnabled Whether the user can rotate the map via pinch gestures.
  * @param myLocationButtonEnabled Reserved for future use: visibility of the GPS button.
  */
-class LeaflektMapUiSettings(
+class MapUiSettings(
     val zoomControlsEnabled: Boolean = true,
     val scrollGesturesEnabled: Boolean = true,
     val zoomGesturesEnabled: Boolean = true,
@@ -56,7 +56,7 @@ class LeaflektMapUiSettings(
     val currentLocationIcon: LeaflektCurrentLocationIcon? = null,
     val myLocationButtonEnabled: Boolean = false,
 ) {
-    override fun toString(): String = "LeaflektMapUiSettings(" +
+    override fun toString(): String = "MapUiSettings(" +
             "zoomControlsEnabled=$zoomControlsEnabled, " +
             "scrollGesturesEnabled=$scrollGesturesEnabled, " +
             "zoomGesturesEnabled=$zoomGesturesEnabled, " +
@@ -65,7 +65,7 @@ class LeaflektMapUiSettings(
             "hasCurrentLocationIcon=${currentLocationIcon != null}, " +
             "myLocationButtonEnabled=$myLocationButtonEnabled)"
 
-    override fun equals(other: Any?): Boolean = other is LeaflektMapUiSettings &&
+    override fun equals(other: Any?): Boolean = other is MapUiSettings &&
             zoomControlsEnabled == other.zoomControlsEnabled &&
             scrollGesturesEnabled == other.scrollGesturesEnabled &&
             zoomGesturesEnabled == other.zoomGesturesEnabled &&
@@ -85,7 +85,7 @@ class LeaflektMapUiSettings(
     )
 
     /**
-     * Returns a copy of this [LeaflektMapUiSettings] with the specified properties updated.
+     * Returns a copy of this [MapUiSettings] with the specified properties updated.
      */
     fun copy(
         zoomControlsEnabled: Boolean = this.zoomControlsEnabled,
@@ -95,7 +95,7 @@ class LeaflektMapUiSettings(
         showCurrentLocation: Boolean = this.showCurrentLocation,
         currentLocationIcon: LeaflektCurrentLocationIcon? = this.currentLocationIcon,
         myLocationButtonEnabled: Boolean = this.myLocationButtonEnabled,
-    ): LeaflektMapUiSettings = LeaflektMapUiSettings(
+    ): MapUiSettings = MapUiSettings(
         zoomControlsEnabled = zoomControlsEnabled,
         scrollGesturesEnabled = scrollGesturesEnabled,
         zoomGesturesEnabled = zoomGesturesEnabled,
@@ -105,3 +105,4 @@ class LeaflektMapUiSettings(
         myLocationButtonEnabled = myLocationButtonEnabled
     )
 }
+

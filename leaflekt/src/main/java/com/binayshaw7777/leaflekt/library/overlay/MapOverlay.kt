@@ -13,21 +13,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.zIndex
-import com.binayshaw7777.leaflekt.library.camera.LeaflektLatLng
-import com.binayshaw7777.leaflekt.library.map.LocalLeaflektController
+import com.binayshaw7777.leaflekt.library.camera.LatLng
+import com.binayshaw7777.leaflekt.library.map.LocalMapController
 import kotlin.math.roundToInt
 
 /**
  * A declarative component that allows pinning any standard @Composable content to map coordinates.
  *
- * Unlike [LeaflektMarker], which uses Leaflet's internal marker system, [LeaflektOverlay]
+ * Unlike [Marker], which uses Leaflet's internal marker system, [MapOverlay]
  * renders content directly in the Compose layer, allowing for full use of Compose animations,
  * interactions, and complex UI components.
  *
  * ### Usage Example:
  * ```kotlin
- * LeaflektOverlay(
- *     position = LeaflektLatLng(22.5726, 88.3639),
+ * MapOverlay(
+ *     position = LatLng(22.5726, 88.3639),
  *     anchorFractionX = 0.5f,
  *     anchorFractionY = 1f
  * ) {
@@ -40,7 +40,7 @@ import kotlin.math.roundToInt
  * }
   * ```
   *
-  * @param position The [com.binayshaw7777.leaflekt.library.camera.LeaflektLatLng] where this overlay should be pinned.
+  * @param position The [com.binayshaw7777.leaflekt.library.camera.LatLng] where this overlay should be pinned.
   * @param anchorFractionX Horizontal anchor fraction. `0f` aligns the content start with the
   * map point, `0.5f` centers it, and `1f` aligns the content end with the map point.
   * Default: `0.5f` (centered horizontally).
@@ -51,14 +51,14 @@ import kotlin.math.roundToInt
   * @param content The @Composable content to render at this position.
  */
 @Composable
-fun LeaflektOverlay(
-    position: LeaflektLatLng,
+fun MapOverlay(
+    position: LatLng,
     anchorFractionX: Float = 0.5f,
     anchorFractionY: Float = 1f,
     zIndex: Float = 0f,
     content: @Composable () -> Unit
 ) {
-    val controller = LocalLeaflektController.current ?: return
+    val controller = LocalMapController.current ?: return
     var contentWidthPx by remember(position) { mutableStateOf(0) }
     var contentHeightPx by remember(position) { mutableStateOf(0) }
     var overlayHostWidthPx by remember { mutableStateOf(0) }
@@ -104,3 +104,4 @@ fun LeaflektOverlay(
         }
     }
 }
+

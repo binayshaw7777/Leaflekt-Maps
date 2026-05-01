@@ -9,7 +9,7 @@ package com.binayshaw7777.leaflekt.library.map
  * @param maxZoom The maximum zoom level supported by this tile provider.
  * @param subdomains Optional list of subdomains (e.g., "abc") for tile load balancing.
  */
-enum class LeaflektMapStyle(
+enum class MapStyle(
     val id: String,
     val url: String,
     val attribution: String,
@@ -48,3 +48,4 @@ enum class LeaflektMapStyle(
         attribution = "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
     )
 }
+

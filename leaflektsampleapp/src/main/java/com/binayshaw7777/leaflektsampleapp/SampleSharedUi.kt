@@ -52,7 +52,7 @@ import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.binayshaw7777.leaflekt.library.map.LeaflektMapStyle
+import com.binayshaw7777.leaflekt.library.map.MapStyle
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -188,8 +188,8 @@ internal fun PlacePickerSheet(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MapStyleSheet(
-    selectedMapStyle: LeaflektMapStyle,
-    onMapStyleSelected: (LeaflektMapStyle) -> Unit,
+    selectedMapStyle: MapStyle,
+    onMapStyleSelected: (MapStyle) -> Unit,
     onDismissRequest: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -209,7 +209,7 @@ internal fun MapStyleSheet(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                LeaflektMapStyle.entries.forEach { mapStyle ->
+                MapStyle.entries.forEach { mapStyle ->
                     InputChip(
                         shape = RoundedCornerShape(20.dp),
                         selected = mapStyle == selectedMapStyle,
@@ -364,12 +364,13 @@ private fun PlacesPredictionList(
     }
 }
 
-internal fun LeaflektMapStyle.displayLabel(): String {
+internal fun MapStyle.displayLabel(): String {
     return when (this) {
-        LeaflektMapStyle.OpenStreetMap -> "OpenStreetMap"
-        LeaflektMapStyle.CartoLight -> "CARTO Light"
-        LeaflektMapStyle.CartoDark -> "CARTO Dark"
-        LeaflektMapStyle.OpenTopoMap -> "OpenTopoMap"
-        LeaflektMapStyle.EsriWorldImagery -> "Esri World Imagery"
+        MapStyle.OpenStreetMap -> "OpenStreetMap"
+        MapStyle.CartoLight -> "CARTO Light"
+        MapStyle.CartoDark -> "CARTO Dark"
+        MapStyle.OpenTopoMap -> "OpenTopoMap"
+        MapStyle.EsriWorldImagery -> "Esri World Imagery"
     }
 }
+

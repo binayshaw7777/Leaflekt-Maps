@@ -1,14 +1,14 @@
-package com.binayshaw7777.leaflekt.library.circle
+package com.binayshaw7777.leaflekt.library.polygon
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
-import com.binayshaw7777.leaflekt.library.camera.LeaflektLatLng
-import com.binayshaw7777.leaflekt.library.map.LeaflektMap
-import com.binayshaw7777.leaflekt.library.map.LeaflektMapComposable
-import com.binayshaw7777.leaflekt.library.map.LocalLeaflektController
+import com.binayshaw7777.leaflekt.library.camera.LatLng
+import com.binayshaw7777.leaflekt.library.map.MapView
+import com.binayshaw7777.leaflekt.library.map.MapComposable
+import com.binayshaw7777.leaflekt.library.map.LocalMapController
 import com.binayshaw7777.leaflekt.library.shape.DefaultLeaflektSelectedStrokeColor
 import com.binayshaw7777.leaflekt.library.shape.LeaflektStrokePattern
 import com.binayshaw7777.leaflekt.library.shape.SelectedLeaflektMinimumFillOpacity
@@ -17,49 +17,54 @@ import kotlin.math.max
 import java.util.UUID
 
 /**
- * A declarative circle overlay that can be placed inside a [LeaflektMap] content block.
+ * A declarative polygon overlay that can be placed inside a [MapView] content block.
  *
- * This component follows the Jetpack Compose declarative pattern. It adds a circle to the
+ * This component follows the Jetpack Compose declarative pattern. It adds a polygon to the
  * underlying Leaflet.js map when it enters the composition and removes it when it leaves.
  *
  * ### Usage Example:
  * ```kotlin
- * LeaflektMap {
- *     LeaflektCircle(
- *         center = LeaflektLatLng(22.5726, 88.3639),
- *         radiusMeters = 500.0,
- *         fillColor = Color.Blue.copy(alpha = 0.3f),
- *         strokeColor = Color.Blue,
- *         strokeWidth = 2f
+ * MapView {
+ *     Polygon(
+ *         points = listOf(
+ *             LatLng(22.57, 88.36),
+ *             LatLng(22.58, 88.37),
+ *             LatLng(22.56, 88.38)
+ *         ),
+ *         fillColor = Color.Green.copy(alpha = 0.2f),
+ *         strokeColor = Color.DarkGray
  *     )
  * }
  * ```
  *
- * @param state The [LeaflektCircleState] to be used to control or observe the circle's properties.
- * @param clickable Whether the circle is interactive and can receive click events.
- * @param fillColor The color used to fill the circle's interior.
- * @param strokeColor The color of the circle's outline.
+ * @param state The [PolygonState] to be used to control or observe the polygon's properties.
+ * @param clickable Whether the polygon is interactive and can receive click events.
+ * @param fillColor The color used to fill the polygon's interior.
+ * @param geodesic Whether the polygon edges follow a geodesic path. Note: Leaflet currently
+ * renders these as projected segments.
+ * @param strokeColor The color of the polygon's outline.
  * @param strokePattern Optional dash/gap/dot pattern for the outline.
- * @param strokeWidth The width of the circle's outline in pixels.
- * @param visible Whether the circle is currently visible on the map.
- * @param zIndex The drawing order of the circle. Higher values are drawn on top.
+ * @param strokeWidth The width of the polygon's outline in pixels.
+ * @param visible Whether the polygon is currently visible on the map.
+ * @param zIndex The drawing order of the polygon. Higher values are drawn on top.
  * @param fillOpacity The opacity of the interior fill (0.0 to 1.0).
  * @param strokeOpacity The opacity of the outline (0.0 to 1.0).
- * @param selectedStrokeColor The stroke color to use when the circle's state is selected.
- * @param selectedStrokeWidth The stroke width to use when the circle's state is selected.
- * @param selectedFillOpacity The fill opacity to use when the circle's state is selected.
- * @param selectedZIndexBoost The z-index boost applied when the circle is selected.
- * @param id Unique identifier for the circle. If not provided, a random UUID will be generated.
- * @param onClick A lambda invoked when the circle is clicked. Return `true` to consume the click
+ * @param selectedStrokeColor The stroke color to use when the polygon's state is selected.
+ * @param selectedStrokeWidth The stroke width to use when the polygon's state is selected.
+ * @param selectedFillOpacity The fill opacity to use when the polygon's state is selected.
+ * @param selectedZIndexBoost The z-index boost applied when the polygon is selected.
+ * @param id Unique identifier for the polygon. If not provided, a random UUID will be generated.
+ * @param onClick A lambda invoked when the polygon is clicked. Return `true` to consume the click
  * event and prevent it from propagating to the map below. Return `false` (default) to allow
  * the event to bubble up.
  */
 @Composable
-@LeaflektMapComposable
-fun LeaflektCircle(
-    state: LeaflektCircleState = rememberLeaflektCircleState(),
+@MapComposable
+fun Polygon(
+    state: PolygonState = rememberPolygonState(),
     clickable: Boolean = false,
     fillColor: Color = Color.Transparent,
+    geodesic: Boolean = false,
     strokeColor: Color = Color.Black,
     strokePattern: List<LeaflektStrokePattern>? = null,
     strokeWidth: Float = 10f,
@@ -68,26 +73,30 @@ fun LeaflektCircle(
     fillOpacity: Float = 0.2f,
     strokeOpacity: Float = 1f,
     selectedStrokeColor: Color = DefaultLeaflektSelectedStrokeColor,
-    selectedStrokeWidth: Float = strokeWidth + SelectedLeaflektCircleStrokeWidthBoost,
+    selectedStrokeWidth: Float = strokeWidth + SelectedPolygonStrokeWidthBoost,
     selectedFillOpacity: Float = max(fillOpacity, SelectedLeaflektMinimumFillOpacity),
     selectedZIndexBoost: Float = SelectedLeaflektZIndexBoost,
     id: String = remember { UUID.randomUUID().toString() },
     onClick: () -> Boolean = { false }
 ) {
-    val controller = LocalLeaflektController.current ?: return
+    val controller = LocalMapController.current ?: return
+    if (state.points.size < 3) {
+        return
+    }
     val resolvedStrokeColor = if (state.isSelected) selectedStrokeColor else strokeColor
     val resolvedStrokeWidth = if (state.isSelected) max(selectedStrokeWidth, strokeWidth) else strokeWidth
     val resolvedFillOpacity = if (state.isSelected) max(selectedFillOpacity, fillOpacity) else fillOpacity
     val resolvedZIndex = if (state.isSelected) zIndex + selectedZIndexBoost else zIndex
 
     DisposableEffect(id) {
-        controller.addCircle(
-            LeaflektCircleInfo(
+        controller.addPolygon(
+            PolygonInfo(
                 id = id,
-                center = state.center,
+                points = state.points,
                 clickable = clickable,
                 fillColor = fillColor,
-                radiusMeters = state.radiusMeters,
+                geodesic = geodesic,
+                holes = state.holes,
                 strokeColor = resolvedStrokeColor,
                 strokePattern = strokePattern,
                 strokeWidth = resolvedStrokeWidth,
@@ -97,27 +106,28 @@ fun LeaflektCircle(
                 strokeOpacity = strokeOpacity
             )
         )
-        controller.registerCircleClick(id, onClick)
+        controller.registerPolygonClick(id, onClick)
 
         onDispose {
-            controller.unregisterCircleClick(id)
-            controller.removeCircle(id)
+            controller.unregisterPolygonClick(id)
+            controller.removePolygon(id)
         }
     }
 
     DisposableEffect(id, onClick) {
-        controller.registerCircleClick(id, onClick)
+        controller.registerPolygonClick(id, onClick)
         onDispose {
-            controller.unregisterCircleClick(id)
+            controller.unregisterPolygonClick(id)
         }
     }
 
     LaunchedEffect(
-        state.center,
-        state.radiusMeters,
+        state.points,
+        state.holes,
         state.isSelected,
         clickable,
         fillColor,
+        geodesic,
         strokeColor,
         strokePattern,
         strokeWidth,
@@ -130,13 +140,14 @@ fun LeaflektCircle(
         selectedFillOpacity,
         selectedZIndexBoost
     ) {
-        controller.updateCircle(
-            LeaflektCircleInfo(
+        controller.updatePolygon(
+            PolygonInfo(
                 id = id,
-                center = state.center,
+                points = state.points,
                 clickable = clickable,
                 fillColor = fillColor,
-                radiusMeters = state.radiusMeters,
+                geodesic = geodesic,
+                holes = state.holes,
                 strokeColor = resolvedStrokeColor,
                 strokePattern = strokePattern,
                 strokeWidth = resolvedStrokeWidth,
@@ -150,15 +161,16 @@ fun LeaflektCircle(
 }
 
 /**
- * A declarative circle overlay that can be placed inside a [LeaflektMap] content block.
+ * A declarative polygon overlay that can be placed inside a [MapView] content block.
  *
- * This is a convenience overload that takes a [com.binayshaw7777.leaflekt.library.camera.LeaflektLatLng] instead of a [LeaflektCircleState].
- * Use this for static circles that don't need programmatic movement or selection control.
+ * This is a convenience overload that takes a list of points instead of a [PolygonState].
+ * Use this for static polygons that don't need programmatic movement or selection control.
  *
- * @param center The center coordinate of the circle.
- * @param clickable Whether the circle is interactive.
+ * @param points The coordinates defining the polygon's outer boundary.
+ * @param clickable Whether the polygon is interactive.
  * @param fillColor The interior fill color.
- * @param radiusMeters The radius of the circle in meters.
+ * @param geodesic Whether edges follow a geodesic path.
+ * @param holes Optional lists of coordinates defining holes within the polygon.
  * @param strokeColor The outline color.
  * @param strokePattern Optional dash/gap/dot pattern.
  * @param strokeWidth The outline width in pixels.
@@ -166,7 +178,7 @@ fun LeaflektCircle(
  * @param zIndex The drawing order.
  * @param fillOpacity Interior fill opacity (0.0 to 1.0).
  * @param strokeOpacity Outline opacity (0.0 to 1.0).
- * @param selected Whether the circle starts in a visually highlighted "selected" state.
+ * @param selected Whether the polygon starts in a highlighted "selected" state.
  * @param selectedStrokeColor Highlight stroke color.
  * @param selectedStrokeWidth Highlight stroke width.
  * @param selectedFillOpacity Highlight fill opacity.
@@ -175,12 +187,13 @@ fun LeaflektCircle(
  * @param onClick Click handler. Return `true` to consume the event.
  */
 @Composable
-@LeaflektMapComposable
-fun LeaflektCircle(
-    center: LeaflektLatLng,
+@MapComposable
+fun Polygon(
+    points: List<LatLng>,
     clickable: Boolean = false,
     fillColor: Color = Color.Transparent,
-    radiusMeters: Double = 10.0,
+    geodesic: Boolean = false,
+    holes: List<List<LatLng>> = emptyList(),
     strokeColor: Color = Color.Black,
     strokePattern: List<LeaflektStrokePattern>? = null,
     strokeWidth: Float = 10f,
@@ -190,16 +203,17 @@ fun LeaflektCircle(
     strokeOpacity: Float = 1f,
     selected: Boolean = false,
     selectedStrokeColor: Color = DefaultLeaflektSelectedStrokeColor,
-    selectedStrokeWidth: Float = strokeWidth + SelectedLeaflektCircleStrokeWidthBoost,
+    selectedStrokeWidth: Float = strokeWidth + SelectedPolygonStrokeWidthBoost,
     selectedFillOpacity: Float = max(fillOpacity, SelectedLeaflektMinimumFillOpacity),
     selectedZIndexBoost: Float = SelectedLeaflektZIndexBoost,
     id: String = remember { UUID.randomUUID().toString() },
     onClick: () -> Boolean = { false }
 ) {
-    LeaflektCircle(
-        state = rememberLeaflektCircleState(center = center, radiusMeters = radiusMeters).apply { isSelected = selected },
+    Polygon(
+        state = rememberPolygonState(points = points, holes = holes).apply { isSelected = selected },
         clickable = clickable,
         fillColor = fillColor,
+        geodesic = geodesic,
         strokeColor = strokeColor,
         strokePattern = strokePattern,
         strokeWidth = strokeWidth,
@@ -216,4 +230,5 @@ fun LeaflektCircle(
     )
 }
 
-private const val SelectedLeaflektCircleStrokeWidthBoost = 2f
+private const val SelectedPolygonStrokeWidthBoost = 2f
+

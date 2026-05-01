@@ -17,9 +17,9 @@ import java.io.ByteArrayOutputStream
  *     R.drawable.ic_bike_marker
  * )
  *
- * LeaflektMarker(
- *     position = LeaflektLatLng(22.5726, 88.3639),
- *     icon = LeaflektMarkerIcon(
+ * Marker(
+ *     position = LatLng(22.5726, 88.3639),
+ *     icon = MarkerIcon(
  *         bitmap = bikeBitmap,
  *         widthPx = 72,
  *         heightPx = 72,
@@ -29,7 +29,7 @@ import java.io.ByteArrayOutputStream
  * )
  * ```
  */
-data class LeaflektMarkerIcon(
+data class MarkerIcon(
     /** Bitmap that will be rendered for the marker. */
     val bitmap: Bitmap,
 
@@ -46,7 +46,7 @@ data class LeaflektMarkerIcon(
     val anchorFractionY: Float = 1.0f
 )
 
-internal fun LeaflektMarkerIcon.toMarkerIconInfo(): LeaflektMarkerIconInfo {
+internal fun MarkerIcon.toMarkerIconInfo(): MarkerIconInfo {
     return buildMarkerIconInfo(
         bitmap = bitmap,
         widthPx = widthPx,
@@ -62,7 +62,7 @@ internal fun buildMarkerIconInfo(
     heightPx: Int,
     anchorFractionX: Float,
     anchorFractionY: Float
-): LeaflektMarkerIconInfo {
+): MarkerIconInfo {
     val resolvedWidth = widthPx.coerceAtLeast(1)
     val resolvedHeight = heightPx.coerceAtLeast(1)
     val bitmapBytes = ByteArrayOutputStream().use { stream ->
@@ -71,7 +71,7 @@ internal fun buildMarkerIconInfo(
     }
     val dataUrl = "data:image/png;base64," + Base64.encodeToString(bitmapBytes, Base64.NO_WRAP)
 
-    return LeaflektMarkerIconInfo(
+    return MarkerIconInfo(
         dataUrl = dataUrl,
         widthPx = resolvedWidth,
         heightPx = resolvedHeight,
@@ -79,3 +79,4 @@ internal fun buildMarkerIconInfo(
         anchorFractionY = anchorFractionY.coerceIn(0f, 1f)
     )
 }
+

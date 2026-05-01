@@ -23,28 +23,7 @@ import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import com.binayshaw7777.leaflekt.library.controller.LeaflektController
-
-/**
- * Data class representing the camera position of the Leaflekt map.
- * 
- * @property target The center coordinate of the current view.
- * @property zoom The current zoom level (typically 1.0 to 19.0).
- * @property bearing The current rotation angle in degrees (0 to 360).
- */
-data class LeaflektCameraPosition(
-    val target: LeaflektLatLng,
-    val zoom: Double,
-    val bearing: Double = 0.0
-)
-
-/**
- * Data class representing a latitude and longitude coordinate.
- */
-data class LeaflektLatLng(
-    val latitude: Double,
-    val longitude: Double
-)
+import com.binayshaw7777.leaflekt.library.controller.MapController
 
 /**
  * A state object that can be hoisted to control and observe the map's camera state.
@@ -53,20 +32,20 @@ data class LeaflektLatLng(
  * 
  * ### Usage Example:
  * ```kotlin
- * val cameraState = rememberLeaflektCameraPositionState()
+ * val cameraState = rememberCameraPositionState()
  * 
  * Button(onClick = { 
- *     cameraState.move(LeaflektLatLng(22.5726, 88.3639), zoom = 14.0, bearing = 45.0) 
+ *     cameraState.move(LatLng(22.5726, 88.3639), zoom = 14.0, bearing = 45.0) 
  * }) {
  *     Text("Fly to Kolkata (Rotated)")
  * }
  * 
- * LeaflektMap(cameraPositionState = cameraState)
+ * MapView(cameraPositionState = cameraState)
  * ```
  */
-class LeaflektCameraPositionState(
-    initialPosition: LeaflektCameraPosition = LeaflektCameraPosition(
-        target = LeaflektLatLng(22.5726, 88.3639),
+class CameraPositionState(
+    initialPosition: CameraPosition = CameraPosition(
+        target = LatLng(22.5726, 88.3639),
         zoom = 12.0,
         bearing = 0.0
     )
@@ -86,7 +65,7 @@ class LeaflektCameraPositionState(
      * Current position of the camera on the map. 
      * Setting this value will immediately move the map camera.
      */
-    var position: LeaflektCameraPosition
+    var position: CameraPosition
         get() = rawPosition
         set(value) {
             val controller = boundController
@@ -102,12 +81,12 @@ class LeaflektCameraPositionState(
             }
         }
 
-    private var boundController: LeaflektController? = null
+    private var boundController: MapController? = null
 
     /**
      * Binds this state object to a specific map controller.
      */
-    internal fun setController(controller: LeaflektController?) {
+    internal fun setController(controller: MapController?) {
         if (this.boundController == null && controller == null) return
         this.boundController = controller
         if (controller != null) {
@@ -130,33 +109,33 @@ class LeaflektCameraPositionState(
      * @param bearing The destination bearing (rotation). Defaults to current bearing.
      */
     fun move(
-        target: LeaflektLatLng, 
+        target: LatLng, 
         zoom: Double = position.zoom,
         bearing: Double = position.bearing
     ) {
-        this.position = LeaflektCameraPosition(target, zoom, bearing)
+        this.position = CameraPosition(target, zoom, bearing)
     }
 
-    internal fun onCameraMoveStarted(position: LeaflektCameraPosition) {
+    internal fun onCameraMoveStarted(position: CameraPosition) {
         rawPosition = position
         isMoving = true
     }
 
-    internal fun onCameraMove(position: LeaflektCameraPosition) {
+    internal fun onCameraMove(position: CameraPosition) {
         rawPosition = position
         isMoving = true
     }
 
-    internal fun onCameraIdle(position: LeaflektCameraPosition) {
+    internal fun onCameraIdle(position: CameraPosition) {
         rawPosition = position
         isMoving = false
     }
 
     companion object {
         /**
-         * The default saver implementation for [LeaflektCameraPositionState].
+         * The default saver implementation for [CameraPositionState].
          */
-        val Saver: Saver<LeaflektCameraPositionState, *> = listSaver(
+        val Saver: Saver<CameraPositionState, *> = listSaver(
             save = {
                 listOf(
                     it.position.target.latitude,
@@ -166,9 +145,9 @@ class LeaflektCameraPositionState(
                 )
             },
             restore = {
-                LeaflektCameraPositionState(
-                    initialPosition = LeaflektCameraPosition(
-                        target = LeaflektLatLng(it[0], it[1]),
+                CameraPositionState(
+                    initialPosition = CameraPosition(
+                        target = LatLng(it[0], it[1]),
                         zoom = it[2],
                         bearing = it[3]
                     )
@@ -179,13 +158,14 @@ class LeaflektCameraPositionState(
 }
 
 /**
- * Creates and remembers a [LeaflektCameraPositionState] using [rememberSaveable].
+ * Creates and remembers a [CameraPositionState] using [rememberSaveable].
  * 
  * @param init A lambda to configure the initial state (e.g. set starting position/zoom).
  */
 @Composable
-fun rememberLeaflektCameraPositionState(
-    init: LeaflektCameraPositionState.() -> Unit = {}
-): LeaflektCameraPositionState = rememberSaveable(saver = LeaflektCameraPositionState.Saver) {
-    LeaflektCameraPositionState().apply(init)
+fun rememberCameraPositionState(
+    init: CameraPositionState.() -> Unit = {}
+): CameraPositionState = rememberSaveable(saver = CameraPositionState.Saver) {
+    CameraPositionState().apply(init)
 }
+

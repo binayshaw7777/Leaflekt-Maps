@@ -24,25 +24,25 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import com.binayshaw7777.leaflekt.library.camera.LeaflektLatLng
-import com.binayshaw7777.leaflekt.library.map.LeaflektMap
-import com.binayshaw7777.leaflekt.library.map.LeaflektMapComposable
-import com.binayshaw7777.leaflekt.library.map.LocalLeaflektController
-import com.binayshaw7777.leaflekt.library.map.LocalLeaflektMarkerClusterId
-import com.binayshaw7777.leaflekt.library.overlay.LeaflektOverlay
+import com.binayshaw7777.leaflekt.library.camera.LatLng
+import com.binayshaw7777.leaflekt.library.map.MapView
+import com.binayshaw7777.leaflekt.library.map.MapComposable
+import com.binayshaw7777.leaflekt.library.map.LocalMapController
+import com.binayshaw7777.leaflekt.library.map.LocalMarkerClusterId
+import com.binayshaw7777.leaflekt.library.overlay.MapOverlay
 import java.util.UUID
 
 /**
- * A declarative marker that can be placed inside a [LeaflektMap] content block.
+ * A declarative marker that can be placed inside a [MapView] content block.
  *
  * This component follows the Jetpack Compose declarative pattern. It adds a marker to the
  * underlying Leaflet.js map when it enters the composition and removes it when it leaves.
  *
  * ### Usage Example:
  * ```kotlin
- * LeaflektMap {
- *     LeaflektMarker(
- *         position = LeaflektLatLng(22.5726, 88.3639),
+ * MapView {
+ *     Marker(
+ *         position = LatLng(22.5726, 88.3639),
  *         title = "Victoria Memorial",
  *         snippet = "Built between 1906 and 1921",
  *         alpha = 0.8f
@@ -52,13 +52,13 @@ import java.util.UUID
  *
  * ### Custom Icon, Rotation, and Compose Info Window:
  * ```kotlin
- * val markerState = rememberLeaflektMarkerState(
- *     position = LeaflektLatLng(12.9716, 77.5946)
+ * val markerState = rememberMarkerState(
+ *     position = LatLng(12.9716, 77.5946)
  * )
  *
- * LeaflektMarker(
+ * Marker(
  *     state = markerState,
- *     icon = LeaflektMarkerIcon(bitmap = scooterBitmap, widthPx = 64, heightPx = 64),
+ *     icon = MarkerIcon(bitmap = scooterBitmap, widthPx = 64, heightPx = 64),
  *     rotationDegrees = 32f,
  *     infoWindow = {
  *         Surface(shape = RoundedCornerShape(16.dp), tonalElevation = 4.dp) {
@@ -75,7 +75,7 @@ import java.util.UUID
  * - **Leaflet.js:** Marker rendering is powered by [L.marker](https://leafletjs.com/reference.html#marker).
  * - **OpenStreetMap:** Default marker visuals are compatible with OSM-based tile layers.
  *
- * @param state The [LeaflektMarkerState] to be used to control or observe the marker's position.
+ * @param state The [MarkerState] to be used to control or observe the marker's position.
  * @param title Optional title shown in the default Leaflet popup. Ignored when [infoWindow] is
  * provided.
  * @param snippet Optional secondary text shown in the default Leaflet popup. Ignored when
@@ -92,12 +92,12 @@ import java.util.UUID
  * and keep Leaflekt from opening the marker info window automatically.
  */
 @Composable
-@LeaflektMapComposable
-fun LeaflektMarker(
-    state: LeaflektMarkerState = rememberLeaflektMarkerState(),
+@MapComposable
+fun Marker(
+    state: MarkerState = rememberMarkerState(),
     title: String? = null,
     snippet: String? = null,
-    icon: LeaflektMarkerIcon? = null,
+    icon: MarkerIcon? = null,
     rotationDegrees: Float = 0f,
     visible: Boolean = true,
     alpha: Float = 1.0f,
@@ -107,8 +107,8 @@ fun LeaflektMarker(
     isInfoWindowVisible: Boolean = false,
     onClick: () -> Boolean = { false }
 ) {
-    val controller = LocalLeaflektController.current ?: return
-    val clusterId = LocalLeaflektMarkerClusterId.current
+    val controller = LocalMapController.current ?: return
+    val clusterId = LocalMarkerClusterId.current
     val markerIconInfo = icon?.toMarkerIconInfo()
     val popupTitle = if (infoWindow == null) title else null
     val popupSnippet = if (infoWindow == null) snippet else null
@@ -123,7 +123,7 @@ fun LeaflektMarker(
     }
 
     DisposableEffect(id) {
-        val info = LeaflektMarkerInfo(
+        val info = MarkerInfo(
             id = id,
             lat = state.position.latitude,
             lng = state.position.longitude,
@@ -167,7 +167,7 @@ fun LeaflektMarker(
     }
 
     LaunchedEffect(state.position, popupTitle, popupSnippet, visible, alpha, zIndex, markerIconInfo, rotationDegrees) {
-        val info = LeaflektMarkerInfo(
+        val info = MarkerInfo(
             id = id,
             lat = state.position.latitude,
             lng = state.position.longitude,
@@ -183,7 +183,7 @@ fun LeaflektMarker(
     }
 
     if (infoWindow != null && state.isInfoWindowShown) {
-        LeaflektOverlay(
+        MapOverlay(
             position = state.position,
             anchorFractionX = 0.5f,
             anchorFractionY = 1f
@@ -194,9 +194,9 @@ fun LeaflektMarker(
 }
 
 /**
- * A declarative marker that can be placed inside a [LeaflektMap] content block.
+ * A declarative marker that can be placed inside a [MapView] content block.
  *
- * This is a convenience overload that takes a [com.binayshaw7777.leaflekt.library.camera.LeaflektLatLng] instead of a [LeaflektMarkerState].
+ * This is a convenience overload that takes a [com.binayshaw7777.leaflekt.library.camera.LatLng] instead of a [MarkerState].
  * Use this when you don't need to programmatically move the marker after it's been created.
  *
  * @param position The position of the marker.
@@ -213,12 +213,12 @@ fun LeaflektMarker(
  * @param onClick A lambda invoked when the marker is clicked.
  */
 @Composable
-@LeaflektMapComposable
-fun LeaflektMarker(
-    position: LeaflektLatLng,
+@MapComposable
+fun Marker(
+    position: LatLng,
     title: String? = null,
     snippet: String? = null,
-    icon: LeaflektMarkerIcon? = null,
+    icon: MarkerIcon? = null,
     rotationDegrees: Float = 0f,
     visible: Boolean = true,
     alpha: Float = 1.0f,
@@ -228,8 +228,8 @@ fun LeaflektMarker(
     isInfoWindowVisible: Boolean = false,
     onClick: () -> Boolean = { false }
 ) {
-    LeaflektMarker(
-        state = rememberLeaflektMarkerState(position = position),
+    Marker(
+        state = rememberMarkerState(position = position),
         title = title,
         snippet = snippet,
         icon = icon,
@@ -247,10 +247,10 @@ fun LeaflektMarker(
 /**
  * A declarative marker with a custom @Composable icon.
  *
- * This overload uses [LeaflektOverlay] internally to render any standard Compose UI at a map
+ * This overload uses [MapOverlay] internally to render any standard Compose UI at a map
  * coordinate.
  *
- * @param state The [LeaflektMarkerState] to be used to control or observe the marker's position.
+ * @param state The [MarkerState] to be used to control or observe the marker's position.
  * @param iconContent The Compose content to render as the marker icon.
  * @param iconAnchorX Horizontal anchor for the custom icon. Default is 0.5f (centered).
  * @param iconAnchorY Vertical anchor for the custom icon. Default is 0.5f (centered).
@@ -262,9 +262,9 @@ fun LeaflektMarker(
  * click and keep Leaflekt from opening the marker info window automatically.
  */
 @Composable
-@LeaflektMapComposable
-fun LeaflektMarker(
-    state: LeaflektMarkerState,
+@MapComposable
+fun Marker(
+    state: MarkerState,
     iconContent: @Composable () -> Unit,
     iconAnchorX: Float = 0.5f,
     iconAnchorY: Float = 0.5f,
@@ -282,7 +282,7 @@ fun LeaflektMarker(
         }
     }
 
-    LeaflektOverlay(
+    MapOverlay(
         position = state.position,
         anchorFractionX = iconAnchorX,
         anchorFractionY = iconAnchorY,
@@ -304,7 +304,7 @@ fun LeaflektMarker(
     }
 
     if (infoWindow != null && state.isInfoWindowShown) {
-        LeaflektOverlay(
+        MapOverlay(
             position = state.position,
             anchorFractionX = 0.5f,
             anchorFractionY = 1f,
@@ -318,7 +318,7 @@ fun LeaflektMarker(
 /**
  * A declarative marker with a custom @Composable icon.
  *
- * This is a convenience overload that takes a [LeaflektLatLng] instead of a [LeaflektMarkerState].
+ * This is a convenience overload that takes a [LatLng] instead of a [MarkerState].
  *
  * @param position The position of the marker.
  * @param iconContent The Compose content to render as the marker icon.
@@ -331,9 +331,9 @@ fun LeaflektMarker(
  * @param onClick A lambda invoked when the custom icon is clicked.
  */
 @Composable
-@LeaflektMapComposable
-fun LeaflektMarker(
-    position: LeaflektLatLng,
+@MapComposable
+fun Marker(
+    position: LatLng,
     iconContent: @Composable () -> Unit,
     iconAnchorX: Float = 0.5f,
     iconAnchorY: Float = 0.5f,
@@ -343,8 +343,8 @@ fun LeaflektMarker(
     isInfoWindowVisible: Boolean = false,
     onClick: () -> Boolean = { false }
 ) {
-    LeaflektMarker(
-        state = rememberLeaflektMarkerState(position = position),
+    Marker(
+        state = rememberMarkerState(position = position),
         iconContent = iconContent,
         iconAnchorX = iconAnchorX,
         iconAnchorY = iconAnchorY,
@@ -355,3 +355,4 @@ fun LeaflektMarker(
         onClick = onClick
     )
 }
+

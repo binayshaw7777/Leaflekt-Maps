@@ -34,29 +34,29 @@ import androidx.compose.ui.Modifier
 import com.binayshaw7777.leaflekt.internal.bridge.LeaflektJsBridge
 import com.binayshaw7777.leaflekt.internal.location.LeaflektCurrentLocationOverlay
 import com.binayshaw7777.leaflekt.internal.web.LeaflektWebView
-import com.binayshaw7777.leaflekt.library.camera.LeaflektCameraPosition
-import com.binayshaw7777.leaflekt.library.camera.LeaflektCameraPositionState
-import com.binayshaw7777.leaflekt.library.camera.LeaflektLatLng
-import com.binayshaw7777.leaflekt.library.camera.rememberLeaflektCameraPositionState
-import com.binayshaw7777.leaflekt.library.cluster.LeaflektMarkerCluster
-import com.binayshaw7777.leaflekt.library.controller.LeaflektController
-import com.binayshaw7777.leaflekt.library.marker.LeaflektMarker
-import com.binayshaw7777.leaflekt.library.overlay.LeaflektOverlay
+import com.binayshaw7777.leaflekt.library.camera.CameraPosition
+import com.binayshaw7777.leaflekt.library.camera.CameraPositionState
+import com.binayshaw7777.leaflekt.library.camera.LatLng
+import com.binayshaw7777.leaflekt.library.camera.rememberCameraPositionState
+import com.binayshaw7777.leaflekt.library.cluster.MarkerCluster
+import com.binayshaw7777.leaflekt.library.controller.MapController
+import com.binayshaw7777.leaflekt.library.marker.Marker
+import com.binayshaw7777.leaflekt.library.overlay.MapOverlay
 
 /**
- * CompositionLocal used to provide the [LeaflektController] to map children.
+ * CompositionLocal used to provide the [MapController] to map children.
  */
-val LocalLeaflektController = compositionLocalOf<LeaflektController?> { null }
+val LocalMapController = compositionLocalOf<MapController?> { null }
 
 /**
- * CompositionLocal used to provide the cluster ID to markers inside a [LeaflektMarkerCluster].
+ * CompositionLocal used to provide the cluster ID to markers inside a [MarkerCluster].
  */
-val LocalLeaflektMarkerClusterId = compositionLocalOf<String?> { null }
+val LocalMarkerClusterId = compositionLocalOf<String?> { null }
 
 /**
- * CompositionLocal used to provide the [com.binayshaw7777.leaflekt.library.camera.LeaflektCameraPositionState] to map children.
+ * CompositionLocal used to provide the [com.binayshaw7777.leaflekt.library.camera.CameraPositionState] to map children.
  */
-internal val LocalLeaflektCameraPositionState = staticCompositionLocalOf { LeaflektCameraPositionState() }
+internal val LocalCameraPositionState = staticCompositionLocalOf { CameraPositionState() }
 
 /**
  * Compose API for rendering a Leaflekt map backed by WebView and JavaScript bridge.
@@ -66,12 +66,12 @@ internal val LocalLeaflektCameraPositionState = staticCompositionLocalOf { Leafl
  *
  * ### Basic Usage:
  * ```kotlin
- * LeaflektMap(
+ * MapView(
  *     modifier = Modifier.fillMaxSize(),
  *     onMapClick = { latLng -> Log.d("Map", "Clicked at $latLng") }
  * ) {
- *     LeaflektMarker(
- *         position = LeaflektLatLng(22.5726, 88.3639),
+ *     Marker(
+ *         position = LatLng(22.5726, 88.3639),
  *         title = "Kolkata"
  *     )
  * }
@@ -79,25 +79,25 @@ internal val LocalLeaflektCameraPositionState = staticCompositionLocalOf { Leafl
  *
  * ### Advanced Usage (Hoisted State):
  * ```kotlin
- * val cameraPositionState = rememberLeaflektCameraPositionState {
- *     position = LeaflektCameraPosition(LeaflektLatLng(12.9716, 77.5946), 10.0)
+ * val cameraPositionState = rememberCameraPositionState {
+ *     position = CameraPosition(LatLng(12.9716, 77.5946), 10.0)
  * }
  * 
- * LeaflektMap(
+ * MapView(
  *     cameraPositionState = cameraPositionState,
- *     properties = LeaflektMapProperties(mapStyle = LeaflektMapStyle.CartoDark),
- *     uiSettings = LeaflektMapUiSettings(zoomControlsEnabled = false)
+ *     properties = MapProperties(mapStyle = MapStyle.CartoDark),
+ *     uiSettings = MapUiSettings(zoomControlsEnabled = false)
  * )
  * ```
  *
  * ### Marker With Custom Compose Info Window:
  * ```kotlin
- * val markerState = rememberLeaflektMarkerState(
- *     position = LeaflektLatLng(12.9716, 77.5946)
+ * val markerState = rememberMarkerState(
+ *     position = LatLng(12.9716, 77.5946)
  * )
  *
- * LeaflektMap {
- *     LeaflektMarker(
+ * MapView {
+ *     Marker(
  *         state = markerState,
  *         rotationDegrees = 18f,
  *         infoWindow = {
@@ -116,35 +116,35 @@ internal val LocalLeaflektCameraPositionState = staticCompositionLocalOf { Leafl
  * @param modifier The modifier to be applied to the map layout.
  * @param cameraPositionState The state object to be used to control or observe the map's camera.
  * @param contentDescription The content description of the map for accessibility.
- * @param properties The properties of the map, such as the active [LeaflektMapStyle].
+ * @param properties The properties of the map, such as the active [MapStyle].
  * @param uiSettings The UI settings of the map, such as gesture toggles.
  * @param onMapLoaded Callback invoked when the underlying Leaflet engine is fully initialized.
- * @param onReady Callback invoked when the [LeaflektController] is available for imperative calls.
+ * @param onReady Callback invoked when the [MapController] is available for imperative calls.
  * @param onMapClick Callback invoked when the user taps on the map surface.
  * @param onCameraMoveStarted Callback invoked when a pan/zoom motion session begins.
  * @param onCameraMove Callback invoked while the map camera is actively changing.
  * @param onCameraIdle Callback invoked after the map camera settles.
  * @param onMarkerClick Callback invoked when a marker layer is clicked.
- * @param content The content to be displayed on top of the map, such as [LeaflektMarker] and
- * [LeaflektOverlay].
+ * @param content The content to be displayed on top of the map, such as [Marker] and
+ * [MapOverlay].
  */
 @Composable
-fun LeaflektMap(
+fun MapView(
     modifier: Modifier = Modifier,
-    cameraPositionState: LeaflektCameraPositionState = rememberLeaflektCameraPositionState(),
+    cameraPositionState: CameraPositionState = rememberCameraPositionState(),
     contentDescription: String? = null,
-    properties: LeaflektMapProperties = DefaultLeaflektMapProperties,
-    uiSettings: LeaflektMapUiSettings = DefaultLeaflektMapUiSettings,
+    properties: MapProperties = DefaultMapProperties,
+    uiSettings: MapUiSettings = DefaultMapUiSettings,
     onMapLoaded: (() -> Unit)? = null,
-    onReady: ((LeaflektController) -> Unit)? = null,
-    onMapClick: ((LeaflektLatLng) -> Unit)? = null,
+    onReady: ((MapController) -> Unit)? = null,
+    onMapClick: ((LatLng) -> Unit)? = null,
     onCameraMoveStarted: (() -> Unit)? = null,
     onCameraMove: (() -> Unit)? = null,
     onCameraIdle: (() -> Unit)? = null,
     onMarkerClick: ((String) -> Unit)? = null,
     content: @Composable () -> Unit = {},
 ) {
-    val controller = remember { LeaflektController() }
+    val controller = remember { MapController() }
     var hasReportedReady by remember { mutableStateOf(false) }
 
     val currentOnReady by rememberUpdatedState(onReady)
@@ -168,13 +168,13 @@ fun LeaflektMap(
             },
             onMapClick = { lat, lng ->
                 currentOnMapClick?.invoke(
-                    LeaflektLatLng(latitude = lat, longitude = lng)
+                    LatLng(latitude = lat, longitude = lng)
                 )
             },
             onCameraMoveStarted = { lat, lng, zoom, bearing ->
                 currentCameraPositionState.onCameraMoveStarted(
-                    LeaflektCameraPosition(
-                        target = LeaflektLatLng(latitude = lat, longitude = lng),
+                    CameraPosition(
+                        target = LatLng(latitude = lat, longitude = lng),
                         zoom = zoom,
                         bearing = bearing
                     )
@@ -183,8 +183,8 @@ fun LeaflektMap(
             },
             onCameraMove = { lat, lng, zoom, bearing ->
                 currentCameraPositionState.onCameraMove(
-                    LeaflektCameraPosition(
-                        target = LeaflektLatLng(latitude = lat, longitude = lng),
+                    CameraPosition(
+                        target = LatLng(latitude = lat, longitude = lng),
                         zoom = zoom,
                         bearing = bearing
                     )
@@ -193,8 +193,8 @@ fun LeaflektMap(
             },
             onCameraIdle = { lat, lng, zoom, bearing ->
                 currentCameraPositionState.onCameraIdle(
-                    LeaflektCameraPosition(
-                        target = LeaflektLatLng(latitude = lat, longitude = lng),
+                    CameraPosition(
+                        target = LatLng(latitude = lat, longitude = lng),
                         zoom = zoom,
                         bearing = bearing
                     )
@@ -248,7 +248,7 @@ fun LeaflektMap(
     
     LaunchedEffect(properties.mapStyle, properties.automaticThemeSync, isDarkTheme) {
         val style = if (properties.automaticThemeSync) {
-            if (isDarkTheme) LeaflektMapStyle.CartoDark else LeaflektMapStyle.OpenStreetMap
+            if (isDarkTheme) MapStyle.CartoDark else MapStyle.OpenStreetMap
         } else {
             properties.mapStyle
         }
@@ -281,8 +281,8 @@ fun LeaflektMap(
         )
 
         CompositionLocalProvider(
-            LocalLeaflektController provides controller,
-            LocalLeaflektCameraPositionState provides cameraPositionState
+            LocalMapController provides controller,
+            LocalCameraPositionState provides cameraPositionState
         ) {
             LeaflektCurrentLocationOverlay(uiSettings = uiSettings)
             content()
@@ -295,3 +295,4 @@ fun LeaflektMap(
         }
     }
 }
+
