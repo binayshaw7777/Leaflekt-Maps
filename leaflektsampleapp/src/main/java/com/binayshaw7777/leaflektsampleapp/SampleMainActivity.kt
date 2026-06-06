@@ -12,7 +12,7 @@ class SampleMainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             LeafleKTTheme {
-                SampleAppScreen()
+                SampleAppScreen(onBack = { finish() })
             }
         }
     }

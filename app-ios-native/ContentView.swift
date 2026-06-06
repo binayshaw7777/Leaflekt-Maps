@@ -33,6 +33,7 @@ struct ContentView: View {
     @State private var showPolyline = true
     @State private var showPolygon  = true
     @State private var showCircle   = true
+    var onBack: (() -> Void)? = nil
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -41,6 +42,20 @@ struct ContentView: View {
                 statusCard
                 Spacer()
                 controlsOverlay
+            }
+            if let onBack = onBack {
+                HStack {
+                    Button(action: onBack) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .semibold))
+                            .frame(width: 36, height: 36)
+                            .background(.ultraThinMaterial, in: Circle())
+                    }
+                    Spacer()
+                }
+                .padding(.top, (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.windows.first?.safeAreaInsets.top ?? 44)
+                .padding(.leading, 16)
+                .padding(.top, 8)
             }
         }
         .ignoresSafeArea(edges: .top)

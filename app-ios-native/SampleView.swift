@@ -7,20 +7,34 @@ struct SampleView: View {
     @StateObject private var vm = SampleViewModel()
     @State private var selectedTab: SampleTab = .explore
     @State private var selectedStyle: LeaflektMapStyle = .cartoDark
+    var onBack: (() -> Void)? = nil
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            ExploreMapScreen(vm: vm, selectedStyle: $selectedStyle)
-                .tabItem { Label("Explore", systemImage: "magnifyingglass") }
-                .tag(SampleTab.explore)
+        ZStack(alignment: .topLeading) {
+            TabView(selection: $selectedTab) {
+                ExploreMapScreen(vm: vm, selectedStyle: $selectedStyle)
+                    .tabItem { Label("Explore", systemImage: "magnifyingglass") }
+                    .tag(SampleTab.explore)
 
-            DirectionsMapScreen(vm: vm, selectedStyle: $selectedStyle)
-                .tabItem { Label("Directions", systemImage: "location.north.fill") }
-                .tag(SampleTab.directions)
+                DirectionsMapScreen(vm: vm, selectedStyle: $selectedStyle)
+                    .tabItem { Label("Directions", systemImage: "location.north.fill") }
+                    .tag(SampleTab.directions)
 
-            ClusteringMapScreen(vm: vm, selectedStyle: $selectedStyle)
-                .tabItem { Label("Clustering", systemImage: "square.3.layers.3d") }
-                .tag(SampleTab.clustering)
+                ClusteringMapScreen(vm: vm, selectedStyle: $selectedStyle)
+                    .tabItem { Label("Clustering", systemImage: "square.3.layers.3d") }
+                    .tag(SampleTab.clustering)
+            }
+
+            if let onBack = onBack {
+                Button(action: onBack) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 16, weight: .semibold))
+                        .frame(width: 36, height: 36)
+                        .background(.ultraThinMaterial, in: Circle())
+                }
+                .padding(.leading, 16)
+                .padding(.top, 8)
+            }
         }
     }
 }
@@ -46,6 +60,7 @@ struct ExploreMapScreen: View {
         ZStack(alignment: .top) {
             mapLayer
                 .ignoresSafeArea(edges: .top)
+            
             VStack(spacing: 0) {
                 ExploreSearchBar(
                     isExpanded: $searchExpanded,
@@ -61,6 +76,7 @@ struct ExploreMapScreen: View {
                     },
                     onClear: vm.clearExploreSearch
                 )
+
                 Spacer()
                 HStack {
                     Spacer()
@@ -194,7 +210,7 @@ struct DirectionsMapScreen: View {
 
     private var mapLayer: some View {
         LeaflektMapView(position: $position)
-            .mapProperties(LeaflektMapProperties(mapStyle: selectedStyle))
+            .mapProperties(LeaflektMapProperties(mapStyle: selectedStyle, geoJsonOverlay: .india))
             .uiSettings(LeaflektMapUiSettings(zoomControlsEnabled: false))
             .onReady { ctrl in controller = ctrl }
             .onMapClick { _ in }

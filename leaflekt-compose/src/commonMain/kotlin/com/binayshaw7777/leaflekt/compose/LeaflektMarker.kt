@@ -13,6 +13,9 @@ fun LeaflektMarker(
     snippet: String? = null,
     visible: Boolean = true,
     alpha: Float = 1.0f,
+    zIndex: Int = 0,
+    rotationDegrees: Float = 0f,
+    icon: LeaflektMarkerIconInfo? = null,
     id: String = remember { generateId() },
     onClick: () -> Boolean = { false }
 ) {
@@ -20,7 +23,7 @@ fun LeaflektMarker(
 
     DisposableEffect(id) {
         controller.addMarker(
-            LeaflektMarkerInfo(id = id, lat = state.position.latitude, lng = state.position.longitude, title = title, snippet = snippet, visible = visible, alpha = alpha)
+            LeaflektMarkerInfo(id = id, lat = state.position.latitude, lng = state.position.longitude, title = title, snippet = snippet, visible = visible, alpha = alpha, zIndex = zIndex, rotationDegrees = rotationDegrees, icon = icon)
         )
         controller.registerMarkerClick(id, onClick)
         onDispose {
@@ -34,9 +37,9 @@ fun LeaflektMarker(
         onDispose { controller.unregisterMarkerClick(id) }
     }
 
-    LaunchedEffect(state.position, title, snippet, visible, alpha) {
+    LaunchedEffect(state.position, title, snippet, visible, alpha, zIndex, rotationDegrees, icon) {
         controller.updateMarker(
-            LeaflektMarkerInfo(id = id, lat = state.position.latitude, lng = state.position.longitude, title = title, snippet = snippet, visible = visible, alpha = alpha)
+            LeaflektMarkerInfo(id = id, lat = state.position.latitude, lng = state.position.longitude, title = title, snippet = snippet, visible = visible, alpha = alpha, zIndex = zIndex, rotationDegrees = rotationDegrees, icon = icon)
         )
     }
 }
@@ -49,11 +52,14 @@ fun LeaflektMarker(
     snippet: String? = null,
     visible: Boolean = true,
     alpha: Float = 1.0f,
+    zIndex: Int = 0,
+    rotationDegrees: Float = 0f,
+    icon: LeaflektMarkerIconInfo? = null,
     id: String = remember { generateId() },
     onClick: () -> Boolean = { false }
 ) {
     LeaflektMarker(
         state = rememberLeaflektMarkerState(position = position),
-        title = title, snippet = snippet, visible = visible, alpha = alpha, id = id, onClick = onClick
+        title = title, snippet = snippet, visible = visible, alpha = alpha, zIndex = zIndex, rotationDegrees = rotationDegrees, icon = icon, id = id, onClick = onClick
     )
 }

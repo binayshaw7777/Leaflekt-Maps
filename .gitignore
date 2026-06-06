@@ -34,6 +34,7 @@ local.properties
 xcuserdata/
 *.xcuserstate
 .swiftpm/xcode/
+**/.build/
 app-ios-native/Secrets.xcconfig
 
 ### macOS ###

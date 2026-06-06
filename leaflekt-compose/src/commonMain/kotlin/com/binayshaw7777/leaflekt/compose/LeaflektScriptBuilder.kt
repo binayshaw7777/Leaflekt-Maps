@@ -18,6 +18,9 @@ internal object LeaflektScriptBuilder {
     fun setMapStyleScript(style: LeaflektMapStyle): String =
         "window.LeaflektBridge.setMapStyle(${style.toJson()});"
 
+    fun setZoomBoundsScript(minZoom: Double, maxZoom: Double): String =
+        "window.LeaflektBridge.setZoomBounds($minZoom,$maxZoom);"
+
     fun moveCameraScript(lat: Double, lng: Double, zoom: Double): String =
         "window.LeaflektBridge.moveCamera($lat,$lng,$zoom);"
 
@@ -83,7 +86,7 @@ internal object LeaflektScriptBuilder {
         val iconJson = icon?.let {
             """{"dataUrl":${LeaflektMapJson.encodeString(it.dataUrl)},"widthPx":${it.widthPx},"heightPx":${it.heightPx},"anchorFractionX":${it.anchorFractionX},"anchorFractionY":${it.anchorFractionY}}"""
         } ?: "null"
-        return """{"id":${LeaflektMapJson.encodeString(id ?: "")},"lat":$lat,"lng":$lng,"title":${LeaflektMapJson.encodeNullableString(title)},"snippet":${LeaflektMapJson.encodeNullableString(snippet)},"visible":$visible,"alpha":$alpha,"icon":$iconJson}"""
+        return """{"id":${LeaflektMapJson.encodeString(id ?: "")},"lat":$lat,"lng":$lng,"title":${LeaflektMapJson.encodeNullableString(title)},"snippet":${LeaflektMapJson.encodeNullableString(snippet)},"visible":$visible,"alpha":$alpha,"zIndex":$zIndex,"rotationDegrees":$rotationDegrees,"icon":$iconJson}"""
     }
 
     private fun LeaflektMapStyle.toJson(): String {

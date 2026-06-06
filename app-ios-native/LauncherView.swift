@@ -14,9 +14,9 @@ struct LauncherView: View {
         case .launcher:
             launcherScreen
         case .demo:
-            ContentView()
+            ContentView(onBack: { destination = .launcher })
         case .sample:
-            SampleView()
+            SampleView(onBack: { destination = .launcher })
         }
     }
 

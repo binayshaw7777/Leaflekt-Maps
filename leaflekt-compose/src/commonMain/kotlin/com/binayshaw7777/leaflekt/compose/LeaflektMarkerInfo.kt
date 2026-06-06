@@ -8,6 +8,8 @@ data class LeaflektMarkerInfo(
     val snippet: String? = null,
     val visible: Boolean = true,
     val alpha: Float = 1.0f,
+    val zIndex: Int = 0,
+    val rotationDegrees: Float = 0f,
     val icon: LeaflektMarkerIconInfo? = null
 )
 

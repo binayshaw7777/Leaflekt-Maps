@@ -48,7 +48,14 @@ public final class LeaflektMapController {
 
     public func addMarker(_ marker: LeaflektMarker) {
         let titleJson = marker.title.map { "\"\($0.replacingOccurrences(of: "\"", with: "\\\""))\"" } ?? "null"
-        let script = "window.LeaflektBridge.addMarkers([{\"id\":\"\(marker.id)\",\"lat\":\(marker.position.latitude),\"lng\":\(marker.position.longitude),\"title\":\(titleJson),\"visible\":\(marker.visible),\"alpha\":1.0,\"icon\":null}]);"
+        let iconJson: String
+        if let icon = marker.icon {
+            let escapedUrl = icon.dataUrl.replacingOccurrences(of: "\"", with: "\\\"")
+            iconJson = "{\"dataUrl\":\"\(escapedUrl)\",\"widthPx\":\(icon.widthPx),\"heightPx\":\(icon.heightPx),\"anchorFractionX\":\(icon.anchorFractionX),\"anchorFractionY\":\(icon.anchorFractionY)}"
+        } else {
+            iconJson = "null"
+        }
+        let script = "window.LeaflektBridge.addMarkers([{\"id\":\"\(marker.id)\",\"lat\":\(marker.position.latitude),\"lng\":\(marker.position.longitude),\"title\":\(titleJson),\"visible\":\(marker.visible),\"alpha\":\(marker.alpha),\"zIndex\":\(marker.zIndex),\"rotationDegrees\":\(marker.rotationDegrees),\"icon\":\(iconJson)}]);"
         enqueueOrRun(script)
     }
 
@@ -122,7 +129,14 @@ public final class LeaflektMapController {
         let escaped = groupId.replacingOccurrences(of: "\"", with: "\\\"")
         let markersJson = markers.map { m in
             let titleJson = m.title.map { "\"\($0.replacingOccurrences(of: "\"", with: "\\\""))\"" } ?? "null"
-            return "{\"id\":\"\(m.id)\",\"lat\":\(m.position.latitude),\"lng\":\(m.position.longitude),\"title\":\(titleJson),\"visible\":\(m.visible),\"alpha\":1.0,\"icon\":null}"
+            let iconJson: String
+            if let icon = m.icon {
+                let escapedUrl = icon.dataUrl.replacingOccurrences(of: "\"", with: "\\\"")
+                iconJson = "{\"dataUrl\":\"\(escapedUrl)\",\"widthPx\":\(icon.widthPx),\"heightPx\":\(icon.heightPx),\"anchorFractionX\":\(icon.anchorFractionX),\"anchorFractionY\":\(icon.anchorFractionY)}"
+            } else {
+                iconJson = "null"
+            }
+            return "{\"id\":\"\(m.id)\",\"lat\":\(m.position.latitude),\"lng\":\(m.position.longitude),\"title\":\(titleJson),\"visible\":\(m.visible),\"alpha\":\(m.alpha),\"zIndex\":\(m.zIndex),\"rotationDegrees\":\(m.rotationDegrees),\"icon\":\(iconJson)}"
         }.joined(separator: ",")
         enqueueOrRun("window.LeaflektBridge.addMarkersToCluster(\"\(escaped)\",[\(markersJson)]);")
     }
@@ -130,6 +144,10 @@ public final class LeaflektMapController {
     public func removeClusterGroup(groupId: String) {
         let escaped = groupId.replacingOccurrences(of: "\"", with: "\\\"")
         enqueueOrRun("window.LeaflektBridge.removeClusterGroup(\"\(escaped)\");")
+    }
+
+    public func setZoomBounds(min minZoom: Double, max maxZoom: Double) {
+        enqueueOrRun("window.LeaflektBridge.setZoomBounds(\(minZoom),\(maxZoom));")
     }
 
     public func setMapStyle(_ style: LeaflektMapStyle) {

@@ -94,24 +94,28 @@ abstract class LeaflektControllerBase : LeaflektControllerInterface {
         enqueueOrRun(LeaflektScriptBuilder.setZoomGesturesEnabledScript(isEnabled))
     }
 
-    fun setMapStyle(style: LeaflektMapStyle) {
+    override fun setMapStyle(style: LeaflektMapStyle) {
         enqueueOrRun(LeaflektScriptBuilder.setMapStyleScript(style))
     }
 
-    fun setGeoJsonOverlay(overlay: LeaflektGeoJsonOverlay) {
+    override fun setGeoJsonOverlay(overlay: LeaflektGeoJsonOverlay) {
         enqueueOrRun(LeaflektScriptBuilder.setGeoJsonOverlayScript(overlay))
     }
 
-    fun createClusterGroup(groupId: String, maxClusterRadius: Int = 80) {
+    override fun setZoomBounds(minZoom: Double, maxZoom: Double) {
+        enqueueOrRun(LeaflektScriptBuilder.setZoomBoundsScript(minZoom, maxZoom))
+    }
+
+    override fun createClusterGroup(groupId: String, maxClusterRadius: Int) {
         enqueueOrRun(LeaflektScriptBuilder.createClusterGroupScript(groupId, maxClusterRadius))
     }
 
-    fun addMarkersToCluster(groupId: String, markers: List<LeaflektMarkerInfo>) {
+    override fun addMarkersToCluster(groupId: String, markers: List<LeaflektMarkerInfo>) {
         if (markers.isEmpty()) return
         enqueueOrRun(LeaflektScriptBuilder.addMarkersToClusterScript(groupId, markers))
     }
 
-    fun removeClusterGroup(groupId: String) {
+    override fun removeClusterGroup(groupId: String) {
         enqueueOrRun(LeaflektScriptBuilder.removeClusterGroupScript(groupId))
     }
 

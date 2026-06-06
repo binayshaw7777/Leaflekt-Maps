@@ -3,6 +3,9 @@ package com.binayshaw7777.leaflekt.compose
 interface LeaflektControllerInterface {
     fun moveCamera(lat: Double, lng: Double, zoom: Double)
     fun setZoomControlsEnabled(isEnabled: Boolean)
+    fun setZoomBounds(minZoom: Double, maxZoom: Double)
+    fun setMapStyle(style: LeaflektMapStyle)
+    fun setGeoJsonOverlay(overlay: LeaflektGeoJsonOverlay)
     fun executeJavaScript(script: String)
     fun addMarker(info: LeaflektMarkerInfo)
     fun removeMarker(id: String)
@@ -17,4 +20,7 @@ interface LeaflektControllerInterface {
     fun addCircle(info: LeaflektCircleInfo)
     fun updateCircle(info: LeaflektCircleInfo)
     fun removeCircle(id: String)
+    fun createClusterGroup(groupId: String, maxClusterRadius: Int = 80)
+    fun addMarkersToCluster(groupId: String, markers: List<LeaflektMarkerInfo>)
+    fun removeClusterGroup(groupId: String)
 }

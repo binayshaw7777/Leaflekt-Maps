@@ -9,9 +9,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Layers
@@ -20,6 +22,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -65,7 +68,7 @@ import com.binayshaw7777.leaflekt.library.marker.rememberMarkerState
 import com.binayshaw7777.leaflekt.library.polyline.Polyline
 
 @Composable
-internal fun SampleAppScreen(viewModel: OlaMapsViewModel = viewModel()) {
+internal fun SampleAppScreen(onBack: () -> Unit = {}, viewModel: OlaMapsViewModel = viewModel()) {
     var selectedTab by rememberSaveable { mutableStateOf(SampleTab.Explore) }
     var selectedMapStyle by rememberSaveable { mutableStateOf(MapStyle.CartoDark) }
 
@@ -88,27 +91,48 @@ internal fun SampleAppScreen(viewModel: OlaMapsViewModel = viewModel()) {
             }
         }
     ) { innerPadding ->
-        when (selectedTab) {
-            SampleTab.Explore -> ExploreMapScreen(
-                modifier = Modifier.padding(innerPadding),
-                viewModel = viewModel,
-                selectedMapStyle = selectedMapStyle,
-                onMapStyleChange = { selectedMapStyle = it }
-            )
+        Box(modifier = Modifier.fillMaxSize()) {
+            when (selectedTab) {
+                SampleTab.Explore -> ExploreMapScreen(
+                    modifier = Modifier.padding(innerPadding),
+                    viewModel = viewModel,
+                    selectedMapStyle = selectedMapStyle,
+                    onMapStyleChange = { selectedMapStyle = it }
+                )
 
-            SampleTab.Directions -> DirectionsMapScreen(
-                modifier = Modifier.padding(innerPadding),
-                viewModel = viewModel,
-                selectedMapStyle = selectedMapStyle,
-                onMapStyleChange = { selectedMapStyle = it }
-            )
+                SampleTab.Directions -> DirectionsMapScreen(
+                    modifier = Modifier.padding(innerPadding),
+                    viewModel = viewModel,
+                    selectedMapStyle = selectedMapStyle,
+                    onMapStyleChange = { selectedMapStyle = it }
+                )
 
-            SampleTab.Clustering -> ClusteringMapScreen(
-                modifier = Modifier.padding(innerPadding),
-                viewModel = viewModel,
-                selectedMapStyle = selectedMapStyle,
-                onMapStyleChange = { selectedMapStyle = it }
-            )
+                SampleTab.Clustering -> ClusteringMapScreen(
+                    modifier = Modifier.padding(innerPadding),
+                    viewModel = viewModel,
+                    selectedMapStyle = selectedMapStyle,
+                    onMapStyleChange = { selectedMapStyle = it }
+                )
+            }
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .statusBarsPadding()
+                    .padding(start = 8.dp, top = 8.dp)
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.9f),
+                    tonalElevation = 4.dp
+                ) {
+                    Icon(
+                        Icons.Rounded.ArrowBack,
+                        contentDescription = "Back",
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+            }
         }
     }
 }

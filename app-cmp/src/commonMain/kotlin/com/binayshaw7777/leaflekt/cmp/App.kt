@@ -14,7 +14,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
@@ -23,6 +26,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
@@ -67,8 +72,32 @@ fun LeafleKTCmpDemoApp(modifier: Modifier = Modifier) {
                 onLaunchDemo = { destination = CmpDestination.Demo },
                 onLaunchSample = { destination = CmpDestination.Sample }
             )
-            CmpDestination.Demo -> CmpDemoScreen(modifier = Modifier.fillMaxSize())
-            CmpDestination.Sample -> CmpSampleAppScreen(modifier = Modifier.fillMaxSize())
+            CmpDestination.Demo -> CmpDemoScreen(
+                modifier = Modifier.fillMaxSize(),
+                onBack = { destination = CmpDestination.Launcher }
+            )
+            CmpDestination.Sample -> Box(modifier = Modifier.fillMaxSize()) {
+                CmpSampleAppScreen(modifier = Modifier.fillMaxSize())
+                IconButton(
+                    onClick = { destination = CmpDestination.Launcher },
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .statusBarsPadding()
+                        .padding(start = 8.dp, top = 8.dp)
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        tonalElevation = 4.dp
+                    ) {
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            modifier = Modifier.padding(8.dp)
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -134,7 +163,7 @@ private fun CmpLauncherScreen(
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
-private fun CmpDemoScreen(modifier: Modifier = Modifier) {
+private fun CmpDemoScreen(modifier: Modifier = Modifier, onBack: () -> Unit = {}) {
     var selectedZoom by remember { mutableFloatStateOf(12f) }
     var circleRadiusMeters by remember { mutableFloatStateOf(1500f) }
     var activeFeatureLat by remember { mutableStateOf(22.5726) }
@@ -221,6 +250,26 @@ private fun CmpDemoScreen(modifier: Modifier = Modifier) {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .statusBarsPadding()
+                    .padding(start = 8.dp, top = 8.dp)
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.9f),
+                    tonalElevation = 4.dp
+                ) {
+                    Icon(
+                        Icons.Default.ArrowBack,
+                        contentDescription = "Back",
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+            }
+
             LeaflektMap(
                 modifier = Modifier.fillMaxSize(),
                 cameraPositionState = cameraPositionState,

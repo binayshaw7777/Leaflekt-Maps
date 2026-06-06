@@ -17,7 +17,9 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.LocationSearching
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.BottomSheetScaffold
@@ -28,6 +30,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
@@ -69,7 +72,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             LeafleKTTheme {
-                LeaflektDemoScreen(modifier = Modifier.fillMaxSize())
+                LeaflektDemoScreen(modifier = Modifier.fillMaxSize(), onBack = { finish() })
             }
         }
     }
@@ -77,7 +80,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
-private fun LeaflektDemoScreen(modifier: Modifier = Modifier) {
+private fun LeaflektDemoScreen(modifier: Modifier = Modifier, onBack: () -> Unit = {}) {
     var selectedZoom by rememberSaveable { mutableFloatStateOf(12f) }
     var circleRadiusMeters by rememberSaveable { mutableFloatStateOf(1500f) }
     var activeFeatureLat by rememberSaveable { mutableDoubleStateOf(22.5726) }
@@ -189,6 +192,26 @@ private fun LeaflektDemoScreen(modifier: Modifier = Modifier) {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .statusBarsPadding()
+                    .padding(start = 8.dp, top = 8.dp)
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.9f),
+                    tonalElevation = 4.dp
+                ) {
+                    Icon(
+                        Icons.Rounded.ArrowBack,
+                        contentDescription = "Back",
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+            }
+
             MapView(
                 modifier = Modifier.fillMaxSize(),
                 cameraPositionState = cameraPositionState,
