@@ -43,7 +43,9 @@ jobs:
         shell: bash
         run: |
           VERSION="${{ steps.version.outputs.value }}"
-          sed -i "s/com.github.binayshaw7777.LeafleKT:leaflekt:[0-9]\+\.[0-9]\+\.[0-9]\+/com.github.binayshaw7777.LeafleKT:leaflekt:$VERSION/g" README.md
+          sed -i "s/io.github.binayshaw7777:leaflekt-core:[0-9]\+\.[0-9]\+\.[0-9]\+/io.github.binayshaw7777:leaflekt-core:$VERSION/g" README.md
+          sed -i "s/io.github.binayshaw7777:leaflekt-compose:[0-9]\+\.[0-9]\+\.[0-9]\+/io.github.binayshaw7777:leaflekt-compose:$VERSION/g" README.md
+          sed -i "s/from: \"v[0-9]\+\.[0-9]\+\.[0-9]\+\"/from: \"v$VERSION\"/g" README.md
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add README.md
@@ -61,22 +63,22 @@ jobs:
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Verify Release Build
+      - name: Verify Release Build (Android)
         if: steps.tag.outputs.exists == 'false'
-        run: ./gradlew :leaflekt:testDebugUnitTest :leaflekt:assembleRelease :leaflekt:publishReleasePublicationToMavenLocal :app:assembleDebug
+        run: ./gradlew :leaflekt-core:assembleRelease :leaflekt-compose:assembleRelease :app:assembleDebug
 
       - name: Generate Documentation (Dokka)
         id: dokka
         if: steps.tag.outputs.exists == 'false'
         continue-on-error: true
-        run: ./gradlew :leaflekt:dokkaHtml
+        run: ./gradlew :leaflekt-core:dokkaHtml :leaflekt-compose:dokkaHtml
 
       - name: Deploy Documentation to GitHub Pages
         if: steps.tag.outputs.exists == 'false' && steps.dokka.outcome == 'success'
         continue-on-error: true
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: leaflekt/build/dokka/html
+          folder: leaflekt-compose/build/dokka/html
           branch: gh-pages
 
       - name: Create GitHub Release
@@ -88,15 +90,96 @@ jobs:
           name: ${{ steps.version.outputs.value }}
           target_commitish: master
           generate_release_notes: true
-          files: |
-            leaflekt/build/outputs/aar/leaflekt-release.aar
 
-      - name: Warm JitPack Build
+  release-ios:
+    runs-on: macos-latest
+    needs: release
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set Up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set Up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Read Version
+        id: version
+        shell: bash
+        run: |
+          VERSION="$(tr -d '[:space:]' < VERSION)"
+          echo "value=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Check Existing Tag
+        id: tag
+        shell: bash
+        run: |
+          TAG="${{ steps.version.outputs.value }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1 || git ls-remote --exit-code --tags origin "$TAG" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build KMP iOS targets
+        if: steps.tag.outputs.exists == 'false'
+        run: ./gradlew :leaflekt-core:build :leaflekt-compose:build
+
+      - name: Run commonTest
+        if: steps.tag.outputs.exists == 'false'
+        run: ./gradlew :leaflekt-compose:iosSimulatorArm64Test || ./gradlew :leaflekt-compose:iosX64Test
+
+      - name: Validate Swift Package
+        if: steps.tag.outputs.exists == 'false'
+        shell: bash
+        run: |
+          cd LeaflektMap
+          swift package resolve
+          xcodebuild build \
+            -scheme LeaflektMap \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            -quiet 2>&1 | tail -20
+
+      - name: Run Swift Package Tests
+        if: steps.tag.outputs.exists == 'false'
+        shell: bash
+        run: |
+          cd LeaflektMap
+          xcodebuild test \
+            -scheme LeaflektMap \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            -quiet 2>&1 | tail -30
+
+      - name: Publish KMP artifacts to Maven Central
+        if: steps.tag.outputs.exists == 'false'
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.SONATYPE_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.SONATYPE_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_KEY_ID }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_SECRET_KEY }}
+        run: ./gradlew :leaflekt-core:publishAndReleaseToMavenCentral :leaflekt-compose:publishAndReleaseToMavenCentral --no-configuration-cache
+
+      - name: Create SPM Tag
         if: steps.tag.outputs.exists == 'false'
         shell: bash
         run: |
           TAG="${{ steps.version.outputs.value }}"
-          REPO_OWNER="${{ github.repository_owner }}"
-          REPO_NAME="${GITHUB_REPOSITORY#*/}"
-          curl --fail --location --silent --show-error \
-            "https://jitpack.io/com/github/${REPO_OWNER}/${REPO_NAME}/${TAG}/build.log" || true
+          SPM_TAG="v${TAG}"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          if ! git rev-parse "$SPM_TAG" >/dev/null 2>&1; then
+            git tag "$SPM_TAG"
+            git push origin "$SPM_TAG"
+          fi

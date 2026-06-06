@@ -9,6 +9,7 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
+        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
 }
 dependencyResolutionManagement {
@@ -21,4 +22,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "LeafleKT"
 include(":app")
-include(":leaflekt")
+include(":leaflektsampleapp")
+include(":leaflekt-core")
+include(":leaflekt-compose")
+include(":app-cmp")

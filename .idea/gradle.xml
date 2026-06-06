@@ -11,7 +11,10 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/app-cmp" />
             <option value="$PROJECT_DIR$/leaflekt" />
+            <option value="$PROJECT_DIR$/leaflekt-compose" />
+            <option value="$PROJECT_DIR$/leaflektsampleapp" />
           </set>
         </option>
       </GradleProjectSettings>

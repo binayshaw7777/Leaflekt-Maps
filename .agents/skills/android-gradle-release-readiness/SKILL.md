@@ -1,3 +1,8 @@
+---
+name: android-gradle-release-readiness
+description: Keep module structure, naming, and build configuration ready for future publishing. Handle new Gradle modules, library metadata, namespace and artifact readiness.
+---
+
 # Android Gradle Release Readiness
 
 Purpose:

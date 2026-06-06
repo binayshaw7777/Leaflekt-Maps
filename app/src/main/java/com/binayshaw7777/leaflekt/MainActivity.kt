@@ -17,7 +17,9 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.LocationSearching
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.BottomSheetScaffold
@@ -28,6 +30,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
@@ -48,19 +51,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.binayshaw7777.leaflekt.library.LeaflektCameraPosition
-import com.binayshaw7777.leaflekt.library.LeaflektCircle
-import com.binayshaw7777.leaflekt.library.LeaflektController
-import com.binayshaw7777.leaflekt.library.LeaflektLatLng
-import com.binayshaw7777.leaflekt.library.LeaflektMap
-import com.binayshaw7777.leaflekt.library.LeaflektMapProperties
-import com.binayshaw7777.leaflekt.library.LeaflektMapStyle
-import com.binayshaw7777.leaflekt.library.LeaflektMapUiSettings
-import com.binayshaw7777.leaflekt.library.LeaflektMarker
-import com.binayshaw7777.leaflekt.library.LeaflektPolygon
-import com.binayshaw7777.leaflekt.library.LeaflektPolyline
-import com.binayshaw7777.leaflekt.library.LeaflektStrokePattern
-import com.binayshaw7777.leaflekt.library.rememberLeaflektCameraPositionState
+import com.binayshaw7777.leaflekt.LeaflektCameraPosition
+import com.binayshaw7777.leaflekt.LeaflektLatLng
+import com.binayshaw7777.leaflekt.compose.rememberLeaflektCameraPositionState
+import com.binayshaw7777.leaflekt.compose.LeaflektCircle
+import com.binayshaw7777.leaflekt.LeaflektController
+import com.binayshaw7777.leaflekt.compose.LeaflektMap
+import com.binayshaw7777.leaflekt.LeaflektMapProperties
+import com.binayshaw7777.leaflekt.LeaflektMapStyle
+import com.binayshaw7777.leaflekt.LeaflektMapUiSettings
+import com.binayshaw7777.leaflekt.compose.LeaflektMarker
+import com.binayshaw7777.leaflekt.compose.LeaflektPolygon
+import com.binayshaw7777.leaflekt.compose.LeaflektPolyline
+import com.binayshaw7777.leaflekt.LeaflektStrokePattern
 import com.binayshaw7777.leaflekt.ui.theme.LeafleKTTheme
 
 class MainActivity : ComponentActivity() {
@@ -69,7 +72,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             LeafleKTTheme {
-                LeaflektDemoScreen(modifier = Modifier.fillMaxSize())
+                LeaflektDemoScreen(modifier = Modifier.fillMaxSize(), onBack = { finish() })
             }
         }
     }
@@ -77,7 +80,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
-private fun LeaflektDemoScreen(modifier: Modifier = Modifier) {
+private fun LeaflektDemoScreen(modifier: Modifier = Modifier, onBack: () -> Unit = {}) {
     var selectedZoom by rememberSaveable { mutableFloatStateOf(12f) }
     var circleRadiusMeters by rememberSaveable { mutableFloatStateOf(1500f) }
     var activeFeatureLat by rememberSaveable { mutableDoubleStateOf(22.5726) }
@@ -189,6 +192,26 @@ private fun LeaflektDemoScreen(modifier: Modifier = Modifier) {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .statusBarsPadding()
+                    .padding(start = 8.dp, top = 8.dp)
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.9f),
+                    tonalElevation = 4.dp
+                ) {
+                    Icon(
+                        Icons.Rounded.ArrowBack,
+                        contentDescription = "Back",
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+            }
+
             LeaflektMap(
                 modifier = Modifier.fillMaxSize(),
                 cameraPositionState = cameraPositionState,
@@ -488,7 +511,7 @@ private fun MapControlSheet(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                FeatureToggleChip("Marker", isMarkerVisible, onToggleMarker)
+                FeatureToggleChip("LeaflektMarker", isMarkerVisible, onToggleMarker)
                 FeatureToggleChip("Polyline", isPolylineVisible, onTogglePolyline)
                 FeatureToggleChip("Polygon", isPolygonVisible, onTogglePolygon)
                 FeatureToggleChip("Circle", isCircleVisible, onToggleCircle)

@@ -20,12 +20,12 @@ These settings must be configured in the GitHub repository. They cannot be enfor
 - enable Dependabot alerts
 - enable secret scanning, if available
 
-## JitPack
+## Maven Central
 
-- ensure the repository is visible to JitPack
-- after the first release, verify the project page on JitPack resolves
-- confirm the published coordinate:
-  - `com.github.binayshaw7777.LeafleKT:leaflekt:<version>`
+- configure Sonatype credentials and signing secrets
+- verify both published coordinates:
+  - `io.github.binayshaw7777:leaflekt-core:<version>`
+  - `io.github.binayshaw7777:leaflekt-compose:<version>`
 
 ## Release Operation
 
@@ -35,4 +35,4 @@ These settings must be configured in the GitHub repository. They cannot be enfor
 4. verify:
    - GitHub tag `v<version>`
    - GitHub Release
-   - JitPack build page
+   - Maven Central artifacts
