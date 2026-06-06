@@ -140,7 +140,6 @@ jobs:
         if: steps.tag.outputs.exists == 'false'
         shell: bash
         run: |
-          cd LeaflektMap
           swift package resolve
           xcodebuild build \
             -scheme LeaflektMap \
@@ -153,7 +152,6 @@ jobs:
         if: steps.tag.outputs.exists == 'false'
         shell: bash
         run: |
-          cd LeaflektMap
           xcodebuild test \
             -scheme LeaflektMap \
             -destination 'platform=iOS Simulator,name=iPhone 16' \
