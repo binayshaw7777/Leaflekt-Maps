@@ -12,15 +12,13 @@ let package = Package(
     targets: [
         .target(
             name: "LeaflektMap",
-            path: "LeaflektMap/Sources/LeaflektMap",
             resources: [
                 .process("Resources")
             ]
         ),
         .testTarget(
             name: "LeaflektMapTests",
-            dependencies: ["LeaflektMap"],
-            path: "LeaflektMap/Tests/LeaflektMapTests"
+            dependencies: ["LeaflektMap"]
         )
     ]
 )
