@@ -121,8 +121,8 @@ jobs:
         id: tag
         shell: bash
         run: |
-          TAG="${{ steps.version.outputs.value }}"
-          if git rev-parse "$TAG" >/dev/null 2>&1 || git ls-remote --exit-code --tags origin "$TAG" >/dev/null 2>&1; then
+          SPM_TAG="v${{ steps.version.outputs.value }}"
+          if git rev-parse "$SPM_TAG" >/dev/null 2>&1 || git ls-remote --exit-code --tags origin "$SPM_TAG" >/dev/null 2>&1; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
