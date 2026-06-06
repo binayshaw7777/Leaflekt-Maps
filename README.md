@@ -2,11 +2,36 @@
 
 LeafleKT is a Compose-first Android wrapper around Leaflet.js. It uses `WebView` plus a JavaScript bridge, but the public API is Kotlin-first and state-driven.
 
-<img src="https://github.com/user-attachments/assets/d9544533-7c4a-4653-9364-cfd631314368"
-     style="max-width:100%; height:auto;" />
+<!-- MEDIA SUGGESTION: HERO POSTER/VIDEO
+     Suggestion: A high-quality wide poster (16:9) or a short looping video showing:
+     - Map style switching
+     - A car marker moving with rotation
+     - Smooth pinch-to-zoom
+     - A dark/light mode transition
+-->
+<img src="https://github.com/user-attachments/assets/ac67880c-9258-4b8b-be38-10ffd0a3788c" style="max-width:100%; height:auto;" />
 
+[![JitPack](https://jitpack.io/v/binayshaw7777/LeafleKT-Maps.svg)](https://jitpack.io/#binayshaw7777/LeafleKT-Maps)
+[![Android API](https://img.shields.io/badge/API-21%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=21)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+![Build Status](https://github.com/binayshaw7777/LeafleKT-Maps/actions/workflows/release-master.yml/badge.svg)
+
+**LeafleKT** is a high-performance, Compose-first Android wrapper around [Leaflet.js](https://leafletjs.com/). It brings the power of the web's most popular mapping engine into native Jetpack Compose, offering a stable state-driven Kotlin API while keeping the runtime entirely self-contained.
+
+---
+
+LeafleKT is a Compose-first Android wrapper around Leaflet.js. It uses `WebView` plus a JavaScript bridge, but the public API is Kotlin-first and state-driven.
 ## Status
 
+- Map rendering in Compose
+- Camera state with Rotation & Tilt support
+- Dynamic Map style switching & Theme Sync
+- India boundary overlay (Optimized GeoJSON)
+- Declarative markers, polylines, polygons, and circles
+- Advanced Marker Clustering
+- Ola Maps integration (Tiles & Places)
+- JitPack publication setup
+## Status
 - Map rendering in Compose
 - Camera state
 - Map style switching
@@ -17,6 +42,19 @@ LeafleKT is a Compose-first Android wrapper around Leaflet.js. It uses `WebView`
 - Declarative circles
 - JitPack publication setup
 
+## Install
+- Map rendering in Compose
+- Camera state with Rotation & Tilt support
+- Dynamic Map style switching & Theme Sync
+- India boundary overlay (Optimized GeoJSON)
+- Declarative markers, polylines, polygons, and circles
+- Advanced Marker Clustering
+- Ola Maps integration (Tiles & Places)
+- JitPack publication setup
+## Install
+
+Add JitPack:
+Add JitPack:
 ## Install
 
 Add JitPack:
@@ -51,262 +89,310 @@ dependencies {
 ```kotlin
 @Composable
 fun SampleMap() {
-    val cameraPositionState = rememberLeaflektCameraPositionState(
-        initialPosition = LeaflektCameraPosition(
-            target = LeaflektLatLng(22.5726, 88.3639),
-            zoom = 11.0
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition(
+            target = LatLng(latitude = 22.5726, longitude = 88.3639),
+            zoom = 12.0
         )
-    )
+    }
 
-    LeaflektMap(
+    MapView(
         modifier = Modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState,
-        properties = LeaflektMapProperties(
-            mapStyle = LeaflektMapStyle.OpenStreetMap
+        properties = MapProperties(
+            mapStyle = MapStyle.OpenStreetMap,
+            automaticThemeSync = true // Sync with System Light/Dark mode
         ),
-        uiSettings = LeaflektMapUiSettings(
-            zoomControlsEnabled = true
+        uiSettings = MapUiSettings(
+            zoomControlsEnabled = true,
+            rotateGesturesEnabled = true // Enable map rotation
         ),
         onMapClick = { latLng ->
             Log.d("LeafleKT", "Map click: $latLng")
         }
     ) {
-        LeaflektMarker(
-            position = LeaflektLatLng(22.5726, 88.3639),
-            title = "Kolkata"
+        Marker(
+            position = LatLng(22.5726, 88.3639),
+            title = "Kolkata",
+            rotationDegrees = 45f // Rotate marker clockwise
         )
 
-        LeaflektPolyline(
+        Polyline(
             points = listOf(
-                LeaflektLatLng(22.5726, 88.3639),
-                LeaflektLatLng(22.5826, 88.3939)
+                LatLng(22.5726, 88.3639),
+                LatLng(22.5826, 88.3939)
             ),
             color = Color(0xFF0B6E4F),
             width = 6f
         )
-
-        LeaflektPolygon(
-            points = listOf(
-                LeaflektLatLng(22.5600, 88.3400),
-                LeaflektLatLng(22.5900, 88.3500),
-                LeaflektLatLng(22.5800, 88.3900)
-            ),
-            fillColor = Color(0x332F7D32),
-            strokeColor = Color(0xFF2F7D32),
-            strokeWidth = 4f
-        )
-
-        LeaflektCircle(
-            center = LeaflektLatLng(22.5726, 88.3639),
-            radiusMeters = 1200.0,
-            fillColor = Color(0x33438A5E),
-            strokeColor = Color(0xFF1E5F3A),
-            strokeWidth = 3f
-        )
+        
+        // ... Polygons, Circles, and more
     }
 }
 ```
 
-## API Surface
+## API Reference
 
-Main entry point:
+### MapView
+
+The primary container for the map.
+
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| `modifier` | `Modifier` | Layout modifier for the map. |
+| `cameraPositionState` | `CameraPositionState` | Hoisted state for camera control. |
+| `properties` | `MapProperties` | Map configuration (styles, zoom limits). |
+| `uiSettings` | `MapUiSettings` | UI and gesture toggles. |
+| `onMapLoaded` | `(() -> Unit)?` | Called when Leaflet is initialized. |
+| `onMapClick` | `((LatLng) -> Unit)?` | Called when the map is tapped. |
+| `onMarkerClick` | `((String) -> Unit)?` | Called when any marker is clicked. |
+| `content` | `@Composable () -> Unit` | Map children (Markers, Shapes, etc). |
+
+### Marker
+
+Standard marker with bitmap icons or default Leaflet pins.
+
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `state` | `MarkerState` | `remember...` | Hoisted state for position. |
+| `title` | `String?` | `null` | Title for default popup. |
+| `snippet` | `String?` | `null` | Secondary text for default popup. |
+| `icon` | `MarkerIcon?` | `null` | Custom bitmap icon. |
+| `rotationDegrees`| `Float` | `0f` | Visual rotation of the marker. |
+| `visible` | `Boolean` | `true` | Visibility toggle. |
+| `alpha` | `Float` | `1.0f` | Opacity (0.0 to 1.0). |
+| `zIndex` | `Float` | `0f` | Drawing order (higher is on top). |
+| `infoWindow` | `@Composable () -> Unit`| `null` | Custom Compose UI popup. |
+| `onClick` | `() -> Boolean` | `{ false }` | Click handler (return true to consume). |
+
+### Marker (Compose Icon)
+
+Marker where the icon itself is a Compose UI.
+
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `state` | `MarkerState` | `remember...` | Hoisted state for position. |
+| `iconContent` | `@Composable () -> Unit`| - | Compose UI for the marker icon. |
+| `iconAnchorX` | `Float` | `0.5f` | Horizontal anchor (0 to 1). |
+| `iconAnchorY` | `Float` | `0.5f` | Vertical anchor (0 to 1). |
+| `zIndex` | `Float` | `0f` | Drawing order. |
+| `infoWindow` | `@Composable () -> Unit`| `null` | Custom Compose UI popup. |
+| `onClick` | `() -> Boolean` | `{ false }` | Click handler. |
+
+### Shapes (Polyline, Polygon, Circle)
+
+All shapes support `onClick: () -> Boolean` and `zIndex`.
+
+| Component | Key Properties |
+| :--- | :--- |
+| `Polyline`| `points`, `color`, `width`, `pattern`, `geodesic`, `zIndex`, `onClick` |
+| `Polygon` | `points`, `holes`, `fillColor`, `strokeColor`, `strokeWidth`, `zIndex`, `onClick` |
+| `Circle`  | `center`, `radiusMeters`, `fillColor`, `strokeColor`, `strokeWidth`, `zIndex`, `onClick` |
+
+### Advanced Components
+
+#### MarkerCluster
+Groups markers into clusters.
+- `options`: `MarkerClusterOptions` (Radius, coverage, etc)
+- `onClusterClick`: `(lat, lng, count) -> Unit`
+- `content`: `@Composable () -> Unit` (The markers to cluster)
+
+#### MapOverlay
+Pins any Composable to map coordinates.
+- `position`: `LatLng`
+- `anchorFractionX` / `anchorFractionY`: `Float` (Alignment)
+- `content`: `@Composable () -> Unit`
+
+### Configuration
+
+#### MapProperties
+- `mapStyle`: `MapStyle` (Default: `OpenStreetMap`)
+- `automaticThemeSync`: `Boolean` (Sync with System Dark/Light mode)
+- `minZoom` / `maxZoom`: `Double` (Zoom constraints)
+
+#### MapUiSettings
+- `zoomControlsEnabled`: `Boolean` (Visible +/- buttons)
+- `scrollGesturesEnabled`: `Boolean` (Pan support)
+- `zoomGesturesEnabled`: `Boolean` (Pinch/Double-tap zoom)
+- `rotateGesturesEnabled`: `Boolean` (Two-finger rotation)
+- `showCurrentLocation`: `Boolean` (Enable GPS blue dot)
+- `currentLocationIcon`: `LeaflektCurrentLocationIcon?` (Custom GPS icon)
+
+### Marker Icons
+
+Group large numbers of markers into clusters automatically:
+
+<!-- MEDIA SUGGESTION: CLUSTERING COMPARISON
+     Suggestion: A side-by-side comparison image:
+     - Left: 100+ individual markers overlapping (cluttered).
+     - Right: Clean clusters with count badges (e.g., "50", "20").
+-->
 
 ```kotlin
-LeaflektMap(
-    modifier = Modifier,
-    cameraPositionState = rememberLeaflektCameraPositionState(),
-    contentDescription = null,
-    properties = DefaultLeaflektMapProperties,
-    uiSettings = DefaultLeaflektMapUiSettings,
-    onMapLoaded = null,
-    onReady = null,
-    onMapClick = null,
-    onCameraMoveStarted = null,
-    onCameraMove = null,
-    onCameraIdle = null,
-    onMarkerClick = null,
-    content = {}
-)
-```
-
-Supported child composables inside `LeaflektMap`:
-
-- `LeaflektMarker`
-- `LeaflektPolyline`
-- `LeaflektPolygon`
-- `LeaflektCircle`
-- `MapEffect`
-
-The `content` slot can also render normal Compose UI above the map.
-
-Extensibility example:
-
-```kotlin
-LeaflektMap(
-    modifier = Modifier.fillMaxSize(),
-    cameraPositionState = cameraPositionState
-) {
-    MapEffect(selectedStyle) { controller ->
-        controller.executeJavaScript(
-            """
-            window.LeaflektBridge.setMapStyle({
-              id: "custom",
-              tileUrlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-              attributionHtml: "&copy; OpenStreetMap contributors",
-              maxZoom: 19,
-              subdomains: null
-            });
-            """.trimIndent()
+MapView {
+    MarkerCluster(
+        options = MarkerClusterOptions(
+            maxClusterRadius = 80,
+            showCoverageOnHover = true
         )
-    }
-}
-```
-
-Current location example:
-
-```kotlin
-LeaflektMap(
-    modifier = Modifier.fillMaxSize(),
-    uiSettings = LeaflektMapUiSettings(
-        showCurrentLocation = true
-    )
-)
-```
-
-Custom current location icon:
-
-```kotlin
-LeaflektMap(
-    uiSettings = LeaflektMapUiSettings(
-        showCurrentLocation = true,
-        currentLocationIcon = LeaflektCurrentLocationIcon(
-            bitmap = myLocationBitmap,
-            widthPx = 36,
-            heightPx = 36,
-            anchorFractionX = 0.5f,
-            anchorFractionY = 0.5f
-        )
-    )
-)
-```
-
-Camera lifecycle example:
-
-```kotlin
-@Composable
-fun CameraAwareMap() {
-    val cameraPositionState = rememberLeaflektCameraPositionState()
-    var cameraStatus by rememberSaveable { mutableStateOf("idle") }
-
-    LeaflektMap(
-        modifier = Modifier.fillMaxSize(),
-        cameraPositionState = cameraPositionState,
-        onCameraMoveStarted = {
-            cameraStatus = "moving"
-        },
-        onCameraMove = {
-            Log.d("LeafleKT", "Camera: ${cameraPositionState.position}")
-        },
-        onCameraIdle = {
-            cameraStatus = "idle"
-            Log.d(
-                "LeafleKT",
-                "Settled at ${cameraPositionState.position.target} z=${cameraPositionState.position.zoom}"
-            )
+    ) {
+        markers.forEach { m ->
+            Marker(position = m.position)
         }
-    )
+    }
 }
+```
+
+### Map Zoom & Interaction
+
+Control the allowed zoom range and gesture support:
+
+```kotlin
+MapView(
+    properties = MapProperties(
+        minZoom = 2.0,   // Prevent zooming out to blank space
+        maxZoom = 18.0   // Limit detail zoom
+    ),
+    uiSettings = MapUiSettings(
+        zoomGesturesEnabled = true,
+        scrollGesturesEnabled = true,
+        rotateGesturesEnabled = true // Continuous map rotation
+    )
+)
+```
+
+## Marker Icons
+
+Leaflekt supports synchronous bitmaps and native Compose UI overlays. If your app wants remote
+images, load them with your preferred image library and convert the decoded result into a
+`MarkerIcon`.
+
+<!-- MEDIA SUGGESTION: ICON TYPES SHOWCASE
+     Suggestion: A horizontal row showing 3 markers:
+     - 1. A standard bitmap icon (e.g., a pin).
+     - 2. An async-loaded image (e.g., a profile picture from a URL).
+     - 3. A native Compose UI marker (e.g., a pill with "99+" badge).
+-->
+
+### Synchronous (Bitmap) API
+
+```kotlin
+Marker(
+    position = LatLng(22.5726, 88.3639),
+    icon = MarkerIcon(
+        bitmap = bikeBitmap,
+        widthPx = 72,
+        heightPx = 72,
+        anchorFractionX = 0.5f,
+        anchorFractionY = 1f
+    ),
+    rotationDegrees = 90f // Visual rotation for vehicles/navigation
+)
+```
+
+<!-- MEDIA SUGGESTION: VEHICLE ROTATION GIF
+     Suggestion: A short GIF showing a car or bike marker rotating 360 degrees smoothly while staying centered on a coordinate.
+-->
+
+### App-Level Remote Images
+
+The sample app demonstrates a Coil-based helper for remote marker icons, but the SDK itself does
+not depend on Coil, Glide, or any specific image pipeline.
+
+### Composable Marker Icons
+
+Render any Compose UI as a marker:
+
+```kotlin
+Marker(
+    position = LatLng(22.5726, 88.3639),
+    iconContent = {
+        TextBadge(text = "99+", color = Color.Red)
+    }
+)
 ```
 
 ## Built-In Map Styles
 
-- `LeaflektMapStyle.OpenStreetMap`
-- `LeaflektMapStyle.CartoLight`
-- `LeaflektMapStyle.CartoDark`
-- `LeaflektMapStyle.OpenTopoMap`
-- `LeaflektMapStyle.EsriWorldImagery`
+- `MapStyle.OpenStreetMap`
+- `MapStyle.CartoLight`
+- `MapStyle.CartoDark`
+- `MapStyle.OpenTopoMap`
+- `MapStyle.EsriWorldImagery`
+
+<!-- MEDIA SUGGESTION: MAP STYLE GRID
+     Suggestion: A 2x3 or 3x2 grid of 1:1 square screenshots showing:
+     - The same area (e.g., Central Park or India Gate) in each style.
+     - Captions below each square with the style name.
+-->
+
+## Ola Maps Support
+
+LeafleKT provides first-class support for **Ola Maps**. Use the OLA tile provider and integrate with OLA's Places & Directions API (see `leaflektsampleapp`).
+
+<!-- MEDIA SUGGESTION: OLA MAPS SHOWCASE
+     Suggestion: A screenshot of the Sample App using OLA Maps style, showing a destination route (Polyline) and an OLA Places search bar at the top.
+-->
+
+```kotlin
+MapView(
+    properties = MapProperties(
+        mapStyle = MapStyle.OlaMaps(apiKey = "YOUR_API_KEY")
+    )
+)
+```
 
 ## Notes On Behavior
 
-- The India boundary overlay is always enabled and reacts to the active map style.
-- Camera lifecycle callbacks are bridged from Leaflet `movestart` / `move` / `moveend` and `zoomstart` / `zoom` / `zoomend`, and user gestures sync back into `LeaflektCameraPositionState`.
-- `showCurrentLocation = true` requests Android location permission when needed and renders a default blue dot with pulse and accuracy ring, or a custom bitmap marker when `currentLocationIcon` is provided.
-- `geodesic` is accepted for API familiarity on polylines and polygons, but Leaflet core does not provide Google Maps style geodesic rendering. It is retained as a compatibility field and currently renders as a normal projected path.
-- Stroke patterns are mapped to Leaflet `dashArray`, so they are approximate rather than 1:1 with Google Maps SDK pattern items.
-- Vector layer draw order is best-effort. LeafleKT reapplies polyline, polygon, and circle order by `zIndex`, then insertion order, but Leaflet does not expose a Google Maps style path `zIndex` contract.
-- Polyline `alpha` is supported and is applied by emitting an RGBA stroke color to the Leaflet runtime.
+- **India Boundary:** Optimized GeoJSON overlay is reactive to map styles and keeps the boundary visible even on satellite layers.
+- **Theme Sync:** `automaticThemeSync = true` automatically swaps between Light/Dark variants of Carto or OpenStreetMap based on the Android system theme.
 
-## Shape Capabilities
+<!-- MEDIA SUGGESTION: THEME SYNC SPLIT-VIEW
+     Suggestion: A split-screen image:
+     - Left: System in Light Mode (Map shows CartoLight).
+     - Right: System in Dark Mode (Map shows CartoDark).
+-->
 
-- `LeaflektPolyline`: points, color, width, alpha, stroke pattern, visibility, click callbacks, best-effort `zIndex`, compatibility-only `geodesic`
-- `LeaflektPolygon`: points, holes, fill/stroke color, fill/stroke opacity, stroke pattern, visibility, click callbacks, best-effort `zIndex`, compatibility-only `geodesic`
-- `LeaflektCircle`: center, radius, fill/stroke color, fill/stroke opacity, stroke pattern, visibility, click callbacks, best-effort `zIndex`
-
-## Release
-
-Version is controlled by the root [`VERSION`](VERSION) file.
-
-Useful commands:
-
-```bash
-./gradlew :leaflekt:testDebugUnitTest
-./gradlew :leaflekt:assembleRelease
-./gradlew :leaflekt:publishReleasePublicationToMavenLocal
-./gradlew :app:assembleDebug
-```
-
-Master branch release automation:
-
-- reads `VERSION`
-- updates the dependency version in this README
-- builds and verifies the release artifacts
-- publishes GitHub tag and GitHub release
-- warms the JitPack build
-
-See:
-
-- [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md)
-- [docs/GITHUB_RELEASE_SETUP.md](docs/GITHUB_RELEASE_SETUP.md)
+- **Smooth Zoom:** `zoomSnap` is disabled by default, providing a smooth, continuous pinch-to-zoom experience similar to native maps.
+- **Map Rotation:** Full 360-degree rotation is supported via the `rotateGesturesEnabled` UI setting.
 
 ## Feature Checklist
 
 Implemented:
 
 - [x] Compose map container
-- [x] Camera position state
-- [x] Map style switching
-- [x] India boundary overlay
-- [x] Declarative markers
-- [x] Declarative polylines
-- [x] Declarative polygons
-- [x] Declarative circles
-- [x] Click callbacks for map, markers, polylines, polygons, and circles
-- [x] Shape selection state for polyline, polygon, and circle wrappers
-- [x] `MapEffect` for imperative map extensions via `LeaflektController`
-- [x] Camera move started / moving / idle callbacks
-- [x] Camera position sync from user gestures back into `LeaflektCameraPositionState`
-- [x] SDK current location overlay with boolean toggle and optional custom icon
+- [x] Camera position state (LatLng, Zoom, Bearing)
+- [x] Map style switching (OSM, Carto, Esri, OLA)
+- [x] Automatic Theme Sync (Dark/Light mode)
+- [x] India boundary overlay (313 KB optimized)
+- [x] Declarative markers, polylines, polygons, and circles
+- [x] Advanced Marker Clustering
+- [x] Marker rotation support
+- [x] Click callbacks for all map entities
+- [x] `MapEffect` for imperative map extensions
+- [x] SDK current location overlay (with pulse and custom icons)
+- [x] Bitmap marker icons
+- [x] Native Compose Overlays (`iconContent`)
+- [x] Info window customization (initial visibility, anchor, and custom UI)
+- [x] Zoom bounds (min/max constraints)
+- [x] Continuous pinch zoom (smooth experience)
 
 Planned:
 
 - [ ] GeoJSON layer API
-- [ ] General custom marker bitmaps and drawables
-- [ ] HTML/divIcon markers
-- [ ] Custom info windows
-- [ ] Tile source customization API
-- [ ] Clustering
+- [ ] Directions journey playback sample
+- [ ] Route playback controls (Start/Pause/Stop)
+- [ ] Curved Lines (`LeaflektArc`)
 - [ ] Offline tile caching
-- [ ] Tooltips and popups
-- [ ] Shape drag interactions
-- [ ] Shape edit handles
+- [ ] Shape drag/edit interactions
 
 ## Legal
 
 - LeafleKT is not affiliated with Google, Leaflet, or OpenStreetMap.
-- The API shape is intentionally familiar to Google Maps Compose, but the implementation in this project is original.
 - Leaflet.js is licensed separately under its own terms.
 - Map tile usage and attribution remain the responsibility of the consuming app.
 
 ## License
 
 Apache License 2.0. See [LICENSE](LICENSE).
+

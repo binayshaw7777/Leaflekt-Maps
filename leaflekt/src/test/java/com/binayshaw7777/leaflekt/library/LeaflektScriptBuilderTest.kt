@@ -17,6 +17,13 @@
 package com.binayshaw7777.leaflekt.library
 
 import androidx.compose.ui.graphics.Color
+import com.binayshaw7777.leaflekt.internal.script.LeaflektScriptBuilder
+import com.binayshaw7777.leaflekt.library.camera.LatLng
+import com.binayshaw7777.leaflekt.library.circle.CircleInfo
+import com.binayshaw7777.leaflekt.library.marker.MarkerIconInfo
+import com.binayshaw7777.leaflekt.library.marker.MarkerInfo
+import com.binayshaw7777.leaflekt.library.polygon.PolygonInfo
+import com.binayshaw7777.leaflekt.library.polyline.PolylineInfo
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -28,8 +35,8 @@ class LeaflektScriptBuilderTest {
     @Test
     fun testAddMarkersScriptGeneration() {
         val markers = listOf(
-            LeaflektMarkerInfo(id = "1", lat = 22.5726, lng = 88.3639, title = "Kolkata"),
-            LeaflektMarkerInfo(id = "2", lat = 12.9716, lng = 77.5946, title = "Bengaluru")
+            MarkerInfo(id = "1", lat = 22.5726, lng = 88.3639, title = "Kolkata"),
+            MarkerInfo(id = "2", lat = 12.9716, lng = 77.5946, title = "Bengaluru")
         )
 
         val script = LeaflektScriptBuilder.addMarkersScript(markers)
@@ -43,19 +50,20 @@ class LeaflektScriptBuilderTest {
 
     @Test
     fun testMoveCameraScriptGeneration() {
-        val script = LeaflektScriptBuilder.moveCameraScript(22.5, 88.3, 10.0)
-        assertTrue(script.contains("window.LeaflektBridge.moveCamera(22.5,88.3,10.0)"))
+        val script = LeaflektScriptBuilder.moveCameraScript(22.5, 88.3, 10.0, 0.0)
+        assertTrue(script.contains("window.LeaflektBridge.moveCamera(22.5,88.3,10.0,0.0)"))
     }
 
     @Test
     fun testAddMarkerScriptGenerationWithCustomIcon() {
         val script = LeaflektScriptBuilder.addMarkersScript(
             listOf(
-                LeaflektMarkerInfo(
+                MarkerInfo(
                     id = "current-location",
                     lat = 22.5726,
                     lng = 88.3639,
-                    icon = LeaflektMarkerIconInfo(
+                    rotationDegrees = 42f,
+                    icon = MarkerIconInfo(
                         dataUrl = "data:image/png;base64,abc123",
                         widthPx = 32,
                         heightPx = 32,
@@ -70,16 +78,17 @@ class LeaflektScriptBuilderTest {
         assertTrue(script.contains("\"dataUrl\": \"data:image/png;base64,abc123\""))
         assertTrue(script.contains("\"widthPx\": 32"))
         assertTrue(script.contains("\"heightPx\": 32"))
+        assertTrue(script.contains("\"rotationDegrees\": 42.0"))
     }
 
     @Test
     fun testAddPolylineScriptGeneration() {
         val script = LeaflektScriptBuilder.addPolylineScript(
-            LeaflektPolylineInfo(
+            PolylineInfo(
                 id = "poly-1",
                 points = listOf(
-                    LeaflektLatLng(22.5726, 88.3639),
-                    LeaflektLatLng(22.5826, 88.3739)
+                    LatLng(22.5726, 88.3639),
+                    LatLng(22.5826, 88.3739)
                 ),
                 color = Color.Red,
                 width = 6f,
@@ -99,18 +108,18 @@ class LeaflektScriptBuilderTest {
     @Test
     fun testAddPolygonScriptGeneration() {
         val script = LeaflektScriptBuilder.addPolygonScript(
-            LeaflektPolygonInfo(
+            PolygonInfo(
                 id = "polygon-1",
                 points = listOf(
-                    LeaflektLatLng(22.56, 88.34),
-                    LeaflektLatLng(22.59, 88.35),
-                    LeaflektLatLng(22.58, 88.39)
+                    LatLng(22.56, 88.34),
+                    LatLng(22.59, 88.35),
+                    LatLng(22.58, 88.39)
                 ),
                 holes = listOf(
                     listOf(
-                        LeaflektLatLng(22.571, 88.351),
-                        LeaflektLatLng(22.575, 88.356),
-                        LeaflektLatLng(22.57, 88.362)
+                        LatLng(22.571, 88.351),
+                        LatLng(22.575, 88.356),
+                        LatLng(22.57, 88.362)
                     )
                 ),
                 fillColor = Color(0xFF2A9D8F),
@@ -133,9 +142,9 @@ class LeaflektScriptBuilderTest {
     @Test
     fun testAddCircleScriptGeneration() {
         val script = LeaflektScriptBuilder.addCircleScript(
-            LeaflektCircleInfo(
+            CircleInfo(
                 id = "circle-1",
-                center = LeaflektLatLng(22.5726, 88.3639),
+                center = LatLng(22.5726, 88.3639),
                 radiusMeters = 1200.0,
                 fillColor = Color(0xFFF4A261),
                 strokeColor = Color(0xFFE76F51),
@@ -154,3 +163,4 @@ class LeaflektScriptBuilderTest {
         assertTrue(script.contains("\"zIndex\": 4.0"))
     }
 }
+

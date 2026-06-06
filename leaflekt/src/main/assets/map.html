@@ -6,6 +6,8 @@
     <title>LeafleKT Map</title>
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="/assets/leaflet/leaflet.css" />
+    <link rel="stylesheet" href="/assets/leaflet/MarkerCluster.css" />
+    <link rel="stylesheet" href="/assets/leaflet/MarkerCluster.Default.css" />
     <style>
         html,
         body {
@@ -25,12 +27,15 @@
 <body>
 <div id="map"></div>
 <script src="/assets/leaflet/leaflet.js"></script>
+<script src="/assets/leaflet/leaflet-rotate.min.js"></script>
+<script src="/assets/leaflet/leaflet.markercluster.js"></script>
 <script src="/assets/leaflet/india-boundaries.js"></script>
 <script>
     (function () {
         const DEFAULT_LAT = 22.5726;
         const DEFAULT_LNG = 88.3639;
         const DEFAULT_ZOOM = 12;
+        const DEFAULT_BEARING = 0;
         const bridgeName = "LeaflektAndroidBridge";
         const defaultMapStyle = {
             id: "open_street_map",
@@ -39,6 +44,7 @@
             maxZoom: 19,
             subdomains: null
         };
+        const CAMERA_MOVE_REPORT_INTERVAL_MS = 64;
 
         let map = null;
         let activeTileLayer = null;
@@ -47,12 +53,17 @@
         let isZoomControlEnabled = true;
         let isCameraMoving = false;
         let cameraIdleHandle = null;
+        let lastCameraMoveReportAt = 0;
+        let activeBearing = DEFAULT_BEARING;
         let vectorDrawSequence = 0;
+        let touchRotateEnabled = false;
         const markerLayers = new Map();
+        const clusterGroups = new Map();
         const polylineLayers = new Map();
         const polygonLayers = new Map();
         const circleLayers = new Map();
         const vectorLayerOrder = new Map();
+        const trackedOverlayPoints = new Set();
 
         function getAndroidBridge() {
             return window[bridgeName];
@@ -65,6 +76,40 @@
             }
         }
 
+        function notifyProjectionChanged() {
+            const androidBridge = getAndroidBridge();
+            if (!androidBridge || typeof androidBridge.onProjectionChanged !== "function" || trackedOverlayPoints.size === 0) {
+                return;
+            }
+
+            const mapContainer = map ? map.getContainer() : null;
+            const mapWidth = mapContainer ? mapContainer.clientWidth : 0;
+            const mapHeight = mapContainer ? mapContainer.clientHeight : 0;
+            if (mapWidth <= 0 || mapHeight <= 0) {
+                return;
+            }
+
+            const projections = [];
+            trackedOverlayPoints.forEach(id => {
+                const parts = id.split(",");
+                if (parts.length === 2) {
+                    const lat = parseFloat(parts[0]);
+                    const lng = parseFloat(parts[1]);
+                    const point = map.latLngToContainerPoint([lat, lng]);
+                    projections.push({
+                        lat: lat,
+                        lng: lng,
+                        xFraction: point.x / mapWidth,
+                        yFraction: point.y / mapHeight
+                    });
+                }
+            });
+
+            if (projections.length > 0) {
+                androidBridge.onProjectionChanged(JSON.stringify(projections));
+            }
+        }
+
         function notifyMapClick(lat, lng) {
             const androidBridge = getAndroidBridge();
             if (androidBridge && typeof androidBridge.onMapClick === "function") {
@@ -72,24 +117,24 @@
             }
         }
 
-        function notifyCameraMoveStarted(lat, lng, zoom) {
+        function notifyCameraMoveStarted(lat, lng, zoom, bearing) {
             const androidBridge = getAndroidBridge();
             if (androidBridge && typeof androidBridge.onCameraMoveStarted === "function") {
-                androidBridge.onCameraMoveStarted(lat, lng, zoom);
+                androidBridge.onCameraMoveStarted(lat, lng, zoom, bearing);
             }
         }
 
-        function notifyCameraMove(lat, lng, zoom) {
+        function notifyCameraMove(lat, lng, zoom, bearing) {
             const androidBridge = getAndroidBridge();
             if (androidBridge && typeof androidBridge.onCameraMove === "function") {
-                androidBridge.onCameraMove(lat, lng, zoom);
+                androidBridge.onCameraMove(lat, lng, zoom, bearing);
             }
         }
 
-        function notifyCameraIdle(lat, lng, zoom) {
+        function notifyCameraIdle(lat, lng, zoom, bearing) {
             const androidBridge = getAndroidBridge();
             if (androidBridge && typeof androidBridge.onCameraIdle === "function") {
-                androidBridge.onCameraIdle(lat, lng, zoom);
+                androidBridge.onCameraIdle(lat, lng, zoom, bearing);
             }
         }
 
@@ -97,6 +142,13 @@
             const androidBridge = getAndroidBridge();
             if (androidBridge && typeof androidBridge.onMarkerClick === "function") {
                 androidBridge.onMarkerClick(markerId);
+            }
+        }
+
+        function notifyClusterClick(clusterId, lat, lng, count) {
+            const androidBridge = getAndroidBridge();
+            if (androidBridge && typeof androidBridge.onClusterClick === "function") {
+                androidBridge.onClusterClick(clusterId, lat, lng, count);
             }
         }
 
@@ -126,8 +178,50 @@
             mapContainer.innerHTML = "<div style='padding:16px;font-family:sans-serif;color:#b00020'>" + message + "</div>";
         }
 
-        function createMap(lat, lng, zoom) {
-            map = L.map("map", { zoomControl: false }).setView([lat, lng], zoom);
+        function supportsMapBearing() {
+            return map !== null && typeof map.getBearing === "function" && typeof map.setBearing === "function";
+        }
+
+        function currentBearing() {
+            if (supportsMapBearing()) {
+                return Number(map.getBearing());
+            }
+
+            return activeBearing;
+        }
+
+        function updateBearing(bearing) {
+            if (typeof bearing === "undefined" || bearing === null || Number.isNaN(Number(bearing))) {
+                return;
+            }
+
+            activeBearing = Number(bearing);
+
+            if (supportsMapBearing()) {
+                map.setBearing(activeBearing);
+            }
+        }
+
+        function createMap(lat, lng, zoom, bearing, minZoom, maxZoom, restrictToWorldBounds) {
+            activeBearing = Number(bearing ?? DEFAULT_BEARING);
+            const mapOptions = {
+                zoomControl: false,
+                zoomSnap: false,
+                minZoom: minZoom,
+                maxZoom: maxZoom,
+                rotate: true,
+                touchRotate: touchRotateEnabled,
+                bearing: activeBearing,
+                rotateControl: false
+            };
+
+            if (restrictToWorldBounds) {
+                mapOptions.maxBounds = [[-90, -180], [90, 180]];
+                mapOptions.maxBoundsViscosity = 1.0;
+            }
+
+            map = L.map("map", mapOptions).setView([lat, lng], zoom);
+
             applyZoomControls();
             replaceTileLayer(activeMapStyle);
 
@@ -176,11 +270,11 @@
             }, 150);
         }
 
-        function ensureMap(lat, lng, zoom) {
+        function ensureMap(lat, lng, zoom, bearing, minZoom, maxZoom, restrictToWorldBounds) {
             if (map !== null) {
                 return map;
             }
-            return createMap(lat, lng, zoom);
+            return createMap(lat, lng, zoom, bearing, minZoom, maxZoom, restrictToWorldBounds);
         }
 
         function createTileLayer(style) {
@@ -232,6 +326,18 @@
             return "marker-" + Date.now() + "-" + Math.floor(Math.random() * 100000);
         }
 
+        function buildMarkerPopupContent(marker) {
+            if (!marker || (!marker.title && !marker.snippet)) {
+                return null;
+            }
+
+            if (marker.title && marker.snippet) {
+                return "<div><strong>" + marker.title + "</strong><br/>" + marker.snippet + "</div>";
+            }
+
+            return marker.title || marker.snippet;
+        }
+
         function createMarkerIcon(marker) {
             if (!marker || !marker.icon || !marker.icon.dataUrl) {
                 return new L.Icon.Default();
@@ -252,24 +358,98 @@
             });
         }
 
-        function addMarkerLayer(marker) {
-            const activeMap = ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM);
+        function createMarkerRotationOrigin(marker) {
+            if (!marker || !marker.icon) {
+                return "50% 100%";
+            }
+
+            const anchorFractionX = Number(marker.icon.anchorFractionX ?? 0.5);
+            const anchorFractionY = Number(marker.icon.anchorFractionY ?? 1);
+            return (anchorFractionX * 100) + "% " + (anchorFractionY * 100) + "%";
+        }
+
+        function applyMarkerRotation(markerLayer) {
+            if (!markerLayer || !markerLayer._icon) {
+                return;
+            }
+
+            const markerRotation = Number(markerLayer.options.rotationAngle || 0);
+            const markerRotationOrigin = markerLayer.options.rotationOrigin || "50% 100%";
+            const baseTransform = (markerLayer._icon.style.transform || "").replace(/ rotateZ\([^)]*\)/g, "");
+
+            markerLayer._icon.style.transformOrigin = markerRotationOrigin;
+            markerLayer._icon.style.transform = baseTransform + " rotateZ(" + markerRotation + "deg)";
+        }
+
+        function addMarkerLayer(marker, clusterId) {
+            const activeMap = ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM, DEFAULT_BEARING);
             const markerId = marker.id || nextMarkerId();
             const markerLayer = L.marker(
                 [marker.lat, marker.lng],
-                { icon: createMarkerIcon(marker) }
-            ).addTo(activeMap);
+                {
+                    icon: createMarkerIcon(marker),
+                    rotationAngle: Number(marker.rotationDegrees || 0),
+                    rotationOrigin: createMarkerRotationOrigin(marker),
+                    zIndexOffset: Number(marker.zIndex || 0)
+                }
+            );
 
-            if (marker.title) {
-                markerLayer.bindPopup(marker.title);
+            const popupContent = buildMarkerPopupContent(marker);
+            if (popupContent) {
+                markerLayer.bindPopup(popupContent);
             }
 
-            markerLayer.on("click", function () {
+            markerLayer.on("click", function (event) {
+                if (event) {
+                    if (event.originalEvent) {
+                        L.DomEvent.stopPropagation(event.originalEvent);
+                    } else if (event.domEvent) {
+                        L.DomEvent.stopPropagation(event.domEvent);
+                    }
+                }
                 notifyMarkerClick(markerId);
             });
 
-            markerLayers.set(markerId, markerLayer);
+            if (clusterId && clusterGroups.has(clusterId)) {
+                clusterGroups.get(clusterId).addLayer(markerLayer);
+            } else {
+                markerLayer.addTo(activeMap);
+            }
+
+            applyMarkerRotation(markerLayer);
+            markerLayers.set(markerId, { layer: markerLayer, clusterId: clusterId });
             return markerId;
+        }
+
+        function createMarkerClusterGroup(clusterId, options) {
+            const activeMap = ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM, DEFAULT_BEARING);
+            const clusterGroup = L.markerClusterGroup({
+                showCoverageOnHover: options.showCoverageOnHover ?? true,
+                zoomToBoundsOnClick: options.zoomToBoundsOnClick ?? true,
+                spiderfyOnMaxZoom: options.spiderfyOnMaxZoom ?? true,
+                disableClusteringAtZoom: options.disableClusteringAtZoom || null,
+                maxClusterRadius: options.maxClusterRadius || 80,
+                chunkedLoading: true
+            });
+
+            clusterGroup.on("clusterclick", function (a) {
+                const latlng = a.latlng;
+                notifyClusterClick(clusterId, latlng.lat, latlng.lng, a.layer.getChildCount());
+            });
+
+            clusterGroup.addTo(activeMap);
+            clusterGroups.set(clusterId, clusterGroup);
+        }
+
+        function removeMarkerClusterGroup(clusterId) {
+            if (map === null || !clusterId) {
+                return;
+            }
+            const clusterGroup = clusterGroups.get(clusterId);
+            if (clusterGroup) {
+                map.removeLayer(clusterGroup);
+                clusterGroups.delete(clusterId);
+            }
         }
 
         function toLeafletLatLng(point) {
@@ -322,7 +502,8 @@
             return {
                 lat: center.lat,
                 lng: center.lng,
-                zoom: map.getZoom()
+                zoom: map.getZoom(),
+                bearing: currentBearing()
             };
         }
 
@@ -332,8 +513,9 @@
                 return;
             }
 
+            lastCameraMoveReportAt = 0;
             isCameraMoving = true;
-            notifyCameraMoveStarted(snapshot.lat, snapshot.lng, snapshot.zoom);
+            notifyCameraMoveStarted(snapshot.lat, snapshot.lng, snapshot.zoom, snapshot.bearing);
         }
 
         function reportCameraMove() {
@@ -343,7 +525,10 @@
             }
 
             reportCameraMoveStarted();
-            notifyCameraMove(snapshot.lat, snapshot.lng, snapshot.zoom);
+            if (!shouldReportCameraMoveNow()) {
+                return;
+            }
+            notifyCameraMove(snapshot.lat, snapshot.lng, snapshot.zoom, snapshot.bearing);
         }
 
         function scheduleCameraIdleReport() {
@@ -355,9 +540,20 @@
                     return;
                 }
 
+                lastCameraMoveReportAt = 0;
                 isCameraMoving = false;
-                notifyCameraIdle(snapshot.lat, snapshot.lng, snapshot.zoom);
+                notifyCameraIdle(snapshot.lat, snapshot.lng, snapshot.zoom, snapshot.bearing);
             }, 48);
+        }
+
+        function shouldReportCameraMoveNow() {
+            const now = Date.now();
+            if (now - lastCameraMoveReportAt < CAMERA_MOVE_REPORT_INTERVAL_MS) {
+                return false;
+            }
+
+            lastCameraMoveReportAt = now;
+            return true;
         }
 
         function bindCameraLifecycleCallbacks() {
@@ -365,18 +561,21 @@
                 return;
             }
 
-            map.on("movestart zoomstart", function () {
+            map.on("movestart zoomstart rotatestart", function () {
                 cancelCameraIdleReport();
+                lastCameraMoveReportAt = 0;
                 reportCameraMoveStarted();
             });
 
-            map.on("move zoom", function () {
+            map.on("move zoom rotate", function () {
                 cancelCameraIdleReport();
                 reportCameraMove();
+                notifyProjectionChanged();
             });
 
-            map.on("moveend zoomend", function () {
+            map.on("moveend zoomend rotateend", function () {
                 scheduleCameraIdleReport();
+                notifyProjectionChanged();
             });
         }
 
@@ -420,7 +619,7 @@
         }
 
         function addPolylineLayer(polyline) {
-            const activeMap = ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM);
+            const activeMap = ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM, DEFAULT_BEARING);
             const layer = L.polyline(
                 polyline.points.map(toLeafletLatLng),
                 {
@@ -468,7 +667,7 @@
         }
 
         function addPolygonLayer(polygon) {
-            const activeMap = ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM);
+            const activeMap = ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM, DEFAULT_BEARING);
             const polygonLatLngs = [polygon.points.map(toLeafletLatLng)].concat(
                 polygon.holes.map(function (hole) {
                     return hole.map(toLeafletLatLng);
@@ -531,7 +730,7 @@
         }
 
         function addCircleLayer(circle) {
-            const activeMap = ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM);
+            const activeMap = ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM, DEFAULT_BEARING);
             const layer = L.circle(
                 toLeafletLatLng(circle.center),
                 {
@@ -584,9 +783,27 @@
             }
         }
 
+        function removeMarkerLayer(markerId) {
+            if (map === null || !markerId) {
+                return;
+            }
+            const entry = markerLayers.get(markerId);
+            if (entry) {
+                const markerLayer = entry.layer;
+                const clusterId = entry.clusterId;
+
+                if (clusterId && clusterGroups.has(clusterId)) {
+                    clusterGroups.get(clusterId).removeLayer(markerLayer);
+                } else {
+                    map.removeLayer(markerLayer);
+                }
+                markerLayers.delete(markerId);
+            }
+        }
+
         window.LeaflektBridge = {
-            initMap: function (lat, lng, zoom) {
-                ensureMap(lat, lng, zoom);
+            initMap: function (lat, lng, zoom, bearing, minZoom, maxZoom, restrictToWorldBounds) {
+                ensureMap(lat, lng, zoom, bearing, minZoom, maxZoom, restrictToWorldBounds);
             },
             setZoomControlsEnabled: function (isEnabled) {
                 isZoomControlEnabled = Boolean(isEnabled);
@@ -612,6 +829,18 @@
                     map.scrollWheelZoom.disable();
                 }
             },
+            setRotateGesturesEnabled: function (isEnabled) {
+                touchRotateEnabled = Boolean(isEnabled);
+                if (map === null) return;
+                if (!map.touchRotate) {
+                    return;
+                }
+                if (touchRotateEnabled) {
+                    map.touchRotate.enable();
+                } else {
+                    map.touchRotate.disable();
+                }
+            },
             setMapStyle: function (style) {
                 if (!style || !style.tileUrlTemplate || !style.attributionHtml) {
                     return;
@@ -625,58 +854,87 @@
                     subdomains: style.subdomains || null
                 });
             },
-            addMarker: function (lat, lng, title) {
-                addMarkerLayer({ lat: lat, lng: lng, title: title || null });
+            addMarker: function (lat, lng, title, clusterId) {
+                addMarkerLayer({ lat: lat, lng: lng, title: title || null }, clusterId);
             },
-            addMarkers: function (list) {
+            addMarkers: function (list, clusterId) {
                 if (!Array.isArray(list) || list.length === 0) {
                     return;
                 }
 
-                ensureMap(list[0].lat, list[0].lng, DEFAULT_ZOOM);
+                ensureMap(list[0].lat, list[0].lng, DEFAULT_ZOOM, DEFAULT_BEARING);
                 list.forEach(function (item) {
                     addMarkerLayer({
                         id: item.id || null,
                         lat: Number(item.lat),
                         lng: Number(item.lng),
-                        title: item.title || null
-                    });
+                        title: item.title || null,
+                        snippet: item.snippet || null,
+                        icon: item.icon || null,
+                        rotationDegrees: Number(item.rotationDegrees || 0),
+                        visible: item.visible ?? true,
+                        alpha: Number(item.alpha ?? 1.0),
+                        zIndex: Number(item.zIndex || 0)
+                    }, clusterId);
                 });
             },
             removeMarker: function (markerId) {
-                if (map === null || !markerId) {
-                    return;
-                }
-                const markerLayer = markerLayers.get(markerId);
-                if (markerLayer) {
-                    map.removeLayer(markerLayer);
-                    markerLayers.delete(markerId);
-                }
+                removeMarkerLayer(markerId);
             },
             updateMarker: function (marker) {
                 if (map === null || !marker || !marker.id) {
                     return;
                 }
-                const markerLayer = markerLayers.get(marker.id);
-                if (markerLayer) {
-                    // Update position
+                const entry = markerLayers.get(marker.id);
+                if (entry) {
+                    const markerLayer = entry.layer;
                     markerLayer.setLatLng([marker.lat, marker.lng]);
+                    markerLayer.setZIndexOffset(Number(marker.zIndex || 0));
+                    markerLayer.options.rotationAngle = Number(marker.rotationDegrees || 0);
+                    markerLayer.options.rotationOrigin = createMarkerRotationOrigin(marker);
                     markerLayer.setIcon(createMarkerIcon(marker));
-                    
-                    // Update popup
-                    if (marker.title) {
-                        markerLayer.setPopupContent(marker.title);
+
+                    const popupContent = buildMarkerPopupContent(marker);
+                    if (popupContent) {
+                        if (markerLayer.getPopup()) {
+                            markerLayer.setPopupContent(popupContent);
+                        } else {
+                            markerLayer.bindPopup(popupContent);
+                        }
                     } else {
                         markerLayer.unbindPopup();
                     }
 
-                    // Update opacity
                     markerLayer.setOpacity(marker.visible ? marker.alpha : 0);
+                    applyMarkerRotation(markerLayer);
                 }
             },
-            moveCamera: function (lat, lng, zoom) {
-                const activeMap = ensureMap(lat, lng, zoom);
+            createMarkerClusterGroup: function (clusterId, options) {
+                createMarkerClusterGroup(clusterId, options || {});
+            },
+            removeMarkerClusterGroup: function (clusterId) {
+                removeMarkerClusterGroup(clusterId);
+            },
+            showMarkerInfoWindow: function (markerId) {
+                const markerLayer = markerLayers.get(markerId);
+                if (markerLayer && markerLayer.getPopup()) {
+                    markerLayer.openPopup();
+                }
+            },
+            hideMarkerInfoWindow: function (markerId) {
+                const markerLayer = markerLayers.get(markerId);
+                if (markerLayer && markerLayer.getPopup()) {
+                    markerLayer.closePopup();
+                }
+            },
+            moveCamera: function (lat, lng, zoom, bearing) {
+                const activeMap = ensureMap(lat, lng, zoom, bearing);
                 activeMap.setView([lat, lng], zoom);
+                updateBearing(bearing);
+            },
+            setBearing: function (bearing) {
+                if (map === null) return;
+                updateBearing(bearing);
             },
             clearMarkers: function () {
                 if (map === null) {
@@ -733,6 +991,15 @@
             },
             removeCircle: function (circleId) {
                 removeCircleLayer(circleId);
+            },
+            registerOverlayPoint: function (lat, lng) {
+                const id = lat + "," + lng;
+                trackedOverlayPoints.add(id);
+                notifyProjectionChanged();
+            },
+            unregisterOverlayPoint: function (lat, lng) {
+                const id = lat + "," + lng;
+                trackedOverlayPoints.delete(id);
             }
         };
 
@@ -741,13 +1008,22 @@
             return;
         }
 
+        if (L.Marker && L.Marker.prototype && !L.Marker.prototype.leaflektSetPosPatched) {
+            const originalSetPos = L.Marker.prototype._setPos;
+            L.Marker.prototype._setPos = function (position) {
+                originalSetPos.call(this, position);
+                applyMarkerRotation(this);
+            };
+            L.Marker.prototype.leaflektSetPosPatched = true;
+        }
+
         window.addEventListener("resize", function () {
             if (map !== null) {
                 map.invalidateSize();
             }
         });
 
-        ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM);
+        ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM, DEFAULT_BEARING);
     })();
 </script>
 </body>

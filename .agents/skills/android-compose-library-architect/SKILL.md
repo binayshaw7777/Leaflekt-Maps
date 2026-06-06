@@ -1,3 +1,8 @@
+---
+name: android-compose-library-architect
+description: Shape reusable library APIs for Compose modules. Design public composables, split sample-app code from reusable library code, review naming and extensibility.
+---
+
 # Android Compose Library Architect
 
 Purpose:

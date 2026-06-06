@@ -66,11 +66,14 @@ jobs:
         run: ./gradlew :leaflekt:testDebugUnitTest :leaflekt:assembleRelease :leaflekt:publishReleasePublicationToMavenLocal :app:assembleDebug
 
       - name: Generate Documentation (Dokka)
+        id: dokka
         if: steps.tag.outputs.exists == 'false'
+        continue-on-error: true
         run: ./gradlew :leaflekt:dokkaHtml
 
       - name: Deploy Documentation to GitHub Pages
-        if: steps.tag.outputs.exists == 'false'
+        if: steps.tag.outputs.exists == 'false' && steps.dokka.outcome == 'success'
+        continue-on-error: true
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: leaflekt/build/dokka/html
