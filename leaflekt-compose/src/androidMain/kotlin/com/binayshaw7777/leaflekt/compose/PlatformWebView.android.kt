@@ -1,5 +1,7 @@
 package com.binayshaw7777.leaflekt.compose
 
+import com.binayshaw7777.leaflekt.*
+
 import android.util.Log
 import android.webkit.ConsoleMessage
 import android.webkit.WebChromeClient
@@ -79,7 +81,7 @@ internal actual fun PlatformWebView(
 
                     override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
                         if (request?.url?.toString()?.endsWith("/favicon.ico") == true) return
-                        Log.e("Leaflekt.WebView", "Web resource error: ${request?.url} - ${error?.description}")
+                        Log.e("Leaflekt.WebView", "Web resource error: ${request?.url} - $error")
                         super.onReceivedError(view, request, error)
                     }
                 }

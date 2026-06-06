@@ -8,20 +8,18 @@
 
 ## Library Build
 
-- [ ] `:leaflekt:assembleRelease` passes
-- [ ] `:leaflekt:testDebugUnitTest` passes
-- [ ] `:leaflekt:publishReleasePublicationToMavenLocal` passes
-- [ ] release AAR is generated at `leaflekt/build/outputs/aar/leaflekt-release.aar`
-- [ ] sources jar is published to `mavenLocal`
+- [ ] `:leaflekt-core:build` passes
+- [ ] `:leaflekt-compose:build` passes
+- [ ] both modules publish to `mavenLocal`
+- [ ] sources jars are generated
 
-## JitPack Readiness
+## Maven Central Readiness
 
-- [ ] `jitpack.yml` pins a compatible JDK
-- [ ] `leaflekt` uses `maven-publish`
-- [ ] release publication is built from `components.release`
-- [ ] publication has stable coordinates
-- [ ] README includes JitPack install instructions
-- [ ] README uses the published artifact coordinates
+- [ ] Sonatype credentials are configured
+- [ ] signing secrets are configured
+- [ ] `leaflekt-core` coordinates are stable
+- [ ] `leaflekt-compose` coordinates are stable
+- [ ] README uses Maven Central coordinates
 
 ## Documentation
 
@@ -52,12 +50,11 @@
 
 - [ ] push to `master` with a new `VERSION` creates tag `v<version>`
 - [ ] the workflow creates a GitHub Release for the same tag
-- [ ] the workflow uploads the release AAR asset
-- [ ] the workflow warms the JitPack build URL
+- [ ] the workflow publishes both KMP artifacts
 - [ ] repeated pushes without a new version do not create duplicate releases
 
 ## Post Release
 
-- [ ] JitPack release page resolves successfully
+- [ ] both Maven Central artifacts resolve successfully
 - [ ] sample dependency install works in a fresh consumer project
 - [ ] GitHub Release notes look correct

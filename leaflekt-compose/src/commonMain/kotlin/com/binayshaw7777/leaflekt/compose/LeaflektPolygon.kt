@@ -1,5 +1,7 @@
 package com.binayshaw7777.leaflekt.compose
 
+import com.binayshaw7777.leaflekt.*
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -39,7 +41,7 @@ fun LeaflektPolygon(
     val resolvedZIndex = if (state.isSelected) zIndex + selectedZIndexBoost else zIndex
 
     DisposableEffect(id) {
-        controller.addPolygon(LeaflektPolygonInfo(id = id, points = state.points, clickable = clickable, fillColor = fillColor, geodesic = geodesic, holes = state.holes, strokeColor = resolvedStroke, strokePattern = strokePattern, strokeWidth = resolvedStrokeW, visible = visible, zIndex = resolvedZIndex, fillOpacity = resolvedFillOp, strokeOpacity = strokeOpacity))
+        controller.addPolygon(LeaflektPolygonInfo(id = id, points = state.points, clickable = clickable, fillColor = fillColor.toLeaflektColor(), geodesic = geodesic, holes = state.holes, strokeColor = resolvedStroke.toLeaflektColor(), strokePattern = strokePattern, strokeWidth = resolvedStrokeW, visible = visible, zIndex = resolvedZIndex, fillOpacity = resolvedFillOp, strokeOpacity = strokeOpacity))
         controller.registerPolygonClick(id, onClick)
         onDispose { controller.unregisterPolygonClick(id); controller.removePolygon(id) }
     }
@@ -50,7 +52,7 @@ fun LeaflektPolygon(
     }
 
     LaunchedEffect(state.points, state.holes, state.isSelected, clickable, fillColor, geodesic, strokeColor, strokePattern, strokeWidth, visible, zIndex, fillOpacity, strokeOpacity, selectedStrokeColor, selectedStrokeWidth, selectedFillOpacity, selectedZIndexBoost) {
-        controller.updatePolygon(LeaflektPolygonInfo(id = id, points = state.points, clickable = clickable, fillColor = fillColor, geodesic = geodesic, holes = state.holes, strokeColor = resolvedStroke, strokePattern = strokePattern, strokeWidth = resolvedStrokeW, visible = visible, zIndex = resolvedZIndex, fillOpacity = resolvedFillOp, strokeOpacity = strokeOpacity))
+        controller.updatePolygon(LeaflektPolygonInfo(id = id, points = state.points, clickable = clickable, fillColor = fillColor.toLeaflektColor(), geodesic = geodesic, holes = state.holes, strokeColor = resolvedStroke.toLeaflektColor(), strokePattern = strokePattern, strokeWidth = resolvedStrokeW, visible = visible, zIndex = resolvedZIndex, fillOpacity = resolvedFillOp, strokeOpacity = strokeOpacity))
     }
 }
 
@@ -86,7 +88,7 @@ fun LeaflektPolygon(
     val resolvedZIndex = if (selected) zIndex + selectedZIndexBoost else zIndex
 
     DisposableEffect(id) {
-        controller.addPolygon(LeaflektPolygonInfo(id = id, points = points, clickable = clickable, fillColor = fillColor, geodesic = geodesic, holes = holes, strokeColor = resolvedStroke, strokePattern = strokePattern, strokeWidth = resolvedStrokeW, visible = visible, zIndex = resolvedZIndex, fillOpacity = resolvedFillOp, strokeOpacity = strokeOpacity))
+        controller.addPolygon(LeaflektPolygonInfo(id = id, points = points, clickable = clickable, fillColor = fillColor.toLeaflektColor(), geodesic = geodesic, holes = holes, strokeColor = resolvedStroke.toLeaflektColor(), strokePattern = strokePattern, strokeWidth = resolvedStrokeW, visible = visible, zIndex = resolvedZIndex, fillOpacity = resolvedFillOp, strokeOpacity = strokeOpacity))
         controller.registerPolygonClick(id, onClick)
         onDispose { controller.unregisterPolygonClick(id); controller.removePolygon(id) }
     }
@@ -97,6 +99,6 @@ fun LeaflektPolygon(
     }
 
     LaunchedEffect(points, holes, selected, clickable, fillColor, geodesic, strokeColor, strokePattern, strokeWidth, visible, zIndex, fillOpacity, strokeOpacity, selectedStrokeColor, selectedStrokeWidth, selectedFillOpacity, selectedZIndexBoost) {
-        controller.updatePolygon(LeaflektPolygonInfo(id = id, points = points, clickable = clickable, fillColor = fillColor, geodesic = geodesic, holes = holes, strokeColor = resolvedStroke, strokePattern = strokePattern, strokeWidth = resolvedStrokeW, visible = visible, zIndex = resolvedZIndex, fillOpacity = resolvedFillOp, strokeOpacity = strokeOpacity))
+        controller.updatePolygon(LeaflektPolygonInfo(id = id, points = points, clickable = clickable, fillColor = fillColor.toLeaflektColor(), geodesic = geodesic, holes = holes, strokeColor = resolvedStroke.toLeaflektColor(), strokePattern = strokePattern, strokeWidth = resolvedStrokeW, visible = visible, zIndex = resolvedZIndex, fillOpacity = resolvedFillOp, strokeOpacity = strokeOpacity))
     }
 }

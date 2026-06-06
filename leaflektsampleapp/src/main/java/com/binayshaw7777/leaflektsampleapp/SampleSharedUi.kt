@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -52,10 +53,10 @@ import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.binayshaw7777.leaflekt.library.map.MapStyle
+import com.binayshaw7777.leaflekt.LeaflektMapStyle
 import kotlinx.coroutines.delay
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 internal fun ExploreSearchBar(
     expanded: Boolean,
@@ -185,11 +186,11 @@ internal fun PlacePickerSheet(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 internal fun MapStyleSheet(
-    selectedMapStyle: MapStyle,
-    onMapStyleSelected: (MapStyle) -> Unit,
+    selectedMapStyle: LeaflektMapStyle,
+    onMapStyleSelected: (LeaflektMapStyle) -> Unit,
     onDismissRequest: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -204,12 +205,11 @@ internal fun MapStyleSheet(
                 .padding(horizontal = 16.dp, vertical = 20.dp)
                 .navigationBarsPadding()
         ) {
-             @Suppress("ExperimentalMaterial3Api")
-             FlowRow(
+            FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                MapStyle.entries.forEach { mapStyle ->
+                LeaflektMapStyle.entries.forEach { mapStyle ->
                     InputChip(
                         shape = RoundedCornerShape(20.dp),
                         selected = mapStyle == selectedMapStyle,
@@ -364,13 +364,12 @@ private fun PlacesPredictionList(
     }
 }
 
-internal fun MapStyle.displayLabel(): String {
+internal fun LeaflektMapStyle.displayLabel(): String {
     return when (this) {
-        MapStyle.OpenStreetMap -> "OpenStreetMap"
-        MapStyle.CartoLight -> "CARTO Light"
-        MapStyle.CartoDark -> "CARTO Dark"
-        MapStyle.OpenTopoMap -> "OpenTopoMap"
-        MapStyle.EsriWorldImagery -> "Esri World Imagery"
+        LeaflektMapStyle.OpenStreetMap -> "OpenStreetMap"
+        LeaflektMapStyle.CartoLight -> "CARTO Light"
+        LeaflektMapStyle.CartoDark -> "CARTO Dark"
+        LeaflektMapStyle.OpenTopoMap -> "OpenTopoMap"
+        LeaflektMapStyle.EsriWorldImagery -> "Esri World Imagery"
     }
 }
-

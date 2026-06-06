@@ -1,6 +1,6 @@
 package com.binayshaw7777.leaflekt.cmp
 
-import com.binayshaw7777.leaflekt.compose.LeaflektLatLng
+import com.binayshaw7777.leaflekt.LeaflektLatLng
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.math.abs

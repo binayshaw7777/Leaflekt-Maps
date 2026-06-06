@@ -1,6 +1,6 @@
 package com.binayshaw7777.leaflekt.cmp
 
-import com.binayshaw7777.leaflekt.compose.LeaflektLatLng
+import com.binayshaw7777.leaflekt.LeaflektLatLng
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.android.Android

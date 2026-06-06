@@ -55,16 +55,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.binayshaw7777.leaflekt.compose.LeaflektCameraPosition
-import com.binayshaw7777.leaflekt.compose.LeaflektController
-import com.binayshaw7777.leaflekt.compose.LeaflektLatLng
+import com.binayshaw7777.leaflekt.LeaflektCameraPosition
+import com.binayshaw7777.leaflekt.LeaflektController
+import com.binayshaw7777.leaflekt.LeaflektLatLng
 import com.binayshaw7777.leaflekt.compose.LeaflektMap
-import com.binayshaw7777.leaflekt.compose.LeaflektMapProperties
-import com.binayshaw7777.leaflekt.compose.LeaflektMapStyle
-import com.binayshaw7777.leaflekt.compose.LeaflektMapUiSettings
+import com.binayshaw7777.leaflekt.LeaflektMapProperties
+import com.binayshaw7777.leaflekt.LeaflektMapStyle
+import com.binayshaw7777.leaflekt.LeaflektMapUiSettings
 import com.binayshaw7777.leaflekt.compose.LeaflektMarker
 import com.binayshaw7777.leaflekt.compose.LeaflektMarkerCluster
-import com.binayshaw7777.leaflekt.compose.LeaflektMarkerInfo
+import com.binayshaw7777.leaflekt.LeaflektMarkerInfo
 import com.binayshaw7777.leaflekt.compose.LeaflektPolyline
 import com.binayshaw7777.leaflekt.compose.rememberLeaflektCameraPositionState
 

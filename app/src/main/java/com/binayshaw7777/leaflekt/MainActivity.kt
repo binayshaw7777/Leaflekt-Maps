@@ -51,19 +51,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.binayshaw7777.leaflekt.library.camera.CameraPosition
-import com.binayshaw7777.leaflekt.library.camera.LatLng
-import com.binayshaw7777.leaflekt.library.camera.rememberCameraPositionState
-import com.binayshaw7777.leaflekt.library.circle.Circle
-import com.binayshaw7777.leaflekt.library.controller.MapController
-import com.binayshaw7777.leaflekt.library.map.MapView
-import com.binayshaw7777.leaflekt.library.map.MapProperties
-import com.binayshaw7777.leaflekt.library.map.MapStyle
-import com.binayshaw7777.leaflekt.library.map.MapUiSettings
-import com.binayshaw7777.leaflekt.library.marker.Marker
-import com.binayshaw7777.leaflekt.library.polygon.Polygon
-import com.binayshaw7777.leaflekt.library.polyline.Polyline
-import com.binayshaw7777.leaflekt.library.shape.LeaflektStrokePattern
+import com.binayshaw7777.leaflekt.LeaflektCameraPosition
+import com.binayshaw7777.leaflekt.LeaflektLatLng
+import com.binayshaw7777.leaflekt.compose.rememberLeaflektCameraPositionState
+import com.binayshaw7777.leaflekt.compose.LeaflektCircle
+import com.binayshaw7777.leaflekt.LeaflektController
+import com.binayshaw7777.leaflekt.compose.LeaflektMap
+import com.binayshaw7777.leaflekt.LeaflektMapProperties
+import com.binayshaw7777.leaflekt.LeaflektMapStyle
+import com.binayshaw7777.leaflekt.LeaflektMapUiSettings
+import com.binayshaw7777.leaflekt.compose.LeaflektMarker
+import com.binayshaw7777.leaflekt.compose.LeaflektPolygon
+import com.binayshaw7777.leaflekt.compose.LeaflektPolyline
+import com.binayshaw7777.leaflekt.LeaflektStrokePattern
 import com.binayshaw7777.leaflekt.ui.theme.LeafleKTTheme
 
 class MainActivity : ComponentActivity() {
@@ -85,7 +85,7 @@ private fun LeaflektDemoScreen(modifier: Modifier = Modifier, onBack: () -> Unit
     var circleRadiusMeters by rememberSaveable { mutableFloatStateOf(1500f) }
     var activeFeatureLat by rememberSaveable { mutableDoubleStateOf(22.5726) }
     var activeFeatureLng by rememberSaveable { mutableDoubleStateOf(88.3639) }
-    var selectedMapStyle by rememberSaveable { mutableStateOf(MapStyle.OpenStreetMap) }
+    var selectedMapStyle by rememberSaveable { mutableStateOf(LeaflektMapStyle.OpenStreetMap) }
     var lastTap by rememberSaveable { mutableStateOf("Tap anywhere on map to move the demo set") }
     var lastMarkerId by rememberSaveable { mutableStateOf("No marker clicked yet") }
     var isMarkerVisible by rememberSaveable { mutableStateOf(true) }
@@ -101,22 +101,22 @@ private fun LeaflektDemoScreen(modifier: Modifier = Modifier, onBack: () -> Unit
     }
     var isCameraMoving by rememberSaveable { mutableStateOf(false) }
     var mapController by remember {
-        mutableStateOf<MapController?>(null)
+        mutableStateOf<LeaflektController?>(null)
     }
 
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition(
-            target = LatLng(latitude = 22.5726, longitude = 88.3639),
+    val cameraPositionState = rememberLeaflektCameraPositionState {
+        position = LeaflektCameraPosition(
+            target = LeaflektLatLng(latitude = 22.5726, longitude = 88.3639),
             zoom = 12.0
         )
     }
     val sheetState = rememberBottomSheetScaffoldState()
-    val mapProperties = MapProperties(mapStyle = selectedMapStyle)
-    val mapUiSettings = MapUiSettings(
+    val mapProperties = LeaflektMapProperties(mapStyle = selectedMapStyle)
+    val mapUiSettings = LeaflektMapUiSettings(
         zoomControlsEnabled = false,
         showCurrentLocation = true
     )
-    val activeFeaturePoint = LatLng(activeFeatureLat, activeFeatureLng)
+    val activeFeaturePoint = LeaflektLatLng(activeFeatureLat, activeFeatureLng)
     val activeFeatureCount = visibleFeatureCount(
         isMarkerVisible = isMarkerVisible,
         isPolylineVisible = isPolylineVisible,
@@ -212,7 +212,7 @@ private fun LeaflektDemoScreen(modifier: Modifier = Modifier, onBack: () -> Unit
                 }
             }
 
-            MapView(
+            LeaflektMap(
                 modifier = Modifier.fillMaxSize(),
                 cameraPositionState = cameraPositionState,
                 contentDescription = "LeafleKT demo map app",
@@ -245,7 +245,7 @@ private fun LeaflektDemoScreen(modifier: Modifier = Modifier, onBack: () -> Unit
                     lastMarkerId = markerId
                 }
             ) {
-                Marker(
+                LeaflektMarker(
                     position = activeFeaturePoint,
                     title = "Selected point",
                     id = "demo-marker",
@@ -256,7 +256,7 @@ private fun LeaflektDemoScreen(modifier: Modifier = Modifier, onBack: () -> Unit
                     }
                 )
 
-                Polyline(
+                LeaflektPolyline(
                     points = activeFeaturePoint.demoPolylinePoints(),
                     color = Color(0xFF1D3557),
                     width = 6f,
@@ -272,11 +272,10 @@ private fun LeaflektDemoScreen(modifier: Modifier = Modifier, onBack: () -> Unit
                         isPolygonSelected = false
                         isCircleSelected = false
                         lastTap = "Polyline click: demo-polyline"
-                        true
                     }
                 )
 
-                Polygon(
+                LeaflektPolygon(
                     points = activeFeaturePoint.demoPolygonPoints(),
                     fillColor = Color(0xFF2A9D8F),
                     strokeColor = Color(0xFF264653),
@@ -290,11 +289,10 @@ private fun LeaflektDemoScreen(modifier: Modifier = Modifier, onBack: () -> Unit
                         isPolygonSelected = true
                         isCircleSelected = false
                         lastTap = "Polygon click: demo-polygon"
-                        true
                     }
                 )
 
-                Circle(
+                LeaflektCircle(
                     center = activeFeaturePoint,
                     radiusMeters = circleRadiusMeters.toDouble(),
                     fillColor = Color(0xFFF4A261),
@@ -309,7 +307,6 @@ private fun LeaflektDemoScreen(modifier: Modifier = Modifier, onBack: () -> Unit
                         isPolygonSelected = false
                         isCircleSelected = true
                         lastTap = "Circle click: demo-circle"
-                        true
                     }
                 )
             }
@@ -373,7 +370,7 @@ private fun LeaflektDemoScreen(modifier: Modifier = Modifier, onBack: () -> Unit
 @Composable
 private fun MapStatusCard(
     modifier: Modifier = Modifier,
-    selectedMapStyle: MapStyle,
+    selectedMapStyle: LeaflektMapStyle,
     activeFeatureCount: Int,
     lastTap: String,
     lastMarkerId: String,
@@ -450,14 +447,14 @@ private fun MapQuickActions(
 @Composable
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 private fun MapControlSheet(
-    selectedMapStyle: MapStyle,
+    selectedMapStyle: LeaflektMapStyle,
     selectedZoom: Float,
     circleRadiusMeters: Float,
     isMarkerVisible: Boolean,
     isPolylineVisible: Boolean,
     isPolygonVisible: Boolean,
     isCircleVisible: Boolean,
-    onMapStyleSelected: (MapStyle) -> Unit,
+    onMapStyleSelected: (LeaflektMapStyle) -> Unit,
     onZoomChanged: (Float) -> Unit,
     onZoomChangeFinished: () -> Unit,
     onCircleRadiusChanged: (Float) -> Unit,
@@ -514,7 +511,7 @@ private fun MapControlSheet(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                FeatureToggleChip("Marker", isMarkerVisible, onToggleMarker)
+                FeatureToggleChip("LeaflektMarker", isMarkerVisible, onToggleMarker)
                 FeatureToggleChip("Polyline", isPolylineVisible, onTogglePolyline)
                 FeatureToggleChip("Polygon", isPolygonVisible, onTogglePolygon)
                 FeatureToggleChip("Circle", isCircleVisible, onToggleCircle)
@@ -579,7 +576,7 @@ private fun MapControlSheet(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                MapStyle.entries.forEach { mapStyle ->
+                LeaflektMapStyle.entries.forEach { mapStyle ->
                     FilterChip(
                         selected = mapStyle == selectedMapStyle,
                         onClick = { onMapStyleSelected(mapStyle) },
@@ -658,34 +655,34 @@ private fun visibleFeatureCount(
     ).count { it }
 }
 
-private fun MapStyle.displayName(): String {
+private fun LeaflektMapStyle.displayName(): String {
     return when (this) {
-        MapStyle.OpenStreetMap -> "OpenStreetMap"
-        MapStyle.CartoLight -> "CARTO Light"
-        MapStyle.CartoDark -> "CARTO Dark"
-        MapStyle.OpenTopoMap -> "OpenTopoMap"
-        MapStyle.EsriWorldImagery -> "Esri World Imagery"
+        LeaflektMapStyle.OpenStreetMap -> "OpenStreetMap"
+        LeaflektMapStyle.CartoLight -> "CARTO Light"
+        LeaflektMapStyle.CartoDark -> "CARTO Dark"
+        LeaflektMapStyle.OpenTopoMap -> "OpenTopoMap"
+        LeaflektMapStyle.EsriWorldImagery -> "Esri World Imagery"
     }
 }
 
-private fun LatLng.demoPolylinePoints(): List<LatLng> {
+private fun LeaflektLatLng.demoPolylinePoints(): List<LeaflektLatLng> {
     return listOf(
-        LatLng(latitude - 0.03, longitude - 0.03),
-        LatLng(latitude - 0.01, longitude),
-        LatLng(latitude + 0.02, longitude + 0.03)
+        LeaflektLatLng(latitude - 0.03, longitude - 0.03),
+        LeaflektLatLng(latitude - 0.01, longitude),
+        LeaflektLatLng(latitude + 0.02, longitude + 0.03)
     )
 }
 
-private fun LatLng.demoPolygonPoints(): List<LatLng> {
+private fun LeaflektLatLng.demoPolygonPoints(): List<LeaflektLatLng> {
     return listOf(
-        LatLng(latitude + 0.01, longitude - 0.03),
-        LatLng(latitude + 0.04, longitude),
-        LatLng(latitude + 0.01, longitude + 0.03),
-        LatLng(latitude - 0.02, longitude)
+        LeaflektLatLng(latitude + 0.01, longitude - 0.03),
+        LeaflektLatLng(latitude + 0.04, longitude),
+        LeaflektLatLng(latitude + 0.01, longitude + 0.03),
+        LeaflektLatLng(latitude - 0.02, longitude)
     )
 }
 
-private fun CameraPosition.displayLabel(): String {
+private fun LeaflektCameraPosition.displayLabel(): String {
     return "%.5f, %.5f | z %.1f".format(
         target.latitude,
         target.longitude,
@@ -693,7 +690,6 @@ private fun CameraPosition.displayLabel(): String {
     )
 }
 
-private val Kolkata = LatLng(latitude = 22.5726, longitude = 88.3639)
+private val Kolkata = LeaflektLatLng(latitude = 22.5726, longitude = 88.3639)
 
-private val Bengaluru = LatLng(latitude = 12.9716, longitude = 77.5946)
-
+private val Bengaluru = LeaflektLatLng(latitude = 12.9716, longitude = 77.5946)

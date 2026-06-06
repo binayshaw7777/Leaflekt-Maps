@@ -1,5 +1,7 @@
 package com.binayshaw7777.leaflekt.compose
 
+import com.binayshaw7777.leaflekt.*
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -35,7 +37,7 @@ fun LeaflektPolyline(
     val resolvedZIndex = if (state.isSelected) zIndex + selectedZIndexBoost else zIndex
 
     DisposableEffect(id) {
-        controller.addPolyline(LeaflektPolylineInfo(id = id, points = state.points, clickable = clickable, color = resolvedColor, geodesic = geodesic, pattern = pattern, visible = visible, width = resolvedWidth, zIndex = resolvedZIndex, alpha = alpha))
+        controller.addPolyline(LeaflektPolylineInfo(id = id, points = state.points, clickable = clickable, color = resolvedColor.toLeaflektColor(), geodesic = geodesic, pattern = pattern, visible = visible, width = resolvedWidth, zIndex = resolvedZIndex, alpha = alpha))
         controller.registerPolylineClick(id, onClick)
         onDispose { controller.unregisterPolylineClick(id); controller.removePolyline(id) }
     }
@@ -46,7 +48,7 @@ fun LeaflektPolyline(
     }
 
     LaunchedEffect(state.points, state.isSelected, clickable, color, geodesic, pattern, visible, width, zIndex, alpha, selectedColor, selectedWidth, selectedZIndexBoost) {
-        controller.updatePolyline(LeaflektPolylineInfo(id = id, points = state.points, clickable = clickable, color = resolvedColor, geodesic = geodesic, pattern = pattern, visible = visible, width = resolvedWidth, zIndex = resolvedZIndex, alpha = alpha))
+        controller.updatePolyline(LeaflektPolylineInfo(id = id, points = state.points, clickable = clickable, color = resolvedColor.toLeaflektColor(), geodesic = geodesic, pattern = pattern, visible = visible, width = resolvedWidth, zIndex = resolvedZIndex, alpha = alpha))
     }
 }
 
@@ -77,7 +79,7 @@ fun LeaflektPolyline(
     val resolvedZIndex = if (selected) zIndex + selectedZIndexBoost else zIndex
 
     DisposableEffect(id) {
-        controller.addPolyline(LeaflektPolylineInfo(id = id, points = points, clickable = clickable, color = resolvedColor, geodesic = geodesic, pattern = pattern, visible = visible, width = resolvedWidth, zIndex = resolvedZIndex, alpha = alpha))
+        controller.addPolyline(LeaflektPolylineInfo(id = id, points = points, clickable = clickable, color = resolvedColor.toLeaflektColor(), geodesic = geodesic, pattern = pattern, visible = visible, width = resolvedWidth, zIndex = resolvedZIndex, alpha = alpha))
         controller.registerPolylineClick(id, onClick)
         onDispose { controller.unregisterPolylineClick(id); controller.removePolyline(id) }
     }
@@ -88,6 +90,6 @@ fun LeaflektPolyline(
     }
 
     LaunchedEffect(points, selected, clickable, color, geodesic, pattern, visible, width, zIndex, alpha, selectedColor, selectedWidth, selectedZIndexBoost) {
-        controller.updatePolyline(LeaflektPolylineInfo(id = id, points = points, clickable = clickable, color = resolvedColor, geodesic = geodesic, pattern = pattern, visible = visible, width = resolvedWidth, zIndex = resolvedZIndex, alpha = alpha))
+        controller.updatePolyline(LeaflektPolylineInfo(id = id, points = points, clickable = clickable, color = resolvedColor.toLeaflektColor(), geodesic = geodesic, pattern = pattern, visible = visible, width = resolvedWidth, zIndex = resolvedZIndex, alpha = alpha))
     }
 }

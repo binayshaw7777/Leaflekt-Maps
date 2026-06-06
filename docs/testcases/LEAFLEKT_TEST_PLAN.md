@@ -5,7 +5,7 @@ This document outlines the test cases for LeafleKT, a Compose-first Android wrap
 
 ## Test Categories
 
-### 1. MapView Tests
+### 1. LeaflektMap Tests
 #### Normal Cases
 - Map initializes with default properties
 - Map responds to camera position state changes
@@ -350,7 +350,7 @@ This document outlines the test cases for LeafleKT, a Compose-first Android wrap
 To implement automated testing for LeafleKT, we'll create:
 
 1. **Unit Tests** (JUnit/Test-Kotlin)
-   - Pure logic testing (CameraPositionState, MarkerState, etc.)
+   - Pure logic testing (`LeaflektCameraPositionState`, `LeaflektMarkerState`, etc.)
    - Stateless utility functions
    - Data transformation functions
 
@@ -410,4 +410,3 @@ leaflekt/
 3. Create instrumented tests for core map functionality
 4. Set up screenshot testing infrastructure
 5. Create performance test benchmarks
-

@@ -1,5 +1,7 @@
 package com.binayshaw7777.leaflekt.compose
 
+import com.binayshaw7777.leaflekt.*
+
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable

@@ -1,8 +1,9 @@
 package com.binayshaw7777.leaflekt.compose
 
+import com.binayshaw7777.leaflekt.LeaflektCameraPosition
+import com.binayshaw7777.leaflekt.LeaflektLatLng
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class SaverTest {
@@ -60,16 +61,4 @@ class SaverTest {
         assertEquals(200.0, state.radiusMeters, 0.001)
     }
 
-    @Test
-    fun mapJsonEncodeLatLng() {
-        val json = LeaflektMapJson.encodeLatLng(LeaflektLatLng(22.5726, 88.3639))
-        assertTrue(json.contains("22.5726"))
-        assertTrue(json.contains("88.3639"))
-    }
-
-    @Test
-    fun mapJsonEncodeString() {
-        val encoded = LeaflektMapJson.encodeString("hello \"world\"")
-        assertEquals("\"hello \\\"world\\\"\"", encoded)
-    }
 }

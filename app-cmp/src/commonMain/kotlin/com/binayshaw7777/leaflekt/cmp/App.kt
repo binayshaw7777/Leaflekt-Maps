@@ -46,18 +46,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.binayshaw7777.leaflekt.compose.LeaflektCameraPosition
+import com.binayshaw7777.leaflekt.LeaflektCameraPosition
 import com.binayshaw7777.leaflekt.compose.LeaflektCircle
-import com.binayshaw7777.leaflekt.compose.LeaflektController
-import com.binayshaw7777.leaflekt.compose.LeaflektLatLng
+import com.binayshaw7777.leaflekt.LeaflektController
+import com.binayshaw7777.leaflekt.LeaflektLatLng
 import com.binayshaw7777.leaflekt.compose.LeaflektMap
-import com.binayshaw7777.leaflekt.compose.LeaflektMapProperties
-import com.binayshaw7777.leaflekt.compose.LeaflektMapStyle
-import com.binayshaw7777.leaflekt.compose.LeaflektMapUiSettings
+import com.binayshaw7777.leaflekt.LeaflektMapProperties
+import com.binayshaw7777.leaflekt.LeaflektMapStyle
+import com.binayshaw7777.leaflekt.LeaflektMapUiSettings
 import com.binayshaw7777.leaflekt.compose.LeaflektMarker
 import com.binayshaw7777.leaflekt.compose.LeaflektPolygon
 import com.binayshaw7777.leaflekt.compose.LeaflektPolyline
-import com.binayshaw7777.leaflekt.compose.LeaflektStrokePattern
+import com.binayshaw7777.leaflekt.LeaflektStrokePattern
 import com.binayshaw7777.leaflekt.compose.rememberLeaflektCameraPositionState
 
 private enum class CmpDestination { Launcher, Demo, Sample }

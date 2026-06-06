@@ -61,7 +61,7 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.coil.compose)
 
-    implementation(project(":leaflekt"))
+    implementation(project(":leaflekt-compose"))
 
     // Ktor
     implementation(libs.ktor.client.android)

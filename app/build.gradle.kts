@@ -42,7 +42,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":leaflekt"))
+    implementation(project(":leaflekt-compose"))
     implementation(project(":leaflektsampleapp"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

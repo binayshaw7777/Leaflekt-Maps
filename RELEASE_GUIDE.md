@@ -8,7 +8,7 @@ Quick reference for releasing all three SDK channels. Full rationale lives in `P
 
 | Module | Audience | Channel | Coordinates |
 |--------|----------|---------|-------------|
-| `:leaflekt` | Android-only Compose | JitPack (auto) | `com.github.binayshaw7777.LeafleKT:leaflekt:VERSION` |
+| `:leaflekt-core` | KMP without shared UI | Maven Central (auto) | `io.github.binayshaw7777:leaflekt-core:VERSION` |
 | `:leaflekt-compose` | Compose Multiplatform (Android + iOS) | Maven Central (auto) | `io.github.binayshaw7777:leaflekt-compose:VERSION` |
 | `LeaflektMap` | Native iOS / SwiftUI | SPM via GitHub tag (auto) | `https://github.com/binayshaw7777/LeafleKT` tag `vVERSION` |
 
@@ -95,15 +95,14 @@ xcodebuild build \
 
 ## Release steps (every release)
 
-1. Update `VERSION` file — single line, e.g. `0.6.0`
+1. Update `VERSION` file — single line, e.g. `1.0.0`
 2. Run local verification above (steps 1–6)
 3. Commit and merge to `master`
 4. CI runs two jobs:
-   - `release` (ubuntu): builds Android, publishes docs, creates GitHub release, warms JitPack for `:leaflekt`
-   - `release-ios` (macos): compiles iOS KMP targets, runs tests, validates Swift package, **publishes `:leaflekt-compose` to Maven Central**, creates `vVERSION` SPM tag
+   - `release` (ubuntu): builds Android, publishes docs, creates GitHub release
+   - `release-ios` (macos): builds KMP targets, validates Swift package, publishes core and Compose to Maven Central, creates `vVERSION` SPM tag
 5. Verify:
-   - JitPack: `https://jitpack.io/#binayshaw7777/LeafleKT/VERSION`
-   - Maven Central: search `io.github.binayshaw7777:leaflekt-compose` (may take ~10 min to index)
+   - Maven Central: search `io.github.binayshaw7777:leaflekt-core` and `leaflekt-compose`
    - SPM: tag `vVERSION` visible in GitHub releases
 
 ---
@@ -111,21 +110,25 @@ xcodebuild build \
 ## Gradle publishing commands (manual if needed)
 
 ```bash
-# Publish :leaflekt-compose to Maven Central manually (needs env vars set)
-./gradlew :leaflekt-compose:publishAndReleaseToMavenCentral --no-configuration-cache
+# Publish both KMP artifacts to Maven Central manually (needs env vars set)
+./gradlew :leaflekt-core:publishAndReleaseToMavenCentral \
+          :leaflekt-compose:publishAndReleaseToMavenCentral \
+          --no-configuration-cache
 
 # Publish to local Maven repo (no credentials needed)
-./gradlew :leaflekt-compose:publishToMavenLocal -PsigningSkip=true
+./gradlew :leaflekt-core:publishToMavenLocal \
+          :leaflekt-compose:publishToMavenLocal \
+          -PsigningSkip=true
 
-# Android-only build check
-./gradlew :leaflekt:assembleRelease :leaflekt:testDebugUnitTest
+# Android build check
+./gradlew :leaflekt-core:assembleRelease :leaflekt-compose:assembleRelease
 ```
 
 ---
 
 ## Architecture notes
 
-- `:leaflekt` stays on JitPack — existing Android users unaffected, JitPack Linux runners handle Android-only fine
+- `:leaflekt-core` and `:leaflekt-compose` publish to Maven Central
 - `:leaflekt-compose` must publish from macOS CI runner — Linux cannot compile `iosX64`/`iosArm64`/`iosSimulatorArm64` KMP targets
 - SPM tag format is `vVERSION` (e.g. `v0.6.0`); Gradle tag format is `VERSION` (e.g. `0.6.0`) — both created by CI
 - vanniktech plugin v0.30+ required for `SonatypeHost.CENTRAL_PORTAL`; `--no-configuration-cache` required (plugin not config-cache compatible)
@@ -140,5 +143,5 @@ xcodebuild build \
 | `gradle/libs.versions.toml` | Added `vanniktech-maven-publish = "0.30.0"` + plugin alias |
 | `build.gradle.kts` (root) | Added vanniktech plugin `apply false` |
 | `leaflekt-compose/build.gradle.kts` | Replaced `maven-publish` with `mavenPublishing { publishToMavenCentral(CENTRAL_PORTAL) }`; group → `io.github.binayshaw7777` |
-| `.github/workflows/release-master.yml` | Removed broken JitPack warm for leaflekt-compose; added Maven Central publish step in `release-ios`; fixed README sed patterns |
+| `.github/workflows/release-master.yml` | Builds and publishes both KMP artifacts; validates Swift package |
 | `README.md` | Added CMP (Maven Central) + SPM install sections |

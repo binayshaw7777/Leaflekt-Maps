@@ -1,5 +1,7 @@
 package com.binayshaw7777.leaflekt.compose
 
+import com.binayshaw7777.leaflekt.*
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -37,7 +39,7 @@ fun LeaflektCircle(
     val resolvedZIndex = if (state.isSelected) zIndex + selectedZIndexBoost else zIndex
 
     DisposableEffect(id) {
-        controller.addCircle(LeaflektCircleInfo(id = id, center = state.center, clickable = clickable, fillColor = fillColor, radiusMeters = state.radiusMeters, strokeColor = resolvedStroke, strokePattern = strokePattern, strokeWidth = resolvedStrokeW, visible = visible, zIndex = resolvedZIndex, fillOpacity = resolvedFillOp, strokeOpacity = strokeOpacity))
+        controller.addCircle(LeaflektCircleInfo(id = id, center = state.center, clickable = clickable, fillColor = fillColor.toLeaflektColor(), radiusMeters = state.radiusMeters, strokeColor = resolvedStroke.toLeaflektColor(), strokePattern = strokePattern, strokeWidth = resolvedStrokeW, visible = visible, zIndex = resolvedZIndex, fillOpacity = resolvedFillOp, strokeOpacity = strokeOpacity))
         controller.registerCircleClick(id, onClick)
         onDispose { controller.unregisterCircleClick(id); controller.removeCircle(id) }
     }
@@ -48,7 +50,7 @@ fun LeaflektCircle(
     }
 
     LaunchedEffect(state.center, state.radiusMeters, state.isSelected, clickable, fillColor, strokeColor, strokePattern, strokeWidth, visible, zIndex, fillOpacity, strokeOpacity, selectedStrokeColor, selectedStrokeWidth, selectedFillOpacity, selectedZIndexBoost) {
-        controller.updateCircle(LeaflektCircleInfo(id = id, center = state.center, clickable = clickable, fillColor = fillColor, radiusMeters = state.radiusMeters, strokeColor = resolvedStroke, strokePattern = strokePattern, strokeWidth = resolvedStrokeW, visible = visible, zIndex = resolvedZIndex, fillOpacity = resolvedFillOp, strokeOpacity = strokeOpacity))
+        controller.updateCircle(LeaflektCircleInfo(id = id, center = state.center, clickable = clickable, fillColor = fillColor.toLeaflektColor(), radiusMeters = state.radiusMeters, strokeColor = resolvedStroke.toLeaflektColor(), strokePattern = strokePattern, strokeWidth = resolvedStrokeW, visible = visible, zIndex = resolvedZIndex, fillOpacity = resolvedFillOp, strokeOpacity = strokeOpacity))
     }
 }
 
@@ -82,7 +84,7 @@ fun LeaflektCircle(
     val resolvedZIndex = if (selected) zIndex + selectedZIndexBoost else zIndex
 
     DisposableEffect(id) {
-        controller.addCircle(LeaflektCircleInfo(id = id, center = center, clickable = clickable, fillColor = fillColor, radiusMeters = radiusMeters, strokeColor = resolvedStroke, strokePattern = strokePattern, strokeWidth = resolvedStrokeW, visible = visible, zIndex = resolvedZIndex, fillOpacity = resolvedFillOp, strokeOpacity = strokeOpacity))
+        controller.addCircle(LeaflektCircleInfo(id = id, center = center, clickable = clickable, fillColor = fillColor.toLeaflektColor(), radiusMeters = radiusMeters, strokeColor = resolvedStroke.toLeaflektColor(), strokePattern = strokePattern, strokeWidth = resolvedStrokeW, visible = visible, zIndex = resolvedZIndex, fillOpacity = resolvedFillOp, strokeOpacity = strokeOpacity))
         controller.registerCircleClick(id, onClick)
         onDispose { controller.unregisterCircleClick(id); controller.removeCircle(id) }
     }
@@ -93,6 +95,6 @@ fun LeaflektCircle(
     }
 
     LaunchedEffect(center, radiusMeters, selected, clickable, fillColor, strokeColor, strokePattern, strokeWidth, visible, zIndex, fillOpacity, strokeOpacity, selectedStrokeColor, selectedStrokeWidth, selectedFillOpacity, selectedZIndexBoost) {
-        controller.updateCircle(LeaflektCircleInfo(id = id, center = center, clickable = clickable, fillColor = fillColor, radiusMeters = radiusMeters, strokeColor = resolvedStroke, strokePattern = strokePattern, strokeWidth = resolvedStrokeW, visible = visible, zIndex = resolvedZIndex, fillOpacity = resolvedFillOp, strokeOpacity = strokeOpacity))
+        controller.updateCircle(LeaflektCircleInfo(id = id, center = center, clickable = clickable, fillColor = fillColor.toLeaflektColor(), radiusMeters = radiusMeters, strokeColor = resolvedStroke.toLeaflektColor(), strokePattern = strokePattern, strokeWidth = resolvedStrokeW, visible = visible, zIndex = resolvedZIndex, fillOpacity = resolvedFillOp, strokeOpacity = strokeOpacity))
     }
 }
