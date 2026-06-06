@@ -64,6 +64,7 @@
         const circleLayers = new Map();
         const vectorLayerOrder = new Map();
         const trackedOverlayPoints = new Set();
+        let customGeoJsonLayer = null;
 
         function getAndroidBridge() {
             return window[bridgeName];
@@ -1000,7 +1001,37 @@
             unregisterOverlayPoint: function (lat, lng) {
                 const id = lat + "," + lng;
                 trackedOverlayPoints.delete(id);
+            },
+            setGeoJsonOverlay: function (geojsonString) {
+                if (map === null) return;
+                if (customGeoJsonLayer !== null) {
+                    map.removeLayer(customGeoJsonLayer);
+                    customGeoJsonLayer = null;
+                }
+                if (geojsonString === null || geojsonString === undefined) {
+                    if (typeof window.LeaflektIndiaBoundaryOverlay !== "undefined") {
+                        window.LeaflektIndiaBoundaryOverlay.setVisible(map, true);
+                    }
+                } else if (geojsonString === "none") {
+                    if (typeof window.LeaflektIndiaBoundaryOverlay !== "undefined") {
+                        window.LeaflektIndiaBoundaryOverlay.setVisible(map, false);
+                    }
+                } else {
+                    if (typeof window.LeaflektIndiaBoundaryOverlay !== "undefined") {
+                        window.LeaflektIndiaBoundaryOverlay.setVisible(map, false);
+                    }
+                    try {
+                        var geojsonData = JSON.parse(geojsonString);
+                        customGeoJsonLayer = L.geoJSON(geojsonData, {
+                            style: { color: "#A07B9E", weight: 1.2, opacity: 0.6, fill: false, interactive: false, bubblingMouseEvents: false },
+                            interactive: false
+                        }).addTo(map);
+                    } catch (e) {
+                        console.warn("[LeafleKT] Failed to parse custom GeoJSON overlay", e);
+                    }
+                }
             }
+        };
         };
 
         if (typeof L === "undefined") {

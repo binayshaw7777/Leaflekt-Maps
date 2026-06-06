@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LeafleKT Map</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="leaflet/leaflet.css" />
+    <style>
+        html, body { width: 100vw; height: 100vh; margin: 0; padding: 0; overflow: hidden; }
+        #map { position: fixed; inset: 0; }
+    </style>
+</head>
+<body>
+<div id="map"></div>
+<script src="leaflet/leaflet.js"></script>
+<script src="leaflet/india-boundaries.js"></script>
+<script>
+    (function () {
+        const DEFAULT_LAT = 22.5726;
+        const DEFAULT_LNG = 88.3639;
+        const DEFAULT_ZOOM = 12;
+        const bridgeName = window.bridgeName || "LeaflektAndroidBridge";
+        const isIosBridge = bridgeName === "LeaflektIosBridge";
+        const defaultMapStyle = {
+            id: "open_street_map",
+            tileUrlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+            attributionHtml: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19,
+            subdomains: null
+        };
+
+        function callNativeBridge(method) {
+            var args = Array.prototype.slice.call(arguments, 1);
+            if (isIosBridge) {
+                var message = args.length > 0 ? method + ":" + args.join(":") : method;
+                if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers[bridgeName]) {
+                    window.webkit.messageHandlers[bridgeName].postMessage(message);
+                }
+            } else {
+                var bridge = window[bridgeName];
+                if (bridge && typeof bridge[method] === "function") {
+                    bridge[method].apply(bridge, args);
+                }
+            }
+        }
+
+        let map = null;
+        let activeTileLayer = null;
+        let activeZoomControl = null;
+        let activeMapStyle = defaultMapStyle;
+        let isZoomControlEnabled = true;
+        let isCameraMoving = false;
+        let cameraIdleHandle = null;
+        let vectorDrawSequence = 0;
+        const markerLayers = new Map();
+        const polylineLayers = new Map();
+        const polygonLayers = new Map();
+        const circleLayers = new Map();
+        const vectorLayerOrder = new Map();
+        let customGeoJsonLayer = null;
+
+        function notifyMapReady() { callNativeBridge("onMapReady"); }
+        function notifyMapClick(lat, lng) { callNativeBridge("onMapClick", lat, lng); }
+        function notifyCameraMoveStarted(lat, lng, zoom) { callNativeBridge("onCameraMoveStarted", lat, lng, zoom); }
+        function notifyCameraMove(lat, lng, zoom) { callNativeBridge("onCameraMove", lat, lng, zoom); }
+        function notifyCameraIdle(lat, lng, zoom) { callNativeBridge("onCameraIdle", lat, lng, zoom); }
+        function notifyMarkerClick(markerId) { callNativeBridge("onMarkerClick", markerId); }
+        function notifyPolylineClick(polylineId) { callNativeBridge("onPolylineClick", polylineId); }
+        function notifyPolygonClick(polygonId) { callNativeBridge("onPolygonClick", polygonId); }
+        function notifyCircleClick(circleId) { callNativeBridge("onCircleClick", circleId); }
+
+        function showLoadError(message) {
+            document.getElementById("map").innerHTML = "<div style='padding:16px;font-family:sans-serif;color:#b00020'>" + message + "</div>";
+        }
+
+        function createMap(lat, lng, zoom) {
+            map = L.map("map", { zoomControl: false }).setView([lat, lng], zoom);
+            applyZoomControls();
+            replaceTileLayer(activeMapStyle);
+            map.on("click", function (event) { notifyMapClick(event.latlng.lat, event.latlng.lng); });
+            bindCameraLifecycleCallbacks();
+            applyIndiaBoundaryOverlayVisibility();
+            retryInvalidateSize(20);
+            notifyMapReady();
+            return map;
+        }
+
+        function applyZoomControls() {
+            if (map === null) return;
+            if (isZoomControlEnabled && activeZoomControl === null) {
+                activeZoomControl = L.control.zoom();
+                activeZoomControl.addTo(map);
+                return;
+            }
+            if (!isZoomControlEnabled && activeZoomControl !== null) {
+                map.removeControl(activeZoomControl);
+                activeZoomControl = null;
+            }
+        }
+
+        function retryInvalidateSize(remainingAttempts) {
+            if (map === null) return;
+            map.invalidateSize();
+            if (remainingAttempts <= 0) return;
+            setTimeout(function () { retryInvalidateSize(remainingAttempts - 1); }, 150);
+        }
+
+        function ensureMap(lat, lng, zoom) {
+            if (map !== null) return map;
+            return createMap(lat, lng, zoom);
+        }
+
+        function createTileLayer(style) {
+            const opts = { maxZoom: style.maxZoom, attribution: style.attributionHtml };
+            if (style.subdomains) opts.subdomains = style.subdomains;
+            return L.tileLayer(style.tileUrlTemplate, opts);
+        }
+
+        function replaceTileLayer(style) {
+            activeMapStyle = style;
+            if (map === null) return;
+            if (activeTileLayer !== null) map.removeLayer(activeTileLayer);
+            activeTileLayer = createTileLayer(style);
+            activeTileLayer.addTo(map);
+            applyIndiaBoundaryOverlayTheme();
+        }
+
+        function applyIndiaBoundaryOverlayVisibility() {
+            if (map === null || typeof window.LeaflektIndiaBoundaryOverlay === "undefined") return;
+            window.LeaflektIndiaBoundaryOverlay.setVisible(map, true);
+        }
+
+        function applyIndiaBoundaryOverlayTheme() {
+            if (map === null || typeof window.LeaflektIndiaBoundaryOverlay === "undefined") return;
+            window.LeaflektIndiaBoundaryOverlay.setMapStyle(map, activeMapStyle.id);
+        }
+
+        function nextMarkerId() { return "marker-" + Date.now() + "-" + Math.floor(Math.random() * 100000); }
+
+        function createMarkerIcon(marker) {
+            if (!marker || !marker.icon || !marker.icon.dataUrl) return new L.Icon.Default();
+            const iconWidth = Number(marker.icon.widthPx || 0);
+            const iconHeight = Number(marker.icon.heightPx || 0);
+            const anchorFractionX = Number(marker.icon.anchorFractionX ?? 0.5);
+            const anchorFractionY = Number(marker.icon.anchorFractionY ?? 0.5);
+            return L.icon({
+                iconUrl: marker.icon.dataUrl,
+                iconSize: [iconWidth, iconHeight],
+                iconAnchor: [iconWidth * anchorFractionX, iconHeight * anchorFractionY]
+            });
+        }
+
+        function addMarkerLayer(marker) {
+            const activeMap = ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM);
+            const markerId = marker.id || nextMarkerId();
+            const markerLayer = L.marker([marker.lat, marker.lng], { icon: createMarkerIcon(marker) }).addTo(activeMap);
+            if (marker.title) markerLayer.bindPopup(marker.title);
+            markerLayer.on("click", function () { notifyMarkerClick(markerId); });
+            markerLayers.set(markerId, markerLayer);
+            return markerId;
+        }
+
+        function toLeafletLatLng(point) { return [Number(point.latitude), Number(point.longitude)]; }
+
+        function toLeafletPattern(pattern) {
+            if (!Array.isArray(pattern) || pattern.length === 0 || typeof L.Symbol === "undefined") return null;
+            const dashArray = pattern.map(function (item) {
+                if (item.type === "dash" || item.type === "gap") return Number(item.length);
+                if (item.type === "dot") return Number(item.radius || 1);
+                return null;
+            }).filter(function (value) { return value !== null && !Number.isNaN(value); });
+            return dashArray.length > 0 ? dashArray.join(" ") : null;
+        }
+
+        function bindShapeClick(layer, shapeId, notifyClick) {
+            layer.on("click", function () { notifyClick(shapeId); });
+        }
+
+        function cancelCameraIdleReport() {
+            if (cameraIdleHandle !== null) { clearTimeout(cameraIdleHandle); cameraIdleHandle = null; }
+        }
+
+        function currentCameraSnapshot() {
+            if (map === null) return null;
+            const center = map.getCenter();
+            return { lat: center.lat, lng: center.lng, zoom: map.getZoom() };
+        }
+
+        function reportCameraMoveStarted() {
+            const snapshot = currentCameraSnapshot();
+            if (snapshot === null || isCameraMoving) return;
+            isCameraMoving = true;
+            notifyCameraMoveStarted(snapshot.lat, snapshot.lng, snapshot.zoom);
+        }
+
+        function reportCameraMove() {
+            const snapshot = currentCameraSnapshot();
+            if (snapshot === null) return;
+            reportCameraMoveStarted();
+            notifyCameraMove(snapshot.lat, snapshot.lng, snapshot.zoom);
+        }
+
+        function scheduleCameraIdleReport() {
+            cancelCameraIdleReport();
+            cameraIdleHandle = setTimeout(function () {
+                const snapshot = currentCameraSnapshot();
+                cameraIdleHandle = null;
+                if (snapshot === null) return;
+                isCameraMoving = false;
+                notifyCameraIdle(snapshot.lat, snapshot.lng, snapshot.zoom);
+            }, 48);
+        }
+
+        function bindCameraLifecycleCallbacks() {
+            if (map === null) return;
+            map.on("movestart zoomstart", function () { cancelCameraIdleReport(); reportCameraMoveStarted(); });
+            map.on("move zoom", function () { cancelCameraIdleReport(); reportCameraMove(); });
+            map.on("moveend zoomend", function () { scheduleCameraIdleReport(); });
+        }
+
+        function nextVectorDrawSequence() { vectorDrawSequence += 1; return vectorDrawSequence; }
+        function vectorLayerKey(type, id) { return type + ":" + id; }
+
+        function registerVectorLayer(type, id, layer, zIndex) {
+            const key = vectorLayerKey(type, id);
+            const existing = vectorLayerOrder.get(key);
+            vectorLayerOrder.set(key, { layer: layer, zIndex: Number(zIndex || 0), drawSequence: existing ? existing.drawSequence : nextVectorDrawSequence() });
+            reapplyVectorLayerOrder();
+        }
+
+        function unregisterVectorLayer(type, id) { vectorLayerOrder.delete(vectorLayerKey(type, id)); }
+
+        function reapplyVectorLayerOrder() {
+            Array.from(vectorLayerOrder.values()).sort(function (l, r) {
+                if (l.zIndex !== r.zIndex) return l.zIndex - r.zIndex;
+                return l.drawSequence - r.drawSequence;
+            }).forEach(function (entry) {
+                if (entry.layer && typeof entry.layer.bringToFront === "function") entry.layer.bringToFront();
+            });
+        }
+
+        function addPolylineLayer(polyline) {
+            const activeMap = ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM);
+            const layer = L.polyline(polyline.points.map(toLeafletLatLng), {
+                color: polyline.color, weight: Number(polyline.width),
+                opacity: polyline.visible ? 1 : 0, dashArray: toLeafletPattern(polyline.pattern),
+                interactive: Boolean(polyline.clickable)
+            }).addTo(activeMap);
+            bindShapeClick(layer, polyline.id, notifyPolylineClick);
+            polylineLayers.set(polyline.id, layer);
+            registerVectorLayer("polyline", polyline.id, layer, polyline.zIndex);
+        }
+
+        function updatePolylineLayer(polyline) {
+            const layer = polylineLayers.get(polyline.id);
+            if (!layer) { addPolylineLayer(polyline); return; }
+            layer.setLatLngs(polyline.points.map(toLeafletLatLng));
+            layer.setStyle({ color: polyline.color, weight: Number(polyline.width), opacity: polyline.visible ? 1 : 0, dashArray: toLeafletPattern(polyline.pattern), interactive: Boolean(polyline.clickable) });
+            registerVectorLayer("polyline", polyline.id, layer, polyline.zIndex);
+        }
+
+        function removePolylineLayer(polylineId) {
+            if (map === null) return;
+            const layer = polylineLayers.get(polylineId);
+            if (layer) { map.removeLayer(layer); polylineLayers.delete(polylineId); unregisterVectorLayer("polyline", polylineId); }
+        }
+
+        function addPolygonLayer(polygon) {
+            const activeMap = ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM);
+            const latlngs = [polygon.points.map(toLeafletLatLng)].concat(polygon.holes.map(function (h) { return h.map(toLeafletLatLng); }));
+            const layer = L.polygon(latlngs, {
+                color: polygon.strokeColor, fillColor: polygon.fillColor,
+                weight: Number(polygon.strokeWidth), opacity: polygon.visible ? 1 : 0,
+                fillOpacity: polygon.visible ? 1 : 0, dashArray: toLeafletPattern(polygon.strokePattern),
+                interactive: Boolean(polygon.clickable)
+            }).addTo(activeMap);
+            bindShapeClick(layer, polygon.id, notifyPolygonClick);
+            polygonLayers.set(polygon.id, layer);
+            registerVectorLayer("polygon", polygon.id, layer, polygon.zIndex);
+        }
+
+        function updatePolygonLayer(polygon) {
+            const layer = polygonLayers.get(polygon.id);
+            if (!layer) { addPolygonLayer(polygon); return; }
+            const latlngs = [polygon.points.map(toLeafletLatLng)].concat(polygon.holes.map(function (h) { return h.map(toLeafletLatLng); }));
+            layer.setLatLngs(latlngs);
+            layer.setStyle({ color: polygon.strokeColor, fillColor: polygon.fillColor, weight: Number(polygon.strokeWidth), opacity: polygon.visible ? 1 : 0, fillOpacity: polygon.visible ? 1 : 0, dashArray: toLeafletPattern(polygon.strokePattern), interactive: Boolean(polygon.clickable) });
+            registerVectorLayer("polygon", polygon.id, layer, polygon.zIndex);
+        }
+
+        function removePolygonLayer(polygonId) {
+            if (map === null) return;
+            const layer = polygonLayers.get(polygonId);
+            if (layer) { map.removeLayer(layer); polygonLayers.delete(polygonId); unregisterVectorLayer("polygon", polygonId); }
+        }
+
+        function addCircleLayer(circle) {
+            const activeMap = ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM);
+            const layer = L.circle(toLeafletLatLng(circle.center), {
+                radius: Number(circle.radiusMeters), color: circle.strokeColor, fillColor: circle.fillColor,
+                weight: Number(circle.strokeWidth), opacity: circle.visible ? 1 : 0,
+                fillOpacity: circle.visible ? 1 : 0, dashArray: toLeafletPattern(circle.strokePattern),
+                interactive: Boolean(circle.clickable)
+            }).addTo(activeMap);
+            bindShapeClick(layer, circle.id, notifyCircleClick);
+            circleLayers.set(circle.id, layer);
+            registerVectorLayer("circle", circle.id, layer, circle.zIndex);
+        }
+
+        function updateCircleLayer(circle) {
+            const layer = circleLayers.get(circle.id);
+            if (!layer) { addCircleLayer(circle); return; }
+            layer.setLatLng(toLeafletLatLng(circle.center));
+            layer.setRadius(Number(circle.radiusMeters));
+            layer.setStyle({ color: circle.strokeColor, fillColor: circle.fillColor, weight: Number(circle.strokeWidth), opacity: circle.visible ? 1 : 0, fillOpacity: circle.visible ? 1 : 0, dashArray: toLeafletPattern(circle.strokePattern), interactive: Boolean(circle.clickable) });
+            registerVectorLayer("circle", circle.id, layer, circle.zIndex);
+        }
+
+        function removeCircleLayer(circleId) {
+            if (map === null) return;
+            const layer = circleLayers.get(circleId);
+            if (layer) { map.removeLayer(layer); circleLayers.delete(circleId); unregisterVectorLayer("circle", circleId); }
+        }
+
+        window.LeaflektBridge = {
+            initMap: function (lat, lng, zoom) { ensureMap(lat, lng, zoom); },
+            setZoomControlsEnabled: function (isEnabled) { isZoomControlEnabled = Boolean(isEnabled); applyZoomControls(); },
+            setScrollGesturesEnabled: function (isEnabled) {
+                if (map === null) return;
+                isEnabled ? map.dragging.enable() : map.dragging.disable();
+            },
+            setZoomGesturesEnabled: function (isEnabled) {
+                if (map === null) return;
+                if (isEnabled) { map.touchZoom.enable(); map.doubleClickZoom.enable(); map.scrollWheelZoom.enable(); }
+                else { map.touchZoom.disable(); map.doubleClickZoom.disable(); map.scrollWheelZoom.disable(); }
+            },
+            setMapStyle: function (style) {
+                if (!style || !style.tileUrlTemplate || !style.attributionHtml) return;
+                replaceTileLayer({ id: style.id || defaultMapStyle.id, tileUrlTemplate: style.tileUrlTemplate, attributionHtml: style.attributionHtml, maxZoom: Number(style.maxZoom || defaultMapStyle.maxZoom), subdomains: style.subdomains || null });
+            },
+            addMarkers: function (list) {
+                if (!Array.isArray(list) || list.length === 0) return;
+                ensureMap(list[0].lat, list[0].lng, DEFAULT_ZOOM);
+                list.forEach(function (item) { addMarkerLayer({ id: item.id || null, lat: Number(item.lat), lng: Number(item.lng), title: item.title || null, icon: item.icon || null }); });
+            },
+            removeMarker: function (markerId) {
+                if (map === null || !markerId) return;
+                const layer = markerLayers.get(markerId);
+                if (layer) { map.removeLayer(layer); markerLayers.delete(markerId); }
+            },
+            updateMarker: function (marker) {
+                if (map === null || !marker || !marker.id) return;
+                const layer = markerLayers.get(marker.id);
+                if (layer) {
+                    layer.setLatLng([marker.lat, marker.lng]);
+                    layer.setIcon(createMarkerIcon(marker));
+                    if (marker.title) layer.setPopupContent(marker.title); else layer.unbindPopup();
+                    layer.setOpacity(marker.visible ? marker.alpha : 0);
+                }
+            },
+            moveCamera: function (lat, lng, zoom) { ensureMap(lat, lng, zoom).setView([lat, lng], zoom); },
+            clearMarkers: function () {
+                if (map === null) return;
+                markerLayers.forEach(function (l) { map.removeLayer(l); });
+                markerLayers.clear();
+            },
+            addPolyline: function (p) { if (p && p.id && Array.isArray(p.points) && p.points.length > 0) addPolylineLayer(p); },
+            updatePolyline: function (p) { if (p && p.id && Array.isArray(p.points) && p.points.length > 0) updatePolylineLayer(p); },
+            removePolyline: function (id) { removePolylineLayer(id); },
+            addPolygon: function (p) { if (p && p.id && Array.isArray(p.points) && p.points.length >= 3) { p.holes = Array.isArray(p.holes) ? p.holes : []; addPolygonLayer(p); } },
+            updatePolygon: function (p) { if (p && p.id && Array.isArray(p.points) && p.points.length >= 3) { p.holes = Array.isArray(p.holes) ? p.holes : []; updatePolygonLayer(p); } },
+            removePolygon: function (id) { removePolygonLayer(id); },
+            addCircle: function (c) { if (c && c.id && c.center) addCircleLayer(c); },
+            updateCircle: function (c) { if (c && c.id && c.center) updateCircleLayer(c); },
+            removeCircle: function (id) { removeCircleLayer(id); },
+            setGeoJsonOverlay: function (geojsonString) {
+                if (map === null) return;
+                if (customGeoJsonLayer !== null) {
+                    map.removeLayer(customGeoJsonLayer);
+                    customGeoJsonLayer = null;
+                }
+                if (geojsonString === null || geojsonString === undefined) {
+                    if (typeof window.LeaflektIndiaBoundaryOverlay !== "undefined") {
+                        window.LeaflektIndiaBoundaryOverlay.setVisible(map, true);
+                    }
+                } else if (geojsonString === "none") {
+                    if (typeof window.LeaflektIndiaBoundaryOverlay !== "undefined") {
+                        window.LeaflektIndiaBoundaryOverlay.setVisible(map, false);
+                    }
+                } else {
+                    if (typeof window.LeaflektIndiaBoundaryOverlay !== "undefined") {
+                        window.LeaflektIndiaBoundaryOverlay.setVisible(map, false);
+                    }
+                    try {
+                        var geojsonData = JSON.parse(geojsonString);
+                        customGeoJsonLayer = L.geoJSON(geojsonData, {
+                            style: { color: "#A07B9E", weight: 1.2, opacity: 0.6, fill: false, interactive: false, bubblingMouseEvents: false },
+                            interactive: false
+                        }).addTo(map);
+                    } catch (e) {
+                        console.warn("[LeafleKT] Failed to parse custom GeoJSON overlay", e);
+                    }
+                }
+            }
+        };
+
+        if (typeof L === "undefined") { showLoadError("Leaflekt local assets failed to load."); return; }
+        window.addEventListener("resize", function () { if (map !== null) map.invalidateSize(); });
+        ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM);
+    })();
+</script>
+</body>
+</html>

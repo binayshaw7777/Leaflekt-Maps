@@ -1,21 +1,44 @@
+### Gradle / Kotlin build outputs ###
 *.iml
 .gradle
+**/.gradle/
+**/build/
+/captures
+.externalNativeBuild
+.cxx
+
+### Local config — never commit ###
+local.properties
+
+### Kotlin metadata ###
 /.kotlin/
-/local.properties
+
+### Android Studio / IntelliJ IDEA ###
 /.idea/caches
 /.idea/libraries
 /.idea/modules.xml
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/app/build/
-/captures
-.externalNativeBuild
-.cxx
-local.properties
+/.idea/.name
+/.idea/xcode.xml
+/.idea/deploymentTargetSelector.xml
+/.idea/deviceManager.xml
+/.idea/runConfigurations/
+/.idea/markdown.xml
+/.idea/migrations.xml
+/.idea/copilot.data.migration.ask2agent.xml
+/.idea/easycode.ignore
 
-# Project exclude paths
-/leaflekt/build/
-/.external/
+### Xcode / Swift ###
+xcuserdata/
+*.xcuserstate
+.swiftpm/xcode/
+
+### macOS ###
+.DS_Store
+**/.DS_Store
+
+### Planning / scratch docs ###
+PLAN_CMP_MIGRATION.md
+PLAN_PUBLISH.md
