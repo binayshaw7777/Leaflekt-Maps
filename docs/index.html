@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>LeafleKT</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.min.css">
+</head>
+<body>
+  <div id="app">Loading...</div>
+
+  <script>
+    if (window.location.protocol === 'file:') {
+      document.getElementById('app').innerHTML =
+        '<h2>Cannot load from file://</h2>' +
+        '<p>Run a local server, e.g.:</p>' +
+        '<pre>python3 -m http.server 3000 -d docs</pre>' +
+        '<p>Then open <a href="http://localhost:3000">http://localhost:3000</a></p>'
+    }
+  </script>
+
+  <script>
+    window.$docsify = {
+      name: 'LeafleKT',
+      repo: 'binayshaw7777/LeafleKT-Maps',
+      loadSidebar: true,
+      auto2top: true,
+      coverpage: false,
+      search: {
+        placeholder: 'Search...',
+        noData: 'No results',
+      },
+    }
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
+</body>
+</html>
