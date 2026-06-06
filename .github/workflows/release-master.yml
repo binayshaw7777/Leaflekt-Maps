@@ -142,6 +142,7 @@ jobs:
         run: |
           swift package resolve
           xcodebuild build \
+            -package-path . \
             -scheme LeaflektMap \
             -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_REQUIRED=NO \
@@ -153,6 +154,7 @@ jobs:
         shell: bash
         run: |
           xcodebuild test \
+            -package-path . \
             -scheme LeaflektMap \
             -destination 'platform=iOS Simulator,name=iPhone 16' \
             CODE_SIGNING_REQUIRED=NO \
