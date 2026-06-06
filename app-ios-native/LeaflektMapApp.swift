@@ -4,7 +4,7 @@ import SwiftUI
 struct LeaflektMapApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            LauncherView()
         }
     }
 }

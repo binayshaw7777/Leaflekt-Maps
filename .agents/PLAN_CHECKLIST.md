@@ -36,11 +36,16 @@
 - [x] Circles implementation
 - [x] OLA Maps Places search and autocomplete sample in `leaflektsampleapp`
 - [x] Map Rotation support (using Leaflet.Rotate)
+- [x] `MarkerCluster` / `MarkerClusterOptions` in `:leaflekt` (Leaflet.markercluster plugin)
+- [x] `MapOverlay` — pin any @Composable to a `LatLng` coordinate
+- [x] `MapController` refactor — new `controller/MapController.kt` with richer API
+- [x] `MarkerIcon` — public custom bitmap icon API (`marker/MarkerIcon.kt`)
+- [x] Marker rotation + alpha + zIndex public API
+- [x] Custom info window support (`infoWindow: @Composable () -> Unit`)
 - [ ] Directions journey playback sample with moving bike marker
 - [ ] Route playback controls: start, pause, resume, stop
 - [ ] Route playback speed controls using Compose segmented buttons
 - [ ] Marker visibility toggle for journey playback
-- [ ] Advanced Clustering plugin integration
 
 ### Phase 15 - Core Infrastructure
 - [ ] **JNI Layer Migration:** Research migrating the bridge from JS-based to a native JNI layer for improved performance and direct engine access.
@@ -62,6 +67,40 @@
 - [ ] **Curved Lines (`LeaflektArc`):** Bezier curve support for visualizations.
 - [ ] **MapBlocks Registry:** Common pre-wired UI patterns (e.g., Location Picker).
 
+### Phase 17 - CMP + iOS Native Parity (feature/cmp-migration)
+
+> Features shipped in `:leaflekt` (Android) or `leaflektsampleapp` that are missing in `:leaflekt-compose` (CMP) and `LeaflektMap` (iOS SPM).
+
+#### 17A — `:leaflekt-compose` CMP Module
+
+- [ ] **MarkerCluster CMP:** Add `LeaflektMarkerCluster` composable + `MarkerClusterOptions` to `commonMain`. Wire JS bridge calls for `addCluster`/`removeCluster`. Add Leaflet.markercluster plugin to `androidMain/assets/` and `iosMain/resources/`.
+- [ ] **MapOverlay CMP:** Port `MapOverlay` composable to `commonMain`. `registerOverlayPoint`/`unregisterOverlayPoint` JS calls already in CMP `map.html` — wire `LeaflektController` `expect/actual` to expose them.
+- [ ] **MapController richer API:** Sync `LeaflektControllerInterface` in `commonMain` with new `:leaflekt` `MapController` API (recenter, setStyle, zoom bounds, etc.).
+- [ ] **MarkerIcon CMP:** Ensure `LeaflektMarkerIcon` (ByteArray-backed, CMP-compatible) covers all cases from Android `MarkerIcon`. Add `iconContent: @Composable () -> Unit` path.
+- [ ] **Marker rotation + zIndex + alpha CMP:** Verify `LeaflektMarkerInfo` in `commonMain` includes `rotationDegrees`, `alpha`, `zIndex` fields.
+- [ ] **Custom info windows CMP:** Verify `LeaflektMarker` in `commonMain` supports `infoWindow: @Composable () -> Unit`.
+- [ ] **GeoJSON overlay CMP:** Decide whether `LeaflektGeoJsonOverlay` (already in `commonMain`) should be exposed in `LeaflektMapProperties` or kept as a standalone call. Align with Android behavior.
+- [ ] **app-cmp demo parity:** Update `app-cmp/App.kt` to demo: clustering, map overlay, directions route polyline, custom marker icons — matching `leaflektsampleapp` feature set.
+
+#### 17B — `LeaflektMap` iOS SPM
+
+- [ ] **MarkerCluster Swift:** Add `LeaflektMarkerCluster` struct + `MarkerClusterOptions` to `Models/`. Extend `LeaflektMapController` with `addCluster(_:)/removeCluster(_:)`. Bundle Leaflet.markercluster JS/CSS in `Resources/leaflet/`.
+- [ ] **MapOverlay Swift:** `LeaflektMapView` modifier `.overlay(position:content:)` — pins SwiftUI `View` to a map coordinate. Requires `WKWebView` projection callbacks (`registerOverlayPoint` already in map.html).
+- [ ] **MapController richer API Swift:** Add `recenter()`, `setStyle(_:)`, `setZoomBounds(min:max:)` to `LeaflektMapController.swift`.
+- [ ] **MarkerIcon Swift:** Add `LeaflektMarkerIcon` struct (base64 PNG, width/height/anchor). Extend `LeaflektMarker` with `icon: LeaflektMarkerIcon?`.
+- [ ] **Marker rotation + alpha + zIndex Swift:** Add `rotationDegrees`, `alpha`, `zIndex` to `LeaflektMarker.swift`.
+- [ ] **Custom info windows Swift:** Add `infoWindowContent: AnyView?` to `LeaflektMarker.swift`. Inject Compose-rendered HTML or native SwiftUI overlay.
+- [ ] **GeoJSON overlay Swift:** Add `LeaflektGeoJsonOverlay` enum to `Models/`. Expose via `LeaflektMapProperties` or direct controller call. `setGeoJsonOverlay` already in `map.html`.
+- [ ] **app-ios-native demo parity:** Update `ContentView.swift` to demo: clustering, directions route polyline, custom marker icons — matching `leaflektsampleapp` screens.
+
+#### 17C — OlaMaps / Directions in CMP + iOS
+- [ ] **Directions API client CMP:** Port `OlaMapsRepository.kt` to `commonMain` using Ktor (already in `libs.versions.toml`). Android already uses Ktor; iOS `actual` is a no-op passthrough.
+- [ ] **DirectionsScreen CMP:** Add directions tab to `app-cmp/App.kt` — search origin/destination, fetch route, render `LeaflektPolyline`.
+- [ ] **ClusteringScreen CMP:** Add clustering demo tab to `app-cmp/App.kt` using `LeaflektMarkerCluster`.
+- [ ] **Directions iOS native demo:** Add `DirectionsView.swift` to `app-ios-native` — same flow as CMP version using `LeaflektMapController` for polyline.
+- [ ] **Clustering iOS native demo:** Add clustering screen to `app-ios-native` using `LeaflektMarkerCluster`.
+- [ ] **OLA Maps API keys:** Manage keys via `local.properties` / `BuildConfig` on Android; `Info.plist` on iOS. Document in README.
+
 ## Success Criteria
 - [x] Map loads in Compose
 - [x] 1:1 Google-style Marker API implemented
@@ -71,5 +110,7 @@
 ## Tracking Notes
 - Keep `:leaflekt` reusable and independent from `:app`
 - `:app` remains a demo/sample surface with runtime tuning controls
-- Last updated: 2026-04-19
+- `:leaflektsampleapp` is a richer demo: Explore (places search), Directions (OlaMaps routing), Clustering tabs
+- Phase 17 tracks CMP + iOS parity with the features shipped in `:leaflekt` v0.5.0 (`leaflektsampleapp`)
+- Last updated: 2026-06-06
 

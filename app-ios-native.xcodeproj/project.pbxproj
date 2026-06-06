@@ -10,12 +10,24 @@
 		AA000001 /* LeaflektMapApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000002 /* LeaflektMapApp.swift */; };
 		AA000003 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000004 /* ContentView.swift */; };
 		AA000005 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA000006 /* Assets.xcassets */; };
+		AA000007 /* LauncherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000008 /* LauncherView.swift */; };
+		AA000030 /* SampleModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000031 /* SampleModels.swift */; };
+		AA000032 /* OlaMapsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000033 /* OlaMapsService.swift */; };
+		AA000034 /* SampleViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000035 /* SampleViewModel.swift */; };
+		AA000036 /* SampleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000037 /* SampleView.swift */; };
 		B51A3E232FCCABC800249A7E /* LeaflektMap in Frameworks */ = {isa = PBXBuildFile; productRef = B51A3E222FCCABC800249A7E /* LeaflektMap */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		AA000002 /* LeaflektMapApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LeaflektMapApp.swift; path = "app-ios-native/LeaflektMapApp.swift"; sourceTree = SOURCE_ROOT; };
 		AA000004 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContentView.swift; path = "app-ios-native/ContentView.swift"; sourceTree = SOURCE_ROOT; };
+		AA000008 /* LauncherView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LauncherView.swift; path = "app-ios-native/LauncherView.swift"; sourceTree = SOURCE_ROOT; };
+		AA000031 /* SampleModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SampleModels.swift; path = "app-ios-native/SampleModels.swift"; sourceTree = SOURCE_ROOT; };
+		AA000033 /* OlaMapsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OlaMapsService.swift; path = "app-ios-native/OlaMapsService.swift"; sourceTree = SOURCE_ROOT; };
+		AA000035 /* SampleViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SampleViewModel.swift; path = "app-ios-native/SampleViewModel.swift"; sourceTree = SOURCE_ROOT; };
+		AA000037 /* SampleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SampleView.swift; path = "app-ios-native/SampleView.swift"; sourceTree = SOURCE_ROOT; };
+		AA000038 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = "app-ios-native/Info.plist"; sourceTree = SOURCE_ROOT; };
+		AA000039 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Secrets.xcconfig; path = "app-ios-native/Secrets.xcconfig"; sourceTree = SOURCE_ROOT; };
 		AA000006 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = "app-ios-native/Assets.xcassets"; sourceTree = SOURCE_ROOT; };
 		AA000009 /* app-ios-native.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "app-ios-native.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -45,6 +57,13 @@
 			children = (
 				AA000002 /* LeaflektMapApp.swift */,
 				AA000004 /* ContentView.swift */,
+				AA000008 /* LauncherView.swift */,
+				AA000031 /* SampleModels.swift */,
+				AA000033 /* OlaMapsService.swift */,
+				AA000035 /* SampleViewModel.swift */,
+				AA000037 /* SampleView.swift */,
+				AA000038 /* Info.plist */,
+				AA000039 /* Secrets.xcconfig */,
 				AA000006 /* Assets.xcassets */,
 			);
 			name = "app-ios-native";
@@ -135,6 +154,11 @@
 			files = (
 				AA000001 /* LeaflektMapApp.swift in Sources */,
 				AA000003 /* ContentView.swift in Sources */,
+				AA000007 /* LauncherView.swift in Sources */,
+				AA000030 /* SampleModels.swift in Sources */,
+				AA000032 /* OlaMapsService.swift in Sources */,
+				AA000034 /* SampleViewModel.swift in Sources */,
+				AA000036 /* SampleView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -143,21 +167,18 @@
 /* Begin XCBuildConfiguration section */
 		AA000021 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = AA000039 /* Secrets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "app-ios-native/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.binayshaw7777.leaflekt.app.ios;
+					PRODUCT_BUNDLE_IDENTIFIER = com.binayshaw7777.leaflekt.app.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -167,21 +188,18 @@
 		};
 		AA000022 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = AA000039 /* Secrets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "app-ios-native/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.binayshaw7777.leaflekt.app.ios;
+					PRODUCT_BUNDLE_IDENTIFIER = com.binayshaw7777.leaflekt.app.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;

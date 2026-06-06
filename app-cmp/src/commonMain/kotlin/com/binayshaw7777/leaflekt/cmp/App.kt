@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -37,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.binayshaw7777.leaflekt.compose.LeaflektCameraPosition
 import com.binayshaw7777.leaflekt.compose.LeaflektCircle
@@ -52,10 +55,80 @@ import com.binayshaw7777.leaflekt.compose.LeaflektPolyline
 import com.binayshaw7777.leaflekt.compose.LeaflektStrokePattern
 import com.binayshaw7777.leaflekt.compose.rememberLeaflektCameraPositionState
 
+private enum class CmpDestination { Launcher, Demo, Sample }
+
 @Composable
 fun LeafleKTCmpDemoApp(modifier: Modifier = Modifier) {
+    var destination by remember { mutableStateOf(CmpDestination.Launcher) }
     Surface(modifier = modifier, color = MaterialTheme.colorScheme.background) {
-        CmpDemoScreen(modifier = Modifier.fillMaxSize())
+        when (destination) {
+            CmpDestination.Launcher -> CmpLauncherScreen(
+                modifier = Modifier.fillMaxSize(),
+                onLaunchDemo = { destination = CmpDestination.Demo },
+                onLaunchSample = { destination = CmpDestination.Sample }
+            )
+            CmpDestination.Demo -> CmpDemoScreen(modifier = Modifier.fillMaxSize())
+            CmpDestination.Sample -> CmpSampleAppScreen(modifier = Modifier.fillMaxSize())
+        }
+    }
+}
+
+@Composable
+private fun CmpLauncherScreen(
+    modifier: Modifier = Modifier,
+    onLaunchDemo: () -> Unit,
+    onLaunchSample: () -> Unit
+) {
+    Column(
+        modifier = modifier.padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "LeafleKT",
+            style = MaterialTheme.typography.displayMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Text(
+            text = "Compose-first Leaflet — Android + iOS",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(48.dp))
+
+        Button(
+            onClick = onLaunchDemo,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = "Launch Demo App",
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = onLaunchSample,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = "Launch Sample App",
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Text(
+            text = "Demo App shows core library features. Sample App shows advanced integrations like Ola Maps.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.outline,
+            textAlign = TextAlign.Center
+        )
     }
 }
 

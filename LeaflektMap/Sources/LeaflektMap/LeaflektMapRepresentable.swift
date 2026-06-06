@@ -47,13 +47,28 @@ struct LeaflektMapRepresentable: UIViewRepresentable {
     }
 
     func updateUIView(_ webView: WKWebView, context: Context) {
+        let prevPosition = context.coordinator.parent.position
+        let prevProperties = context.coordinator.parent.properties
         context.coordinator.parent = self
+        // Drive the map when position is set programmatically (not echoed back from onCameraIdle)
+        if position != prevPosition && position != context.coordinator.lastAppliedPosition {
+            context.coordinator.lastAppliedPosition = position
+            controller.moveCamera(
+                lat: position.target.latitude,
+                lng: position.target.longitude,
+                zoom: position.zoom
+            )
+        }
+        if properties.mapStyle != prevProperties.mapStyle {
+            controller.setMapStyle(properties.mapStyle)
+        }
     }
 
     final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate, LeaflektBridgeDelegate {
         var parent: LeaflektMapRepresentable
         var bridge: LeaflektBridge?
         private var hasInitialized = false
+        var lastAppliedPosition: LeaflektCameraPosition?
 
         init(_ parent: LeaflektMapRepresentable) {
             self.parent = parent
@@ -81,10 +96,9 @@ struct LeaflektMapRepresentable: UIViewRepresentable {
         func onCameraMove(lat: Double, lng: Double, zoom: Double) {}
 
         func onCameraIdle(lat: Double, lng: Double, zoom: Double) {
-            parent.onCameraIdle?(LeaflektCameraPosition(
-                target: LeaflektLatLng(latitude: lat, longitude: lng),
-                zoom: zoom
-            ))
+            let pos = LeaflektCameraPosition(target: LeaflektLatLng(latitude: lat, longitude: lng), zoom: zoom)
+            lastAppliedPosition = pos
+            parent.onCameraIdle?(pos)
         }
 
         func onMarkerClick(markerId: String) {

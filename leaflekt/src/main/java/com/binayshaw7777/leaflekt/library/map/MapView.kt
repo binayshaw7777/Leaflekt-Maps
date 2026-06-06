@@ -255,10 +255,6 @@ fun MapView(
         controller.setMapStyle(style)
     }
 
-    LaunchedEffect(properties.geoJsonOverlay) {
-        controller.setGeoJsonOverlay(properties.geoJsonOverlay)
-    }
-
     // UI Settings wiring
     LaunchedEffect(uiSettings.zoomControlsEnabled) {
         controller.setZoomControlsEnabled(uiSettings.zoomControlsEnabled)

@@ -6,6 +6,8 @@
     <title>LeafleKT Map</title>
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="leaflet/leaflet.css" />
+    <link rel="stylesheet" href="leaflet/MarkerCluster.css" />
+    <link rel="stylesheet" href="leaflet/MarkerCluster.Default.css" />
     <style>
         html, body { width: 100vw; height: 100vh; margin: 0; padding: 0; overflow: hidden; }
         #map { position: fixed; inset: 0; }
@@ -14,6 +16,7 @@
 <body>
 <div id="map"></div>
 <script src="leaflet/leaflet.js"></script>
+<script src="leaflet/leaflet.markercluster.js"></script>
 <script src="leaflet/india-boundaries.js"></script>
 <script>
     (function () {
@@ -58,6 +61,7 @@
         const polygonLayers = new Map();
         const circleLayers = new Map();
         const vectorLayerOrder = new Map();
+        const clusterGroups = new Map();
         let customGeoJsonLayer = null;
 
         function notifyMapReady() { callNativeBridge("onMapReady"); }
@@ -374,6 +378,31 @@
             addCircle: function (c) { if (c && c.id && c.center) addCircleLayer(c); },
             updateCircle: function (c) { if (c && c.id && c.center) updateCircleLayer(c); },
             removeCircle: function (id) { removeCircleLayer(id); },
+            createClusterGroup: function (groupId, maxRadius) {
+                if (!map) return;
+                if (clusterGroups.has(groupId)) return;
+                var group = L.markerClusterGroup({ maxClusterRadius: Number(maxRadius || 80) });
+                group.addTo(map);
+                clusterGroups.set(groupId, group);
+            },
+            addMarkersToCluster: function (groupId, list) {
+                var group = clusterGroups.get(groupId);
+                if (!group || !Array.isArray(list)) return;
+                list.forEach(function (item) {
+                    var m = L.marker([Number(item.lat), Number(item.lng)], { icon: createMarkerIcon(item) });
+                    if (item.title) m.bindPopup(item.title);
+                    var markerId = item.id || nextMarkerId();
+                    m.on("click", function () { notifyMarkerClick(markerId); });
+                    markerLayers.set(markerId, m);
+                    group.addLayer(m);
+                });
+            },
+            removeClusterGroup: function (groupId) {
+                var group = clusterGroups.get(groupId);
+                if (!group) return;
+                if (map) map.removeLayer(group);
+                clusterGroups.delete(groupId);
+            },
             setGeoJsonOverlay: function (geojsonString) {
                 if (map === null) return;
                 if (customGeoJsonLayer !== null) {

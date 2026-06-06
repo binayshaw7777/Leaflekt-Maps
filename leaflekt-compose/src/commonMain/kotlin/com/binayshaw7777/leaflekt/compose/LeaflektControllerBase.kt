@@ -102,6 +102,19 @@ abstract class LeaflektControllerBase : LeaflektControllerInterface {
         enqueueOrRun(LeaflektScriptBuilder.setGeoJsonOverlayScript(overlay))
     }
 
+    fun createClusterGroup(groupId: String, maxClusterRadius: Int = 80) {
+        enqueueOrRun(LeaflektScriptBuilder.createClusterGroupScript(groupId, maxClusterRadius))
+    }
+
+    fun addMarkersToCluster(groupId: String, markers: List<LeaflektMarkerInfo>) {
+        if (markers.isEmpty()) return
+        enqueueOrRun(LeaflektScriptBuilder.addMarkersToClusterScript(groupId, markers))
+    }
+
+    fun removeClusterGroup(groupId: String) {
+        enqueueOrRun(LeaflektScriptBuilder.removeClusterGroupScript(groupId))
+    }
+
     fun centerOnCurrentLocation(zoom: Double = 16.0) {
         currentLocationCenteringAction?.invoke(zoom)
     }

@@ -57,7 +57,7 @@ public final class LeaflektMapController {
     }
 
     public func addPolyline(_ polyline: LeaflektPolyline) {
-        let pointsJson = polyline.points.map { "{\"lat\":\($0.latitude),\"lng\":\($0.longitude)}" }.joined(separator: ",")
+        let pointsJson = polyline.points.map { "{\"latitude\":\($0.latitude),\"longitude\":\($0.longitude)}" }.joined(separator: ",")
         let colorJson = polyline.color.cssRgba()
         let script = "window.LeaflektBridge.addPolyline({\"id\":\"\(polyline.id)\",\"points\":[\(pointsJson)],\"clickable\":\(polyline.clickable),\"color\":\"\(colorJson)\",\"geodesic\":false,\"pattern\":null,\"visible\":\(polyline.visible),\"width\":\(polyline.width),\"zIndex\":\(polyline.zIndex)});"
         enqueueOrRun(script)
@@ -73,9 +73,9 @@ public final class LeaflektMapController {
     }
 
     public func addPolygon(_ polygon: LeaflektPolygon) {
-        let pointsJson = polygon.points.map { "{\"lat\":\($0.latitude),\"lng\":\($0.longitude)}" }.joined(separator: ",")
+        let pointsJson = polygon.points.map { "{\"latitude\":\($0.latitude),\"longitude\":\($0.longitude)}" }.joined(separator: ",")
         let holesJson = polygon.holes.map { hole in
-            "[" + hole.map { "{\"lat\":\($0.latitude),\"lng\":\($0.longitude)}" }.joined(separator: ",") + "]"
+            "[" + hole.map { "{\"latitude\":\($0.latitude),\"longitude\":\($0.longitude)}" }.joined(separator: ",") + "]"
         }.joined(separator: ",")
         let strokeJson = polygon.strokeColor.cssRgba()
         let fillJson = polygon.fillColor.cssRgba()
@@ -95,7 +95,7 @@ public final class LeaflektMapController {
     public func addCircle(_ circle: LeaflektCircle) {
         let strokeJson = circle.strokeColor.cssRgba()
         let fillJson = circle.fillColor.cssRgba()
-        let script = "window.LeaflektBridge.addCircle({\"id\":\"\(circle.id)\",\"center\":{\"lat\":\(circle.center.latitude),\"lng\":\(circle.center.longitude)},\"clickable\":\(circle.clickable),\"fillColor\":\"\(fillJson)\",\"radiusMeters\":\(circle.radiusMeters),\"strokeColor\":\"\(strokeJson)\",\"strokePattern\":null,\"strokeWidth\":\(circle.strokeWidth),\"visible\":\(circle.visible),\"zIndex\":\(circle.zIndex)});"
+        let script = "window.LeaflektBridge.addCircle({\"id\":\"\(circle.id)\",\"center\":{\"latitude\":\(circle.center.latitude),\"longitude\":\(circle.center.longitude)},\"clickable\":\(circle.clickable),\"fillColor\":\"\(fillJson)\",\"radiusMeters\":\(circle.radiusMeters),\"strokeColor\":\"\(strokeJson)\",\"strokePattern\":null,\"strokeWidth\":\(circle.strokeWidth),\"visible\":\(circle.visible),\"zIndex\":\(circle.zIndex)});"
         enqueueOrRun(script)
     }
 
@@ -110,6 +110,26 @@ public final class LeaflektMapController {
 
     public func clearMarkers() {
         enqueueOrRun("window.LeaflektBridge.clearMarkers();")
+    }
+
+    public func createClusterGroup(groupId: String, maxClusterRadius: Int = 80) {
+        let escaped = groupId.replacingOccurrences(of: "\"", with: "\\\"")
+        enqueueOrRun("window.LeaflektBridge.createClusterGroup(\"\(escaped)\",\(maxClusterRadius));")
+    }
+
+    public func addMarkersToCluster(groupId: String, markers: [LeaflektMarker]) {
+        guard !markers.isEmpty else { return }
+        let escaped = groupId.replacingOccurrences(of: "\"", with: "\\\"")
+        let markersJson = markers.map { m in
+            let titleJson = m.title.map { "\"\($0.replacingOccurrences(of: "\"", with: "\\\""))\"" } ?? "null"
+            return "{\"id\":\"\(m.id)\",\"lat\":\(m.position.latitude),\"lng\":\(m.position.longitude),\"title\":\(titleJson),\"visible\":\(m.visible),\"alpha\":1.0,\"icon\":null}"
+        }.joined(separator: ",")
+        enqueueOrRun("window.LeaflektBridge.addMarkersToCluster(\"\(escaped)\",[\(markersJson)]);")
+    }
+
+    public func removeClusterGroup(groupId: String) {
+        let escaped = groupId.replacingOccurrences(of: "\"", with: "\\\"")
+        enqueueOrRun("window.LeaflektBridge.removeClusterGroup(\"\(escaped)\");")
     }
 
     public func setMapStyle(_ style: LeaflektMapStyle) {

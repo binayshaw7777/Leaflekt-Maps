@@ -34,6 +34,7 @@ local.properties
 xcuserdata/
 *.xcuserstate
 .swiftpm/xcode/
+app-ios-native/Secrets.xcconfig
 
 ### macOS ###
 .DS_Store

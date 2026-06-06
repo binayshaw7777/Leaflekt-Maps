@@ -61,6 +61,17 @@ internal object LeaflektScriptBuilder {
     fun removeCircleScript(circleId: String): String =
         "window.LeaflektBridge.removeCircle(${LeaflektMapJson.encodeString(circleId)});"
 
+    fun createClusterGroupScript(groupId: String, maxClusterRadius: Int): String =
+        "window.LeaflektBridge.createClusterGroup(${LeaflektMapJson.encodeString(groupId)},$maxClusterRadius);"
+
+    fun addMarkersToClusterScript(groupId: String, markers: List<LeaflektMarkerInfo>): String {
+        val payload = markers.joinToString(prefix = "[", postfix = "]") { it.toJson() }
+        return "window.LeaflektBridge.addMarkersToCluster(${LeaflektMapJson.encodeString(groupId)},$payload);"
+    }
+
+    fun removeClusterGroupScript(groupId: String): String =
+        "window.LeaflektBridge.removeClusterGroup(${LeaflektMapJson.encodeString(groupId)});"
+
     fun setGeoJsonOverlayScript(overlay: LeaflektGeoJsonOverlay): String = when (overlay) {
         is LeaflektGeoJsonOverlay.India -> "window.LeaflektBridge.setGeoJsonOverlay(null);"
         is LeaflektGeoJsonOverlay.None -> "window.LeaflektBridge.setGeoJsonOverlay(\"none\");"
