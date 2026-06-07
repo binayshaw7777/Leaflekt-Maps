@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/assets/leaflet/leaflet.css" />
     <link rel="stylesheet" href="/assets/leaflet/MarkerCluster.css" />
     <link rel="stylesheet" href="/assets/leaflet/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="/assets/leaflet/maplibre-gl.css" />
     <style>
         html, body { width: 100vw; height: 100vh; margin: 0; padding: 0; overflow: hidden; }
         #map { position: fixed; inset: 0; }
@@ -19,6 +20,8 @@
 <script src="/assets/leaflet/leaflet.js"></script>
 <script src="/assets/leaflet/leaflet.markercluster.js"></script>
 <script src="/assets/leaflet/india-boundaries.js"></script>
+<script src="/assets/leaflet/maplibre-gl.js"></script>
+<script src="/assets/leaflet/leaflet-maplibre-gl.js"></script>
 <script>
     (function () {
         const DEFAULT_LAT = 22.5726;
@@ -127,7 +130,11 @@
             activeMapStyle = style;
             if (map === null) return;
             if (activeTileLayer !== null) map.removeLayer(activeTileLayer);
-            activeTileLayer = createTileLayer(style);
+            if (style.isVectorStyle) {
+                activeTileLayer = L.maplibreGL({ style: style.tileUrlTemplate, attributionControl: { customAttribution: style.attributionHtml } });
+            } else {
+                activeTileLayer = createTileLayer(style);
+            }
             activeTileLayer.addTo(map);
             applyIndiaBoundaryOverlayTheme();
         }
@@ -361,7 +368,7 @@
             },
             setMapStyle: function (style) {
                 if (!style || !style.tileUrlTemplate || !style.attributionHtml) return;
-                replaceTileLayer({ id: style.id || defaultMapStyle.id, tileUrlTemplate: style.tileUrlTemplate, attributionHtml: style.attributionHtml, maxZoom: Number(style.maxZoom || defaultMapStyle.maxZoom), subdomains: style.subdomains || null });
+                replaceTileLayer({ id: style.id || defaultMapStyle.id, tileUrlTemplate: style.tileUrlTemplate, attributionHtml: style.attributionHtml, maxZoom: Number(style.maxZoom || defaultMapStyle.maxZoom), subdomains: style.subdomains || null, isVectorStyle: Boolean(style.isVectorStyle) });
             },
             addMarkers: function (list) {
                 if (!Array.isArray(list) || list.length === 0) return;

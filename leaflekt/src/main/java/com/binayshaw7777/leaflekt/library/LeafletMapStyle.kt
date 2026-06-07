@@ -10,7 +10,8 @@ enum class LeafletMapStyle(
     internal val tileUrlTemplate: String,
     internal val attributionHtml: String,
     internal val maxZoom: Int,
-    internal val subdomains: String? = null
+    internal val subdomains: String? = null,
+    internal val isVectorStyle: Boolean = false
 ) {
     OpenStreetMap(
         id = "open_street_map",
@@ -44,5 +45,26 @@ enum class LeafletMapStyle(
         tileUrlTemplate = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
         attributionHtml = "Tiles &copy; Esri, Maxar, Earthstar Geographics, and the GIS User Community",
         maxZoom = 19
+    ),
+    OpenFreeMapLiberty(
+        id = "openfreemap_liberty",
+        tileUrlTemplate = "https://tiles.openfreemap.org/styles/liberty",
+        attributionHtml = "&copy; <a href=\"https://openfreemap.org\">OpenFreeMap</a> &copy; <a href=\"https://www.openmaptiles.org/\">OpenMapTiles</a> Data from <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a>",
+        maxZoom = 19,
+        isVectorStyle = true
+    ),
+    OpenFreeMapFiord(
+        id = "openfreemap_fiord",
+        tileUrlTemplate = "https://tiles.openfreemap.org/styles/fiord",
+        attributionHtml = "&copy; <a href=\"https://openfreemap.org\">OpenFreeMap</a> &copy; <a href=\"https://www.openmaptiles.org/\">OpenMapTiles</a> Data from <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a>",
+        maxZoom = 19,
+        isVectorStyle = true
+    ),
+    OpenFreeMapBright(
+        id = "openfreemap_bright",
+        tileUrlTemplate = "https://tiles.openfreemap.org/styles/bright",
+        attributionHtml = "&copy; <a href=\"https://openfreemap.org\">OpenFreeMap</a> &copy; <a href=\"https://www.openmaptiles.org/\">OpenMapTiles</a> Data from <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a>",
+        maxZoom = 19,
+        isVectorStyle = true
     );
 }
