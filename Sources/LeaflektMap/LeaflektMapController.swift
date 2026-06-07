@@ -151,7 +151,8 @@ public final class LeaflektMapController {
     }
 
     public func setMapStyle(_ style: LeaflektMapStyle) {
-        let styleJson = "{\"id\":\"\(style.rawValue)\",\"tileUrlTemplate\":\"\(style.tileUrl)\",\"attributionHtml\":\"\(style.attribution)\",\"maxZoom\":\(style.maxZoom),\"subdomains\":null}"
+        let sub = style.subdomains.map { "\"\($0)\"" } ?? "null"
+        let styleJson = "{\"id\":\"\(style.rawValue)\",\"tileUrlTemplate\":\"\(style.tileUrl)\",\"attributionHtml\":\"\(style.attribution)\",\"maxZoom\":\(style.maxZoom),\"subdomains\":\(sub),\"isVectorStyle\":\(style.isVectorStyle)}"
         enqueueOrRun("window.LeaflektBridge.setMapStyle(\(styleJson));")
     }
 
@@ -178,7 +179,8 @@ public final class LeaflektMapController {
         enqueueOrRun("window.LeaflektBridge.initMap(\(lat),\(lng),\(zoom));")
         enqueueOrRun("window.LeaflektBridge.setZoomControlsEnabled(\(uiSettings.zoomControlsEnabled));")
         let style = properties.mapStyle
-        let styleJson = "{\"id\":\"\(style.rawValue)\",\"tileUrlTemplate\":\"\(style.tileUrl)\",\"attributionHtml\":\"\(style.attribution)\",\"maxZoom\":\(style.maxZoom),\"subdomains\":null}"
+        let sub = style.subdomains.map { "\"\($0)\"" } ?? "null"
+        let styleJson = "{\"id\":\"\(style.rawValue)\",\"tileUrlTemplate\":\"\(style.tileUrl)\",\"attributionHtml\":\"\(style.attribution)\",\"maxZoom\":\(style.maxZoom),\"subdomains\":\(sub),\"isVectorStyle\":\(style.isVectorStyle)}"
         enqueueOrRun("window.LeaflektBridge.setMapStyle(\(styleJson));")
         if case .india = properties.geoJsonOverlay { } else {
             setGeoJsonOverlay(properties.geoJsonOverlay)

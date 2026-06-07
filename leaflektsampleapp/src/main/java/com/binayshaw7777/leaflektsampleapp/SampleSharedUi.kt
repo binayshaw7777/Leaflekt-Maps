@@ -371,5 +371,8 @@ internal fun LeaflektMapStyle.displayLabel(): String {
         LeaflektMapStyle.CartoDark -> "CARTO Dark"
         LeaflektMapStyle.OpenTopoMap -> "OpenTopoMap"
         LeaflektMapStyle.EsriWorldImagery -> "Esri World Imagery"
+        LeaflektMapStyle.OpenFreeMapLiberty -> "OpenFreeMap Liberty"
+        LeaflektMapStyle.OpenFreeMapFiord -> "OpenFreeMap Fiord"
+        LeaflektMapStyle.OpenFreeMap3D -> "OpenFreeMap 3D"
     }
 }

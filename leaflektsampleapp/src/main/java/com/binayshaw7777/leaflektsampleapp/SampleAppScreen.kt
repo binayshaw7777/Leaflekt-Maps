@@ -226,4 +226,7 @@ private val SampleMapStyles = listOf(
     LeaflektMapStyle.OpenStreetMap,
     LeaflektMapStyle.CartoLight,
     LeaflektMapStyle.CartoDark,
+    LeaflektMapStyle.OpenFreeMapLiberty,
+    LeaflektMapStyle.OpenFreeMapFiord,
+    LeaflektMapStyle.OpenFreeMap3D,
 )

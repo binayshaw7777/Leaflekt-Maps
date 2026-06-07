@@ -624,7 +624,8 @@ struct MapStylePickerSheet: View {
     let onDismiss: () -> Void
 
     private let styles: [LeaflektMapStyle] = [
-        .openStreetMap, .cartoLight, .cartoDark, .openTopoMap, .esriWorldImagery
+        .openStreetMap, .cartoLight, .cartoDark, .openTopoMap, .esriWorldImagery,
+        .openFreeMapLiberty, .openFreeMapFiord, .openFreeMap3D
     ]
 
     var body: some View {
