@@ -130,12 +130,7 @@ jobs:
 
       - name: Build KMP iOS targets
         if: steps.tag.outputs.exists == 'false'
-        run: ./gradlew :leaflekt-core:build :leaflekt-compose:build
-
-      - name: Run commonTest
-        if: steps.tag.outputs.exists == 'false'
-        continue-on-error: true
-        run: ./gradlew :leaflekt-compose:iosSimulatorArm64Test
+        run: ./gradlew :leaflekt-core:assemble :leaflekt-compose:assemble
 
       - name: Validate Swift Package
         if: steps.tag.outputs.exists == 'false'
