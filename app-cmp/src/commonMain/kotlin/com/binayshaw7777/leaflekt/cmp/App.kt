@@ -645,7 +645,7 @@ private fun LeaflektMapStyle.displayName(): String = when (this) {
     LeaflektMapStyle.EsriWorldImagery -> "Esri World Imagery"
     LeaflektMapStyle.OpenFreeMapLiberty -> "OpenFreeMap Liberty"
     LeaflektMapStyle.OpenFreeMapFiord -> "OpenFreeMap Fiord"
-    LeaflektMapStyle.OpenFreeMap3D -> "OpenFreeMap 3D"
+    LeaflektMapStyle.OpenFreeMapBright -> "OpenFreeMap Bright"
 }
 
 private fun LeaflektCameraPosition.displayLabel(): String =

@@ -625,7 +625,7 @@ struct MapStylePickerSheet: View {
 
     private let styles: [LeaflektMapStyle] = [
         .openStreetMap, .cartoLight, .cartoDark, .openTopoMap, .esriWorldImagery,
-        .openFreeMapLiberty, .openFreeMapFiord, .openFreeMap3D
+        .openFreeMapLiberty, .openFreeMapFiord, .openFreeMapBright
     ]
 
     var body: some View {
@@ -690,6 +690,9 @@ extension LeaflektMapStyle {
         case "carto_dark": return "CARTO Dark"
         case "open_topo_map": return "OpenTopoMap"
         case "esri_world_imagery": return "Esri World Imagery"
+        case "openfreemap_liberty": return "OpenFreeMap Liberty"
+        case "openfreemap_fiord": return "OpenFreeMap Fiord"
+        case "openfreemap_bright": return "OpenFreeMap Bright"
         default: return rawValue.replacingOccurrences(of: "_", with: " ").capitalized
         }
     }

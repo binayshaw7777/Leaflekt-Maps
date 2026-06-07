@@ -368,7 +368,7 @@
             },
             setMapStyle: function (style) {
                 if (!style || !style.tileUrlTemplate || !style.attributionHtml) return;
-                replaceTileLayer({ id: style.id || defaultMapStyle.id, tileUrlTemplate: style.tileUrlTemplate, attributionHtml: style.attributionHtml, maxZoom: Number(style.maxZoom || defaultMapStyle.maxZoom), subdomains: style.subdomains || null });
+                replaceTileLayer({ id: style.id || defaultMapStyle.id, tileUrlTemplate: style.tileUrlTemplate, attributionHtml: style.attributionHtml, maxZoom: Number(style.maxZoom || defaultMapStyle.maxZoom), subdomains: style.subdomains || null, isVectorStyle: Boolean(style.isVectorStyle) });
             },
             addMarkers: function (list) {
                 if (!Array.isArray(list) || list.length === 0) return;

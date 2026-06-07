@@ -60,9 +60,9 @@ enum class LeafletMapStyle(
         maxZoom = 19,
         isVectorStyle = true
     ),
-    OpenFreeMap3D(
-        id = "openfreemap_3d",
-        tileUrlTemplate = "https://tiles.openfreemap.org/styles/3d",
+    OpenFreeMapBright(
+        id = "openfreemap_bright",
+        tileUrlTemplate = "https://tiles.openfreemap.org/styles/bright",
         attributionHtml = "&copy; <a href=\"https://openfreemap.org\">OpenFreeMap</a> &copy; <a href=\"https://www.openmaptiles.org/\">OpenMapTiles</a> Data from <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a>",
         maxZoom = 19,
         isVectorStyle = true

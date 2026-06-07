@@ -8,7 +8,7 @@ public enum LeaflektMapStyle: String, CaseIterable {
     case esriWorldImagery = "esri_world_imagery"
     case openFreeMapLiberty = "openfreemap_liberty"
     case openFreeMapFiord = "openfreemap_fiord"
-    case openFreeMap3D = "openfreemap_3d"
+    case openFreeMapBright = "openfreemap_bright"
 
     var tileUrl: String {
         switch self {
@@ -19,7 +19,7 @@ public enum LeaflektMapStyle: String, CaseIterable {
         case .esriWorldImagery: return "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
         case .openFreeMapLiberty: return "https://tiles.openfreemap.org/styles/liberty"
         case .openFreeMapFiord: return "https://tiles.openfreemap.org/styles/fiord"
-        case .openFreeMap3D: return "https://tiles.openfreemap.org/styles/3d"
+        case .openFreeMapBright: return "https://tiles.openfreemap.org/styles/bright"
         }
     }
 
@@ -29,7 +29,7 @@ public enum LeaflektMapStyle: String, CaseIterable {
         case .cartoLight, .cartoDark: return "&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors &copy; <a href='https://carto.com/attributions'>CARTO</a>"
         case .openTopoMap: return "Map data: &copy; OpenStreetMap contributors | Map style: &copy; OpenTopoMap"
         case .esriWorldImagery: return "Tiles &copy; Esri"
-        case .openFreeMapLiberty, .openFreeMapFiord, .openFreeMap3D: return "&copy; <a href='https://openfreemap.org'>OpenFreeMap</a> &copy; <a href='https://www.openmaptiles.org/'>OpenMapTiles</a> Data from <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a>"
+        case .openFreeMapLiberty, .openFreeMapFiord, .openFreeMapBright: return "&copy; <a href='https://openfreemap.org'>OpenFreeMap</a> &copy; <a href='https://www.openmaptiles.org/'>OpenMapTiles</a> Data from <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a>"
         }
     }
 
@@ -42,7 +42,7 @@ public enum LeaflektMapStyle: String, CaseIterable {
 
     var isVectorStyle: Bool {
         switch self {
-        case .openFreeMapLiberty, .openFreeMapFiord, .openFreeMap3D: return true
+        case .openFreeMapLiberty, .openFreeMapFiord, .openFreeMapBright: return true
         default: return false
         }
     }
