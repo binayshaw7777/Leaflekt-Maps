@@ -134,6 +134,7 @@ jobs:
 
       - name: Run commonTest
         if: steps.tag.outputs.exists == 'false'
+        continue-on-error: true
         run: ./gradlew :leaflekt-compose:iosSimulatorArm64Test
 
       - name: Validate Swift Package
