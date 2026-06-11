@@ -19,7 +19,8 @@ abstract class LeaflektControllerBase : LeaflektControllerInterface {
     }
 
     protected fun enqueueOrRun(script: String) {
-        if (isMapReady) platformExecuteJs(script) else pendingScripts.add(script)
+        if (isMapReady) platformExecuteJs(script)
+        else if (pendingScripts.lastOrNull() != script) pendingScripts.add(script)
     }
 
     override fun moveCamera(lat: Double, lng: Double, zoom: Double) {
@@ -128,12 +129,10 @@ abstract class LeaflektControllerBase : LeaflektControllerInterface {
         isZoomControlEnabled: Boolean, initialMapStyle: LeaflektMapStyle,
         initialGeoJsonOverlay: LeaflektGeoJsonOverlay = LeaflektGeoJsonOverlay.India
     ) {
-        enqueueOrRun(LeaflektScriptBuilder.initMapScript(initialLat, initialLng, initialZoom))
-        enqueueOrRun(LeaflektScriptBuilder.setZoomControlsEnabledScript(isZoomControlEnabled))
-        enqueueOrRun(LeaflektScriptBuilder.setMapStyleScript(initialMapStyle))
-        if (initialGeoJsonOverlay !is LeaflektGeoJsonOverlay.India) {
-            enqueueOrRun(LeaflektScriptBuilder.setGeoJsonOverlayScript(initialGeoJsonOverlay))
-        }
+        enqueueOrRun(LeaflektScriptBuilder.initMapBatchScript(
+            initialLat, initialLng, initialZoom,
+            isZoomControlEnabled, initialMapStyle, initialGeoJsonOverlay
+        ))
     }
 
     fun registerMarkerClick(markerId: String, onClick: () -> Boolean) {

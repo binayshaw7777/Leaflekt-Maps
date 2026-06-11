@@ -90,7 +90,7 @@
             map.on("click", function (event) { notifyMapClick(event.latlng.lat, event.latlng.lng); });
             bindCameraLifecycleCallbacks();
             applyIndiaBoundaryOverlayVisibility();
-            retryInvalidateSize(20);
+            invalidateSizeOnReady();
             notifyMapReady();
             return map;
         }
@@ -108,11 +108,17 @@
             }
         }
 
-        function retryInvalidateSize(remainingAttempts) {
+        function invalidateSizeOnReady() {
             if (map === null) return;
-            map.invalidateSize();
-            if (remainingAttempts <= 0) return;
-            setTimeout(function () { retryInvalidateSize(remainingAttempts - 1); }, 150);
+            const el = document.getElementById("map");
+            if (el.clientWidth > 0) { map.invalidateSize(); return; }
+            const observer = new ResizeObserver(function(entries) {
+                if (entries[0].contentRect.width > 0) {
+                    map.invalidateSize();
+                    observer.disconnect();
+                }
+            });
+            observer.observe(el);
         }
 
         function ensureMap(lat, lng, zoom) {

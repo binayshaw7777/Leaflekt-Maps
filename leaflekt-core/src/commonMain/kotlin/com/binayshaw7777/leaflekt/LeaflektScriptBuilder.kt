@@ -4,6 +4,18 @@ internal object LeaflektScriptBuilder {
     fun initMapScript(lat: Double, lng: Double, zoom: Double): String =
         "window.LeaflektBridge.initMap($lat,$lng,$zoom);"
 
+    fun initMapBatchScript(
+        lat: Double, lng: Double, zoom: Double,
+        isZoomControlEnabled: Boolean,
+        style: LeaflektMapStyle,
+        overlay: LeaflektGeoJsonOverlay
+    ): String = buildList {
+        add(initMapScript(lat, lng, zoom))
+        add(setZoomControlsEnabledScript(isZoomControlEnabled))
+        add(setMapStyleScript(style))
+        if (overlay !is LeaflektGeoJsonOverlay.India) add(setGeoJsonOverlayScript(overlay))
+    }.joinToString("")
+
     fun setZoomControlsEnabledScript(isEnabled: Boolean): String =
         "window.LeaflektBridge.setZoomControlsEnabled($isEnabled);"
 

@@ -21,10 +21,10 @@ Branch: `experiment/optimization`
 |---|---|---|---|---|
 | 1 | Android WebView disk cache | H | M | ✅ |
 | 2 | iOS WKWebView cache config | H | E | ✅ |
-| 3 | Replace `retryInvalidateSize` polling | M | M | 🔲 |
-| 4 | Batch `initializeMap` scripts into one call | M | E | 🔲 |
+| 3 | Replace `retryInvalidateSize` polling | M | M | ✅ |
+| 4 | Batch `initializeMap` scripts into one call | M | E | ✅ |
 | 5 | Disable `WebContentsDebuggingEnabled` in prod | M | E | ✅ |
-| 6 | Deduplicate `pendingScripts` queue | L | E | 🔲 |
+| 6 | Deduplicate `pendingScripts` queue | L | E | ✅ |
 | 7 | Fix missing tile domains in URL filter | L | E | ✅ |
 | 8 | Increase camera idle debounce | L | E | 🔲 |
 | 9 | WebView instance reuse / pooling | H | H | 🔲 |
