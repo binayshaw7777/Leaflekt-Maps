@@ -34,6 +34,14 @@ public struct LeaflektMapView: View {
             onMarkerClick: onMarkerClick
         )
         .ignoresSafeArea()
+        .onAppear {
+            // Re-invalidate after layout settles — handles TabView pre-created WKWebViews
+            // that were sized to zero before the tab was first selected.
+            let mapController = controller.controller
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                mapController.invalidateSize()
+            }
+        }
     }
 
     public func mapProperties(_ properties: LeaflektMapProperties) -> Self {

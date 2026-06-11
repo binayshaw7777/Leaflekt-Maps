@@ -61,7 +61,7 @@ LeafleKT is a Kotlin Multiplatform Leaflet.js SDK — a UI-free core, Compose Mu
 
 ```kotlin
 dependencies {
-    implementation("io.github.binayshaw7777:leaflekt-compose:1.0.0")
+    implementation("io.github.binayshaw7777:leaflekt-compose:1.0.5")
 }
 ```
 
@@ -69,7 +69,7 @@ dependencies {
 
 ```kotlin
 dependencies {
-    implementation("io.github.binayshaw7777:leaflekt-core:1.0.0")
+    implementation("io.github.binayshaw7777:leaflekt-core:1.0.5")
 }
 ```
 
@@ -190,6 +190,9 @@ LeaflektMap(
 | `LeaflektMapStyle.CartoDark` | Dark basemap |
 | `LeaflektMapStyle.OpenTopoMap` | Topographic map |
 | `LeaflektMapStyle.EsriWorldImagery` | Satellite imagery |
+| `LeaflektMapStyle.OpenFreeMapLiberty` | OpenFreeMap Liberty vector tiles |
+| `LeaflektMapStyle.OpenFreeMapFiord` | OpenFreeMap Fiord vector tiles |
+| `LeaflektMapStyle.OpenFreeMapBright` | OpenFreeMap Bright vector tiles |
 
 Switch style at runtime via controller:
 
@@ -814,6 +817,9 @@ LeaflektMapStyle.cartoLight
 LeaflektMapStyle.cartoDark
 LeaflektMapStyle.openTopoMap
 LeaflektMapStyle.esriWorldImagery
+LeaflektMapStyle.openFreeMapLiberty
+LeaflektMapStyle.openFreeMapFiord
+LeaflektMapStyle.openFreeMapBright
 ```
 
 ### Custom marker icon (iOS)

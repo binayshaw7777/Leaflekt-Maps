@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Synced from leaflekt-core; relative resource URLs are intentional. See CONTRIBUTING.md. -->
+<!-- Synced from Android core; relative resource URLs are intentional. See CONTRIBUTING.md. -->
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -433,6 +433,9 @@
             },
             setZoomBounds: function (minZoom, maxZoom) {
                 if (map !== null) { map.setMinZoom(Number(minZoom)); map.setMaxZoom(Number(maxZoom)); }
+            },
+            invalidateSize: function () {
+                if (map !== null) map.invalidateSize();
             },
             setGeoJsonOverlay: function (geojsonString) {
                 if (map === null) return;

@@ -346,7 +346,7 @@
 /* Begin XCLocalSwiftPackageReference section */
 		B51A3E212FCCABC800249A7E /* XCLocalSwiftPackageReference "LeaflektMap" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = .;
+			relativePath = LeaflektMap;
 		};
 /* End XCLocalSwiftPackageReference section */
 

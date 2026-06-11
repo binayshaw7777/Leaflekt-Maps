@@ -4,9 +4,12 @@ import com.binayshaw7777.leaflekt.*
 
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
+import platform.CoreLocation.CLAuthorizationStatus
 import platform.CoreLocation.CLLocation
 import platform.CoreLocation.CLLocationManager
 import platform.CoreLocation.CLLocationManagerDelegateProtocol
+import platform.CoreLocation.kCLAuthorizationStatusAuthorizedAlways
+import platform.CoreLocation.kCLAuthorizationStatusAuthorizedWhenInUse
 import platform.CoreLocation.kCLLocationAccuracyBest
 import platform.darwin.NSObject
 
@@ -44,6 +47,17 @@ internal actual class PlatformLocationProvider {
                     longitude = loc.coordinate.useContents { longitude }
                 )
             )
+        }
+
+        override fun locationManager(
+            manager: CLLocationManager,
+            didChangeAuthorizationStatus: CLAuthorizationStatus
+        ) {
+            if (didChangeAuthorizationStatus == kCLAuthorizationStatusAuthorizedWhenInUse ||
+                didChangeAuthorizationStatus == kCLAuthorizationStatusAuthorizedAlways
+            ) {
+                manager.startUpdatingLocation()
+            }
         }
     }
 }

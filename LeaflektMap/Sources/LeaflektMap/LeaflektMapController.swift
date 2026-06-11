@@ -150,6 +150,10 @@ public final class LeaflektMapController {
         enqueueOrRun("window.LeaflektBridge.setZoomBounds(\(minZoom),\(maxZoom));")
     }
 
+    public func invalidateSize() {
+        enqueueOrRun("window.LeaflektBridge.invalidateSize();")
+    }
+
     public func setMapStyle(_ style: LeaflektMapStyle) {
         let sub = style.subdomains.map { "\"\($0)\"" } ?? "null"
         let styleJson = "{\"id\":\"\(style.rawValue)\",\"tileUrlTemplate\":\"\(style.tileUrl)\",\"attributionHtml\":\"\(style.attribution)\",\"maxZoom\":\(style.maxZoom),\"subdomains\":\(sub),\"isVectorStyle\":\(style.isVectorStyle)}"

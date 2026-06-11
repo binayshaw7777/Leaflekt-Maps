@@ -43,12 +43,14 @@ jobs:
         shell: bash
         run: |
           VERSION="${{ steps.version.outputs.value }}"
-          sed -i "s/io.github.binayshaw7777:leaflekt-core:[0-9]\+\.[0-9]\+\.[0-9]\+/io.github.binayshaw7777:leaflekt-core:$VERSION/g" README.md
-          sed -i "s/io.github.binayshaw7777:leaflekt-compose:[0-9]\+\.[0-9]\+\.[0-9]\+/io.github.binayshaw7777:leaflekt-compose:$VERSION/g" README.md
-          sed -i "s/from: \"v[0-9]\+\.[0-9]\+\.[0-9]\+\"/from: \"v$VERSION\"/g" README.md
+          for f in README.md docs/README.md; do
+            sed -i "s/io.github.binayshaw7777:leaflekt-core:[0-9]\+\.[0-9]\+\.[0-9]\+/io.github.binayshaw7777:leaflekt-core:$VERSION/g" "$f"
+            sed -i "s/io.github.binayshaw7777:leaflekt-compose:[0-9]\+\.[0-9]\+\.[0-9]\+/io.github.binayshaw7777:leaflekt-compose:$VERSION/g" "$f"
+            sed -i "s/from: \"v[0-9]\+\.[0-9]\+\.[0-9]\+\"/from: \"v$VERSION\"/g" "$f"
+          done
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add README.md
+          git add README.md docs/README.md
           git diff --quiet && git diff --staged --quiet || git commit -m "docs: Update README version to $VERSION [skip ci]"
           git push origin master
 
@@ -149,11 +151,6 @@ jobs:
         continue-on-error: true
         shell: bash
         run: |
-          mkdir -p /tmp/spm-test
-          cp Package.swift /tmp/spm-test/
-          cp -r Sources /tmp/spm-test/
-          cp -r Tests /tmp/spm-test/
-          cd /tmp/spm-test
           xcodebuild test \
             -scheme LeaflektMap \
             -destination 'platform=iOS Simulator,name=iPhone 16' \

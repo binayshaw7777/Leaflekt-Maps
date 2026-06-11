@@ -18,6 +18,14 @@ val releaseVersion = rootProject.file("VERSION").readText().trim()
 group = "io.github.binayshaw7777"
 version = releaseVersion
 
+compose {
+    resources {
+        publicResClass = false
+        packageOfResClass = "com.binayshaw7777.leaflekt.compose.generated.resources"
+        generateResClass = always
+    }
+}
+
 kotlin {
     androidTarget {
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
@@ -37,6 +45,7 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.material3)
             implementation(compose.ui)
+            implementation(compose.components.resources)
             implementation(libs.kotlinx.coroutines.core)
         }
 
