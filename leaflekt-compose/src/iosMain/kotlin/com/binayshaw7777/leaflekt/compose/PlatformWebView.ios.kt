@@ -1,6 +1,7 @@
 package com.binayshaw7777.leaflekt.compose
 
 import com.binayshaw7777.leaflekt.*
+import com.binayshaw7777.leaflekt.compose.generated.resources.Res
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -9,8 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.UIKitView
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.cValue
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 import platform.CoreGraphics.CGRect
-import platform.Foundation.NSBundle
 import platform.Foundation.NSURL
 import platform.WebKit.WKUserContentController
 import platform.WebKit.WKUserScript
@@ -43,16 +44,17 @@ internal actual fun PlatformWebView(
             val config = WKWebViewConfiguration()
             config.userContentController = userContentController
 
-            val bundle = NSBundle.mainBundle
-            val htmlPath = bundle.pathForResource("map", ofType = "html")
-                ?: error("map.html not found in bundle")
-            val htmlUrl = NSURL.fileURLWithPath(htmlPath)
-            val bundleUrl = bundle.bundleURL
+            @OptIn(ExperimentalResourceApi::class)
+            val mapHtmlUri = Res.getUri("files/map.html")
+            val htmlUrl = NSURL(string = mapHtmlUri)
+                ?: error("map.html not found in compose resources")
+            val baseUrl = htmlUrl.URLByDeletingLastPathComponent
+                ?: error("Could not resolve base URL for map resources")
 
             @OptIn(ExperimentalForeignApi::class)
             WKWebView(frame = cValue<CGRect>(), configuration = config).also { webView ->
                 controller.setWebView(webView)
-                webView.loadFileURL(htmlUrl, allowingReadAccessToURL = bundleUrl)
+                webView.loadFileURL(htmlUrl, allowingReadAccessToURL = baseUrl)
             }
         },
         update = { webView ->

@@ -38,6 +38,7 @@ fun LeaflektMap(
 ) {
     val controller = remember { LeaflektController() }
     var hasReportedReady by remember { mutableStateOf(false) }
+    var isMapReady by remember { mutableStateOf(false) }
 
     val currentOnReady by rememberUpdatedState(onReady)
     val currentOnMapLoaded by rememberUpdatedState(onMapLoaded)
@@ -51,6 +52,7 @@ fun LeaflektMap(
     val bridge = remember {
         object : LeaflektBridgeCallbacks {
             override fun onMapReady() {
+                isMapReady = true
                 controller.notifyMapReady()
                 if (!hasReportedReady) {
                     hasReportedReady = true
@@ -137,8 +139,10 @@ fun LeaflektMap(
             LocalLeaflektController provides controller,
             LocalLeaflektCameraPositionState provides cameraPositionState
         ) {
-            LeaflektCurrentLocationOverlay(uiSettings = uiSettings)
-            content()
+            if (isMapReady) {
+                LeaflektCurrentLocationOverlay(uiSettings = uiSettings)
+                content()
+            }
         }
     }
 }
