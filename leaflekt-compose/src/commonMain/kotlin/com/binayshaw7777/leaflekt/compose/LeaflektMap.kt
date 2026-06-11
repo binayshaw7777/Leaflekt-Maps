@@ -16,6 +16,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.delay
 
 val LocalLeaflektController = compositionLocalOf<LeaflektController?> { null }
 internal val LocalLeaflektCameraPositionState = staticCompositionLocalOf { LeaflektCameraPositionState() }
@@ -39,6 +40,7 @@ fun LeaflektMap(
     val controller = remember { LeaflektController() }
     var hasReportedReady by remember { mutableStateOf(false) }
     var isMapReady by remember { mutableStateOf(false) }
+    var isFirstRenderDone by remember { mutableStateOf(false) }
 
     val currentOnReady by rememberUpdatedState(onReady)
     val currentOnMapLoaded by rememberUpdatedState(onMapLoaded)
@@ -59,6 +61,10 @@ fun LeaflektMap(
                     currentOnReady?.invoke(controller)
                     currentOnMapLoaded?.invoke()
                 }
+            }
+
+            override fun onMapFirstRender() {
+                isFirstRenderDone = true
             }
 
             override fun onMapClick(lat: Double, lng: Double) {
@@ -127,12 +133,18 @@ fun LeaflektMap(
     LaunchedEffect(uiSettings.scrollGesturesEnabled) { controller.setScrollGesturesEnabled(uiSettings.scrollGesturesEnabled) }
     LaunchedEffect(uiSettings.zoomGesturesEnabled) { controller.setZoomGesturesEnabled(uiSettings.zoomGesturesEnabled) }
 
+    LaunchedEffect(Unit) {
+        delay(3000)
+        if (!isFirstRenderDone) isFirstRenderDone = true
+    }
+
     Box(modifier = modifier) {
         PlatformWebView(
             modifier = Modifier.fillMaxSize(),
             controller = controller,
             bridge = bridge,
-            contentDescription = contentDescription
+            contentDescription = contentDescription,
+            isFirstRenderDone = isFirstRenderDone
         )
 
         CompositionLocalProvider(

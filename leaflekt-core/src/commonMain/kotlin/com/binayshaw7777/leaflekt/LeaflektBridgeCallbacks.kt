@@ -2,6 +2,7 @@ package com.binayshaw7777.leaflekt
 
 interface LeaflektBridgeCallbacks {
     fun onMapReady()
+    fun onMapFirstRender() {}
     fun onMapClick(lat: Double, lng: Double)
     fun onCameraMoveStarted(lat: Double, lng: Double, zoom: Double)
     fun onCameraMove(lat: Double, lng: Double, zoom: Double)

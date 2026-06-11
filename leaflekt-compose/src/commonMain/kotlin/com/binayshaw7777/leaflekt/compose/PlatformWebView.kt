@@ -10,5 +10,6 @@ internal expect fun PlatformWebView(
     modifier: Modifier,
     controller: LeaflektController,
     bridge: LeaflektBridgeCallbacks,
-    contentDescription: String?
+    contentDescription: String?,
+    isFirstRenderDone: Boolean
 )

@@ -11,8 +11,8 @@
     <link rel="stylesheet" href="leaflet/MarkerCluster.Default.css" />
     <link rel="stylesheet" href="leaflet/maplibre-gl.css" />
     <style>
-        html, body { width: 100vw; height: 100vh; margin: 0; padding: 0; overflow: hidden; }
-        #map { position: fixed; inset: 0; }
+        html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; }
+        #map { position: fixed; inset: 0; touch-action: none; }
     </style>
 </head>
 <body>
@@ -70,6 +70,7 @@
         let customGeoJsonLayer = null;
 
         function notifyMapReady() { callNativeBridge("onMapReady"); }
+        function notifyMapFirstRender() { callNativeBridge("onMapFirstRender"); }
         function notifyMapClick(lat, lng) { callNativeBridge("onMapClick", lat, lng); }
         function notifyCameraMoveStarted(lat, lng, zoom) { callNativeBridge("onCameraMoveStarted", lat, lng, zoom); }
         function notifyCameraMove(lat, lng, zoom) { callNativeBridge("onCameraMove", lat, lng, zoom); }
@@ -87,6 +88,9 @@
             map = L.map("map", { zoomControl: false, keepBuffer: 6, fadeAnimation: false, zoomAnimation: true }).setView([lat, lng], zoom);
             applyZoomControls();
             replaceTileLayer(activeMapStyle);
+            if (activeTileLayer && typeof activeTileLayer.once === "function") {
+                activeTileLayer.once("load", function() { notifyMapFirstRender(); });
+            }
             map.on("click", function (event) { notifyMapClick(event.latlng.lat, event.latlng.lng); });
             bindCameraLifecycleCallbacks();
             applyIndiaBoundaryOverlayVisibility();

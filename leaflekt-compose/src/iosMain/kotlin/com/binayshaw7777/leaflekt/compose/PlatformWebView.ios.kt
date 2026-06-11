@@ -13,6 +13,7 @@ import kotlinx.cinterop.cValue
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import platform.CoreGraphics.CGRect
 import platform.Foundation.NSURL
+import platform.UIKit.UIColor
 import platform.WebKit.WKUserContentController
 import platform.WebKit.WKUserScript
 import platform.WebKit.WKUserScriptInjectionTime
@@ -24,7 +25,8 @@ internal actual fun PlatformWebView(
     modifier: Modifier,
     controller: LeaflektController,
     bridge: LeaflektBridgeCallbacks,
-    contentDescription: String?
+    contentDescription: String?,
+    isFirstRenderDone: Boolean
 ) {
     val messageHandler = remember { WeakScriptMessageHandler(bridge) }
 
@@ -53,12 +55,15 @@ internal actual fun PlatformWebView(
 
             @OptIn(ExperimentalForeignApi::class)
             WKWebView(frame = cValue<CGRect>(), configuration = config).also { webView ->
+                webView.opaque = false
+                webView.backgroundColor = UIColor.clearColor()
                 controller.setWebView(webView)
                 webView.loadFileURL(htmlUrl, allowingReadAccessToURL = baseUrl)
             }
         },
         update = { webView ->
             controller.setWebView(webView)
+            webView.alpha = if (isFirstRenderDone) 1.0 else 0.0
         },
         onRelease = { webView ->
             controller.setWebView(null)

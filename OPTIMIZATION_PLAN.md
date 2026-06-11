@@ -25,9 +25,11 @@ Branch: `experiment/optimization`
 | 4 | Batch `initializeMap` scripts into one call | M | E | ✅ |
 | 5 | Disable `WebContentsDebuggingEnabled` in prod | M | E | ✅ |
 | 6 | Deduplicate `pendingScripts` queue | L | E | ✅ |
-| 7 | Fix missing tile domains in URL filter | L | E | ✅ |
+| 7 | Fix tile URL filter — split domain check vs cache check | L | E | ✅ |
 | 8 | Increase camera idle debounce | L | E | 🔲 |
 | 9 | WebView instance reuse / pooling | H | H | 🔲 |
+| 10 | Set WebView renderer priority | M | E | ✅ |
+| 11 | Hide map until ready (prevent white flash) | M | M | ✅ |
 
 ---
 
@@ -294,6 +296,73 @@ url.contains("tile.opentopomap.org")  // already there but note: openfreemap mis
 
 ---
 
+### 10. Set WebView Renderer Priority
+
+**File:** `leaflekt-compose/src/androidMain/kotlin/.../PlatformWebView.android.kt:41`
+
+**What it is:** Android API 26+ allows setting renderer process priority via `WebView.setRendererPriorityPolicy()`. Default priority means OS can deprioritize or kill the renderer under memory pressure.
+
+**What it does:** `RENDERER_PRIORITY_IMPORTANT` tells the OS to keep the renderer alive and at high priority. `false` for the second arg means priority does NOT drop when WebView is not visible — important for a map SDK where visibility may lag behind user intent.
+
+**Impact:** **MEDIUM** — prevents renderer kills during heavy map use, reduces frame drops on low-end devices under memory pressure.
+
+**Tradeoff:** Slight increase in memory pressure on system. Minor. Acceptable for an active map view.
+
+**Alternative:** Leave default. Fine for high-end devices; causes jank or blank renders on low-end.
+
+**Implementation:**
+```kotlin
+// Add inside WebView(context).apply { ... } block, after settings setup
+if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+    setRendererPriorityPolicy(WebView.RendererPriority.RENDERER_PRIORITY_IMPORTANT, false)
+}
+```
+
+- [ ] Add `setRendererPriorityPolicy` call in `PlatformWebView.android.kt`
+- [ ] Verify no crash on API < 26 (guarded by SDK check)
+
+---
+
+### 11. Hide Map Until Ready (Prevent White Flash)
+
+**File:** `leaflekt-compose/src/androidMain/kotlin/.../PlatformWebView.android.kt`, `map.html`
+
+**What it is:** WebView shows white background while Leaflet.js initializes and first tiles load. User sees white → map pop-in. Article uses pixel-ratio detection; LeafleKT already has a JS bridge, so a `map.whenReady` callback is simpler and more reliable.
+
+**What it does:** Keep `WebView` alpha at 0 (or overlay a placeholder) until Leaflet fires `map.whenReady`, then notify native via JS bridge and fade in. Eliminates white flash without polling.
+
+**Impact:** **MEDIUM** — purely UX quality. No perf gain, but perceived load time improves significantly. White flash is jarring on first open.
+
+**Tradeoff:** Requires new bridge event (`onMapReady` distinct from current map-ready state). Must handle timeout fallback so map doesn't stay invisible if bridge event never fires.
+
+**Alternative A:** `WebView.setBackgroundColor(Color.TRANSPARENT)` — hides white but shows activity background instead; still has map pop-in.  
+**Alternative B:** Expose `isMapReady: State<Boolean>` from `LeaflektController` so callers can render their own skeleton/loader.  
+**Alternative C:** Do both B + native alpha fade in SDK default.
+
+**Implementation sketch:**
+```javascript
+// map.html — after map init
+map.whenReady(function() {
+    LeaflektBridge.call('onMapFirstRender', '{}');
+});
+```
+```kotlin
+// PlatformWebView.android.kt
+val isVisible = remember { mutableStateOf(false) }
+// bridge callback sets isVisible = true
+AndroidView(
+    modifier = modifier.alpha(if (isVisible.value) 1f else 0f),
+    ...
+)
+```
+
+- [ ] Add `onMapFirstRender` event to JS bridge and `LeaflektBridgeCallbacks`
+- [ ] Wire alpha/visibility in `PlatformWebView.android.kt`
+- [ ] Add 3s timeout fallback (show map even if bridge event never fires)
+- [ ] Apply same pattern to iOS `PlatformWebView.ios.kt`
+
+---
+
 ## Non-Goals (Ruled Out)
 
 | Idea | Why not |
@@ -313,4 +382,6 @@ url.contains("tile.opentopomap.org")  // already there but note: openfreemap mis
 5. **#4** (batch init) — clean code + perf
 6. **#6** (dedup queue) — minor, low risk
 7. **#8** (debounce) — only if someone reports it
-8. **#9** (pooling) — only after profiling confirms need
+8. **#10** (renderer priority) — 5-line fix, do with #5
+9. **#11** (hide-until-ready) — UX polish, do before public release
+10. **#9** (pooling) — only after profiling confirms need

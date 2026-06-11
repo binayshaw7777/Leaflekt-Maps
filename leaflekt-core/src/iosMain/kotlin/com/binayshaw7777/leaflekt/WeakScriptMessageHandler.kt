@@ -16,6 +16,7 @@ class WeakScriptMessageHandler(
         val parts = body.split(":")
         when (parts.firstOrNull()) {
             "onMapReady" -> callbacks.onMapReady()
+            "onMapFirstRender" -> callbacks.onMapFirstRender()
             "onMapClick" -> {
                 val lat = parts.getOrNull(1)?.toDoubleOrNull() ?: return
                 val lng = parts.getOrNull(2)?.toDoubleOrNull() ?: return

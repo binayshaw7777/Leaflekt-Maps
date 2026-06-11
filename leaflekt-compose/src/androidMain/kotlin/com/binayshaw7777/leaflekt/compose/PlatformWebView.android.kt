@@ -24,7 +24,8 @@ internal actual fun PlatformWebView(
     modifier: Modifier,
     controller: LeaflektController,
     bridge: LeaflektBridgeCallbacks,
-    contentDescription: String?
+    contentDescription: String?,
+    isFirstRenderDone: Boolean
 ) {
     val webViewState = remember { mutableStateOf<WebView?>(null) }
 
@@ -45,6 +46,9 @@ internal actual fun PlatformWebView(
                 settings.allowFileAccess = true
                 settings.loadWithOverviewMode = true
                 settings.useWideViewPort = true
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT, false)
+                }
 
                 webChromeClient = object : WebChromeClient() {
                     override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
@@ -62,7 +66,7 @@ internal actual fun PlatformWebView(
                     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                         val url = request?.url?.toString() ?: return false
                         val isInternal = url.startsWith("https://appassets.androidplatform.net/")
-                        if (isInternal || isTileUrl(url)) return false
+                        if (isInternal || isKnownMapUrl(url)) return false
                         try {
                             val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
                             view?.context?.startActivity(intent)
@@ -78,7 +82,7 @@ internal actual fun PlatformWebView(
                         if (assetResponse != null) return assetResponse
 
                         val url = safeRequest.url.toString()
-                        if (isTileUrl(url)) {
+                        if (isCacheableRasterTileUrl(url)) {
                             val cached = tileCache.get(url)
                             if (cached != null) {
                                 return WebResourceResponse(mimeTypeForTileUrl(url), null, cached.inputStream())
