@@ -2,6 +2,7 @@ package com.binayshaw7777.leaflekt.compose
 
 import com.binayshaw7777.leaflekt.*
 
+import android.content.pm.ApplicationInfo
 import android.util.Log
 import android.webkit.ConsoleMessage
 import android.webkit.WebChromeClient
@@ -34,7 +35,9 @@ internal actual fun PlatformWebView(
                 .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(context))
                 .build()
 
-            WebView.setWebContentsDebuggingEnabled(true)
+            val tileCache = TileCache(context)
+            val isDebuggable = context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
+            WebView.setWebContentsDebuggingEnabled(isDebuggable)
             WebView(context).apply {
                 this.contentDescription = contentDescription
                 settings.javaScriptEnabled = true
@@ -59,11 +62,7 @@ internal actual fun PlatformWebView(
                     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                         val url = request?.url?.toString() ?: return false
                         val isInternal = url.startsWith("https://appassets.androidplatform.net/")
-                        val isMapTile = url.contains(".tile.openstreetmap.org") ||
-                                url.contains(".basemaps.cartocdn.com") ||
-                                url.contains(".tile.opentopomap.org") ||
-                                url.contains("server.arcgisonline.com")
-                        if (isInternal || isMapTile) return false
+                        if (isInternal || isTileUrl(url)) return false
                         try {
                             val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
                             view?.context?.startActivity(intent)
@@ -75,8 +74,21 @@ internal actual fun PlatformWebView(
 
                     override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? {
                         val safeRequest = request ?: return null
-                        return assetLoader.shouldInterceptRequest(safeRequest.url)
-                            ?: super.shouldInterceptRequest(view, safeRequest)
+                        val assetResponse = assetLoader.shouldInterceptRequest(safeRequest.url)
+                        if (assetResponse != null) return assetResponse
+
+                        val url = safeRequest.url.toString()
+                        if (isTileUrl(url)) {
+                            val cached = tileCache.get(url)
+                            if (cached != null) {
+                                return WebResourceResponse(mimeTypeForTileUrl(url), null, cached.inputStream())
+                            }
+                            val data = fetchTile(url) ?: return null
+                            tileCache.put(url, data)
+                            return WebResourceResponse(mimeTypeForTileUrl(url), null, data.inputStream())
+                        }
+
+                        return null
                     }
 
                     override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {

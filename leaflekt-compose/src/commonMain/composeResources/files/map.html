@@ -84,7 +84,7 @@
         }
 
         function createMap(lat, lng, zoom) {
-            map = L.map("map", { zoomControl: false }).setView([lat, lng], zoom);
+            map = L.map("map", { zoomControl: false, keepBuffer: 6, fadeAnimation: false, zoomAnimation: true }).setView([lat, lng], zoom);
             applyZoomControls();
             replaceTileLayer(activeMapStyle);
             map.on("click", function (event) { notifyMapClick(event.latlng.lat, event.latlng.lng); });
