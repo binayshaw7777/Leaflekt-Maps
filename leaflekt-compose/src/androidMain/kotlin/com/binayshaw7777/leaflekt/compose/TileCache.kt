@@ -63,9 +63,21 @@ internal fun mimeTypeForTileUrl(url: String): String = when {
     else -> "image/png"
 }
 
-internal fun isTileUrl(url: String): Boolean =
+// All map-related URLs that should remain in WebView (not open external browser)
+internal fun isKnownMapUrl(url: String): Boolean =
     url.contains(".tile.openstreetmap.org") ||
     url.contains(".basemaps.cartocdn.com") ||
     url.contains(".tile.opentopomap.org") ||
     url.contains("server.arcgisonline.com") ||
-    url.contains("tiles.openfreemap.org")
+    url.contains("openfreemap.org")
+
+// Only raster image tiles safe to cache — MapLibre GL manages its own cache for vector tiles
+internal fun isCacheableRasterTileUrl(url: String): Boolean {
+    val isRasterDomain =
+        url.contains(".tile.openstreetmap.org") ||
+        url.contains(".basemaps.cartocdn.com") ||
+        url.contains(".tile.opentopomap.org") ||
+        url.contains("server.arcgisonline.com")
+    if (!isRasterDomain) return false
+    return url.endsWith(".png") || url.endsWith(".jpg") || url.endsWith(".jpeg")
+}
