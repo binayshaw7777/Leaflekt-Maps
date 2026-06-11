@@ -31,6 +31,7 @@ internal actual fun LeaflektCurrentLocationOverlay(uiSettings: LeaflektMapUiSett
     }
 
     var currentLocation by remember { mutableStateOf<LeaflektLatLng?>(null) }
+    var pendingCenterZoom by remember { mutableStateOf<Double?>(null) }
 
     val pulseTransition = rememberInfiniteTransition(label = "iosLocationPulse")
     val pulseRadiusScale by pulseTransition.animateFloat(
@@ -49,11 +50,23 @@ internal actual fun LeaflektCurrentLocationOverlay(uiSettings: LeaflektMapUiSett
         onDispose { locationProvider.removeLocationUpdates() }
     }
 
-    DisposableEffect(controller) {
+    DisposableEffect(controller, currentLocation) {
         controller.registerCurrentLocationCenteringAction { zoom ->
-            currentLocation?.let { controller.moveCamera(it.latitude, it.longitude, zoom) }
+            val loc = currentLocation
+            if (loc != null) {
+                controller.moveCamera(loc.latitude, loc.longitude, zoom)
+            } else {
+                pendingCenterZoom = zoom
+            }
         }
         onDispose { controller.unregisterCurrentLocationCenteringAction() }
+    }
+
+    LaunchedEffect(currentLocation, pendingCenterZoom) {
+        val zoom = pendingCenterZoom ?: return@LaunchedEffect
+        val loc = currentLocation ?: return@LaunchedEffect
+        controller.moveCamera(loc.latitude, loc.longitude, zoom)
+        pendingCenterZoom = null
     }
 
     currentLocation?.let { loc ->
