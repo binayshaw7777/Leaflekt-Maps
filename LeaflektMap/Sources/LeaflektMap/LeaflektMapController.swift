@@ -180,7 +180,7 @@ public final class LeaflektMapController {
         let lat = position.target.latitude
         let lng = position.target.longitude
         let zoom = position.zoom
-        enqueueOrRun("window.LeaflektBridge.initMap(\(lat),\(lng),\(zoom));")
+        enqueueOrRun("window.LeaflektBridge.initMap(\(lat),\(lng),\(zoom),\(properties.tileBufferSize));")
         enqueueOrRun("window.LeaflektBridge.setZoomControlsEnabled(\(uiSettings.zoomControlsEnabled));")
         let style = properties.mapStyle
         let sub = style.subdomains.map { "\"\($0)\"" } ?? "null"

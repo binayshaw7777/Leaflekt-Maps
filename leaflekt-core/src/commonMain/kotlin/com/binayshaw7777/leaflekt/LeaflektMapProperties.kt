@@ -5,7 +5,7 @@ val DefaultLeaflektMapProperties: LeaflektMapProperties = LeaflektMapProperties(
 class LeaflektMapProperties(
     val mapStyle: LeaflektMapStyle = LeaflektMapStyle.OpenStreetMap,
     val geoJsonOverlay: LeaflektGeoJsonOverlay = LeaflektGeoJsonOverlay.India,
-    val tileBufferSize: Int = 10
+    val tileBufferSize: Int = defaultTileBufferSize()
 ) {
     override fun toString(): String =
         "LeaflektMapProperties(mapStyle=$mapStyle, geoJsonOverlay=$geoJsonOverlay, tileBufferSize=$tileBufferSize)"
