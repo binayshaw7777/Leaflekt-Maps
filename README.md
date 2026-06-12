@@ -53,7 +53,7 @@ fun MyMap() {
 
 ## Quick Start
 
-[Full docs →](https://leaflekt.dev) | [iOS SPM →](PLATFORM_IOS.md) | [Sample app →](leaflektsampleapp/)
+[Full docs →]([https://leaflekt.dev](https://binayshaw7777.github.io/Leaflekt-Maps/#/)) | [iOS SPM →]([PLATFORM_IOS.md](https://binayshaw7777.github.io/Leaflekt-Maps/#/PLATFORM_IOS)) | [Sample app →](leaflektsampleapp/)
 
 ## License
 
