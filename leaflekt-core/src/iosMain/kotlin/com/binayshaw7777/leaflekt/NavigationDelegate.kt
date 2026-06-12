@@ -10,9 +10,4 @@ class NavigationDelegate(private val callbacks: LeaflektBridgeCallbacks) : NSObj
     override fun webView(webView: WKWebView, didFailProvisionalNavigation: WKNavigation?, withError: NSError) {
         callbacks.onMapError(withError.localizedDescription)
     }
-
-    @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
-    override fun webView(webView: WKWebView, didFail: WKNavigation?, withError: NSError) {
-        callbacks.onMapError(withError.localizedDescription)
-    }
 }
