@@ -79,6 +79,9 @@ data class Location(
     val lng: Double
 )
 
+val Location.latLng: LeaflektLatLng
+    get() = LeaflektLatLng(lat, lng)
+
 enum class DirectionsEndpoint {
     Origin,
     Destination

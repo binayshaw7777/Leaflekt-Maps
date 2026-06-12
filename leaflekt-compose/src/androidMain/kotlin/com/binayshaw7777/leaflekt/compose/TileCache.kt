@@ -6,10 +6,22 @@ import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 import java.security.MessageDigest
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
-internal class TileCache(context: Context, private val maxSizeBytes: Long = 50L * 1024 * 1024) {
+internal class TileCache private constructor(context: Context, private val maxSizeBytes: Long = 50L * 1024 * 1024) {
+
+    companion object {
+        @Volatile private var instance: TileCache? = null
+
+        fun get(context: Context): TileCache = instance ?: synchronized(this) {
+            instance ?: TileCache(context.applicationContext).also { instance = it }
+        }
+    }
 
     private val cacheDir = File(context.cacheDir, "leaflekt_tiles").also { it.mkdirs() }
+    private val inFlight = ConcurrentHashMap<String, CountDownLatch>()
 
     @Synchronized
     fun get(url: String): ByteArray? {
@@ -23,6 +35,27 @@ internal class TileCache(context: Context, private val maxSizeBytes: Long = 50L 
     fun put(url: String, data: ByteArray) {
         evictIfNeeded(data.size.toLong())
         runCatching { fileFor(url).writeBytes(data) }
+    }
+
+    fun getOrFetch(url: String): ByteArray? {
+        val cached = get(url)
+        if (cached != null) return cached
+
+        val newLatch = CountDownLatch(1)
+        val existing = inFlight.putIfAbsent(url, newLatch)
+        if (existing != null) {
+            existing.await(10, TimeUnit.SECONDS)
+            return get(url)
+        }
+
+        return try {
+            val data = fetchTile(url)
+            if (data != null) put(url, data)
+            data
+        } finally {
+            inFlight.remove(url)
+            newLatch.countDown()
+        }
     }
 
     private fun fileFor(url: String): File {

@@ -11,11 +11,15 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.webkit.WebResourceError
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.webkit.WebViewAssetLoader
 
@@ -28,14 +32,19 @@ internal actual fun PlatformWebView(
     isFirstRenderDone: Boolean
 ) {
     val webViewState = remember { mutableStateOf<WebView?>(null) }
+    val alpha by animateFloatAsState(
+        targetValue = if (isFirstRenderDone) 1f else 0f,
+        animationSpec = tween(durationMillis = 200),
+        label = "mapAlpha"
+    )
 
     AndroidView(
-        modifier = modifier,
+        modifier = modifier.alpha(alpha),
         factory = { context ->
             val assetLoader = WebViewAssetLoader.Builder()
                 .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(context))
                 .build()
-            val tileCache = TileCache(context)
+            val tileCache = TileCache.get(context)
 
             val isDebuggable = context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
             WebView.setWebContentsDebuggingEnabled(isDebuggable)
@@ -85,12 +94,7 @@ internal actual fun PlatformWebView(
 
                     val url = safeRequest.url.toString()
                     if (isCacheableRasterTileUrl(url)) {
-                        val cached = tileCache.get(url)
-                        if (cached != null) {
-                            return WebResourceResponse(mimeTypeForTileUrl(url), null, cached.inputStream())
-                        }
-                        val data = fetchTile(url) ?: return null
-                        tileCache.put(url, data)
+                        val data = tileCache.getOrFetch(url) ?: return null
                         return WebResourceResponse(mimeTypeForTileUrl(url), null, data.inputStream())
                     }
                     return null
@@ -98,8 +102,31 @@ internal actual fun PlatformWebView(
 
                 override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
                     if (request?.url?.toString()?.endsWith("/favicon.ico") == true) return
-                    Log.e("Leaflekt.WebView", "Web resource error: ${request?.url} - $error")
-                    super.onReceivedError(view, request, error)
+                    if (request?.isForMainFrame == true) {
+                        val desc = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                            error?.description?.toString() ?: "Unknown error"
+                        } else "Unknown error"
+                        Log.e("Leaflekt.WebView", "Main frame error: ${request.url} - $desc")
+                        // Replace Android's default "Webpage not available" screen with blank page
+                        view?.loadData("<html><body></body></html>", "text/html", "UTF-8")
+                        bridge.onMapError(desc)
+                        return
+                    }
+                    Log.w("Leaflekt.WebView", "Sub-resource error: ${request?.url} - $error")
+                }
+
+                override fun onReceivedHttpError(
+                    view: WebView?,
+                    request: WebResourceRequest?,
+                    errorResponse: WebResourceResponse?
+                ) {
+                    if (request?.isForMainFrame == true) {
+                        val statusCode = errorResponse?.statusCode ?: 0
+                        val desc = "HTTP $statusCode: ${errorResponse?.reasonPhrase}"
+                        Log.e("Leaflekt.WebView", "Main frame HTTP error: ${request.url} - $desc")
+                        view?.loadData("<html><body></body></html>", "text/html", "UTF-8")
+                        bridge.onMapError(desc)
+                    }
                 }
             }
 
@@ -111,10 +138,13 @@ internal actual fun PlatformWebView(
             if (pooled == null) {
                 webView.loadUrl(MAP_ASSET_URL_ANDROID)
             } else {
-                // Map already initialised — skip cold-start wait, notify Compose state directly.
-                webView.post {
-                    bridge.onMapReady()
-                    bridge.onMapFirstRender()
+                // Pooled reuse: reset JS state first, then signal map-ready only after reset completes
+                // to avoid initMapBatchScript executing before reset() clears prior session state.
+                webView.evaluateJavascript("window.LeaflektBridge.reset();") {
+                    webView.post {
+                        bridge.onMapReady()
+                        bridge.onMapFirstRender()
+                    }
                 }
             }
 
@@ -123,7 +153,6 @@ internal actual fun PlatformWebView(
         update = { webView ->
             controller.setWebView(webView)
             webView.contentDescription = contentDescription
-            webView.alpha = if (isFirstRenderDone) 1f else 0f
             webViewState.value = webView
         }
     )
@@ -132,7 +161,6 @@ internal actual fun PlatformWebView(
         onDispose {
             val webView = webViewState.value ?: return@onDispose
             controller.setWebView(null)
-            webView.evaluateJavascript("window.LeaflektBridge && window.LeaflektBridge.reset();", null)
             webView.removeJavascriptInterface(JS_BRIDGE_ANDROID)
             webView.stopLoading()
             WebViewPool.release(webView)

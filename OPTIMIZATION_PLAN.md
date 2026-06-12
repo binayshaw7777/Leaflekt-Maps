@@ -1,6 +1,6 @@
 # LeafleKT Optimization Plan
 
-Last updated: 2026-06-12 (session 2)  
+Last updated: 2026-06-12 (session 3)  
 Branch: `experiment/optimization`
 
 ---
@@ -31,6 +31,14 @@ Branch: `experiment/optimization`
 | 12 | Dynamic tile buffer size from device RAM | M | E | ✅ |
 | 10 | Set WebView renderer priority | M | E | ✅ |
 | 11 | Hide map until ready (prevent white flash) — all platforms | M | M | ✅ |
+| 13 | Fix pool reuse reset/init race condition | H | E | ✅ |
+| 14 | TileCache singleton (was per-composition) | M | E | ✅ |
+| 15 | Tile request in-flight deduplication | M | M | ✅ |
+| 16 | `warmUpLeaflektMap()` API — pre-populate pool | H | E | ✅ |
+| 17 | iOS URLCache disk size 20MB → 100MB | M | E | ✅ |
+| 18 | Alpha fade on first render (200ms crossfade) | L | E | ✅ |
+| 19 | `addMarkers(List<...>)` bulk API | M | E | ✅ |
+| 20 | `notifyMapFirstRender` fires on first tile load, not map init | M | E | ✅ |
 
 ---
 
@@ -364,6 +372,104 @@ AndroidView(
 - [x] Apply same pattern to Swift package (`LeaflektMapRepresentable` + `LeaflektBridge`)
 - [x] Fix parity: CMP + Swift `map.html` missing `notifyMapFirstRender()` function (was ReferenceError)
 - [x] Fix parity: CMP + Swift `map.html` missing `touch-action: none` on `#map`
+
+---
+
+### 13. Pool Reuse Reset/Init Race Condition
+
+**File:** `leaflekt-compose/src/androidMain/kotlin/.../PlatformWebView.android.kt`
+
+`onDispose` called `evaluateJavascript("reset()")` — async IPC to renderer. New factory immediately acquired the WebView and called `webView.post { onMapReady() }`. `webView.post` is a main-looper enqueue; it resolves before the `evaluateJavascript` IPC round-trip completes. `reset()` then executed after `initMapBatchScript`, wiping the freshly initialized map.
+
+Fix: moved `reset()` into factory's pool-reuse path with a JS completion callback. `onMapReady()` fires only after reset completes.
+
+- [x] Move `reset()` to factory pool-reuse path, chain `onMapReady()` in callback
+- [x] Remove `reset()` from `onDispose`
+
+---
+
+### 14. TileCache Singleton
+
+**File:** `leaflekt-compose/src/androidMain/kotlin/.../TileCache.kt`
+
+`TileCache(context)` was created inside `factory {}` — new instance per composition. Two simultaneous maps each tracked their own 50MB LRU limit against the same `cacheDir`, with no cross-instance synchronization on eviction.
+
+Fix: double-checked locking singleton via companion object, keyed off `applicationContext`.
+
+- [x] Add companion object singleton with double-checked locking
+- [x] `PlatformWebView.android.kt` uses `TileCache.get(context)` instead of `TileCache(context)`
+
+---
+
+### 15. Tile Request In-Flight Deduplication
+
+**File:** `leaflekt-compose/src/androidMain/kotlin/.../TileCache.kt`
+
+`shouldInterceptRequest` runs on multiple background threads. When map loads a new region, 10–20 tiles share the same subdomain and fire simultaneously. Cache misses on the same URL triggered duplicate `fetchTile` calls — same PNG fetched 2–3× concurrently.
+
+Fix: `ConcurrentHashMap<String, CountDownLatch>` per URL. First thread fetches and signals; subsequent threads await and read from cache.
+
+- [x] Add `inFlight: ConcurrentHashMap<String, CountDownLatch>` to `TileCache`
+- [x] Add `getOrFetch(url)` method with await/signal logic
+- [x] `PlatformWebView.android.kt` uses `tileCache.getOrFetch(url)` in `shouldInterceptRequest`
+
+---
+
+### 16. `warmUpLeaflektMap()` API
+
+**File:** `leaflekt-compose/src/androidMain/kotlin/.../WebViewPool.kt`
+
+`WebViewPool` was only populated on `release()`. App's first map entry is always cold (pool empty). `warmUpLeaflektMap(context)` creates + loads a WebView into the pool in advance.
+
+Call from `Application.onCreate` or before the map screen is navigated to. Must be called on the main thread. No-op if pool already populated.
+
+- [x] Add `warmUp(context: Context)` to `WebViewPool`
+- [x] Expose as public `fun warmUpLeaflektMap(context: Context)` top-level function
+
+---
+
+### 17. iOS URLCache Disk Size
+
+**File:** `leaflekt-compose/src/iosMain/kotlin/.../PlatformWebView.ios.kt`
+
+Default `NSURLCache.sharedURLCache` disk capacity is ~20MB. At ~15KB per 256×256 raster tile, that's ~1300 tiles — less than one zoom level's worth for a typical viewport. Override to 100MB disk / 10MB memory in the `WKWebView` factory.
+
+- [x] Set `NSURLCache.setSharedURLCache(NSURLCache(10MB memory, 100MB disk))` in iOS factory
+
+---
+
+### 18. Alpha Crossfade on First Render
+
+**Files:** `PlatformWebView.android.kt`, `PlatformWebView.ios.kt`
+
+Alpha snapped from 0 to 1 instantly on `isFirstRenderDone`. Replaced with `animateFloatAsState(tween(200ms))` applied via `modifier.alpha()`. Map fades in smoothly instead of popping.
+
+- [x] Add `animateFloatAsState` with 200ms tween to both Android and iOS `PlatformWebView`
+- [x] Apply alpha via `modifier.alpha(alpha)` — remove direct `webView.alpha` assignment from `update` block
+
+---
+
+### 19. Bulk `addMarkers` API
+
+**Files:** `LeaflektControllerInterface.kt`, `LeaflektControllerBase.kt`
+
+`addMarker(info)` issued one `evaluateJavascript` call per marker. Adding 500 markers = 500 bridge round-trips. `LeaflektScriptBuilder.addMarkersScript(List<...>)` already serializes a batch into one JS call — just wasn't exposed.
+
+- [x] Add `addMarkers(markers: List<LeaflektMarkerInfo>)` to `LeaflektControllerInterface`
+- [x] Implement in `LeaflektControllerBase` — single `enqueueOrRun(addMarkersScript(markers))`
+
+---
+
+### 20. `notifyMapFirstRender` Fires After First Tile Load
+
+**Files:** All 4 `map.html` variants
+
+`notifyMapFirstRender()` was called synchronously in `createMap()` — before any tiles loaded. Map became visible showing the background color only, then tiles popped in. Hide-until-ready intent was partially defeated.
+
+Fix: `scheduleFirstRenderNotification()` waits for `tileload` event (raster) or 500ms timeout (vector/MapLibre), with a 3s hard fallback. Map reveals only after the first real tile pixel appears.
+
+- [x] Add `scheduleFirstRenderNotification()` to all 4 `map.html`
+- [x] Replace direct `notifyMapFirstRender()` call in `createMap()` with `scheduleFirstRenderNotification()`
 
 ---
 

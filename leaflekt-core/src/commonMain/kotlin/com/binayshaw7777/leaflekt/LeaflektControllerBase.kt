@@ -39,6 +39,11 @@ abstract class LeaflektControllerBase : LeaflektControllerInterface {
         enqueueOrRun(LeaflektScriptBuilder.addMarkersScript(listOf(info)))
     }
 
+    override fun addMarkers(markers: List<LeaflektMarkerInfo>) {
+        if (markers.isEmpty()) return
+        enqueueOrRun(LeaflektScriptBuilder.addMarkersScript(markers))
+    }
+
     override fun removeMarker(id: String) {
         enqueueOrRun(LeaflektScriptBuilder.removeMarkerScript(id))
     }

@@ -30,6 +30,7 @@ fun LeaflektMap(
     uiSettings: LeaflektMapUiSettings = DefaultLeaflektMapUiSettings,
     onMapLoaded: (() -> Unit)? = null,
     onReady: ((LeaflektController) -> Unit)? = null,
+    onMapError: ((String) -> Unit)? = null,
     onMapClick: ((LeaflektLatLng) -> Unit)? = null,
     onCameraMoveStarted: (() -> Unit)? = null,
     onCameraMove: (() -> Unit)? = null,
@@ -44,6 +45,7 @@ fun LeaflektMap(
 
     val currentOnReady by rememberUpdatedState(onReady)
     val currentOnMapLoaded by rememberUpdatedState(onMapLoaded)
+    val currentOnMapError by rememberUpdatedState(onMapError)
     val currentOnMapClick by rememberUpdatedState(onMapClick)
     val currentOnCameraMoveStarted by rememberUpdatedState(onCameraMoveStarted)
     val currentOnCameraMove by rememberUpdatedState(onCameraMove)
@@ -65,6 +67,11 @@ fun LeaflektMap(
 
             override fun onMapFirstRender() {
                 isFirstRenderDone = true
+            }
+
+            override fun onMapError(description: String) {
+                isFirstRenderDone = true
+                currentOnMapError?.invoke(description)
             }
 
             override fun onMapClick(lat: Double, lng: Double) {

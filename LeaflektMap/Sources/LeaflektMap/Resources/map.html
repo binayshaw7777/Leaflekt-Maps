@@ -94,8 +94,26 @@
             applyIndiaBoundaryOverlayVisibility();
             invalidateSizeOnReady();
             notifyMapReady();
-            notifyMapFirstRender();
+            scheduleFirstRenderNotification();
             return map;
+        }
+
+        function scheduleFirstRenderNotification() {
+            var fired = false;
+            var fallback = setTimeout(function() {
+                if (!fired) { fired = true; notifyMapFirstRender(); }
+            }, 3000);
+            function fireOnce() {
+                if (fired) return;
+                fired = true;
+                clearTimeout(fallback);
+                notifyMapFirstRender();
+            }
+            if (activeTileLayer && !activeMapStyle.isVectorStyle) {
+                activeTileLayer.once("tileload", fireOnce);
+            } else {
+                setTimeout(fireOnce, 500);
+            }
         }
 
         function applyZoomControls() {
