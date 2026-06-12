@@ -35,12 +35,13 @@ internal actual fun PlatformWebView(
             val assetLoader = WebViewAssetLoader.Builder()
                 .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(context))
                 .build()
-
             val tileCache = TileCache(context)
+
             val isDebuggable = context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
             WebView.setWebContentsDebuggingEnabled(isDebuggable)
-            WebView(context).apply {
-                this.contentDescription = contentDescription
+
+            val pooled = WebViewPool.acquire()
+            val webView = pooled ?: WebView(context).apply {
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
                 settings.allowFileAccess = true
@@ -49,64 +50,75 @@ internal actual fun PlatformWebView(
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                     setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT, false)
                 }
-
-                webChromeClient = object : WebChromeClient() {
-                    override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
-                        if (consoleMessage.messageLevel() == ConsoleMessage.MessageLevel.ERROR ||
-                            consoleMessage.messageLevel() == ConsoleMessage.MessageLevel.WARNING) {
-                            Log.w("Leaflekt.WebView",
-                                "JS ${consoleMessage.messageLevel()}: ${consoleMessage.message()} " +
-                                "(${consoleMessage.sourceId()}:${consoleMessage.lineNumber()})")
-                        }
-                        return super.onConsoleMessage(consoleMessage)
-                    }
-                }
-
-                webViewClient = object : WebViewClient() {
-                    override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-                        val url = request?.url?.toString() ?: return false
-                        val isInternal = url.startsWith("https://appassets.androidplatform.net/")
-                        if (isInternal || isKnownMapUrl(url)) return false
-                        try {
-                            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
-                            view?.context?.startActivity(intent)
-                        } catch (e: Exception) {
-                            Log.e("Leaflekt.WebView", "Failed to open external link: $url", e)
-                        }
-                        return true
-                    }
-
-                    override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? {
-                        val safeRequest = request ?: return null
-                        val assetResponse = assetLoader.shouldInterceptRequest(safeRequest.url)
-                        if (assetResponse != null) return assetResponse
-
-                        val url = safeRequest.url.toString()
-                        if (isCacheableRasterTileUrl(url)) {
-                            val cached = tileCache.get(url)
-                            if (cached != null) {
-                                return WebResourceResponse(mimeTypeForTileUrl(url), null, cached.inputStream())
-                            }
-                            val data = fetchTile(url) ?: return null
-                            tileCache.put(url, data)
-                            return WebResourceResponse(mimeTypeForTileUrl(url), null, data.inputStream())
-                        }
-
-                        return null
-                    }
-
-                    override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
-                        if (request?.url?.toString()?.endsWith("/favicon.ico") == true) return
-                        Log.e("Leaflekt.WebView", "Web resource error: ${request?.url} - $error")
-                        super.onReceivedError(view, request, error)
-                    }
-                }
-
-                addJavascriptInterface(LeaflektJsBridgeAndroid(bridge), JS_BRIDGE_ANDROID)
-                loadUrl(MAP_ASSET_URL_ANDROID)
-                controller.setWebView(this)
-                webViewState.value = this
             }
+
+            webView.contentDescription = contentDescription
+            webView.webChromeClient = object : WebChromeClient() {
+                override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
+                    if (consoleMessage.messageLevel() == ConsoleMessage.MessageLevel.ERROR ||
+                        consoleMessage.messageLevel() == ConsoleMessage.MessageLevel.WARNING) {
+                        Log.w("Leaflekt.WebView",
+                            "JS ${consoleMessage.messageLevel()}: ${consoleMessage.message()} " +
+                            "(${consoleMessage.sourceId()}:${consoleMessage.lineNumber()})")
+                    }
+                    return super.onConsoleMessage(consoleMessage)
+                }
+            }
+            webView.webViewClient = object : WebViewClient() {
+                override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+                    val url = request?.url?.toString() ?: return false
+                    val isInternal = url.startsWith("https://appassets.androidplatform.net/")
+                    if (isInternal || isKnownMapUrl(url)) return false
+                    try {
+                        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
+                        view?.context?.startActivity(intent)
+                    } catch (e: Exception) {
+                        Log.e("Leaflekt.WebView", "Failed to open external link: $url", e)
+                    }
+                    return true
+                }
+
+                override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? {
+                    val safeRequest = request ?: return null
+                    val assetResponse = assetLoader.shouldInterceptRequest(safeRequest.url)
+                    if (assetResponse != null) return assetResponse
+
+                    val url = safeRequest.url.toString()
+                    if (isCacheableRasterTileUrl(url)) {
+                        val cached = tileCache.get(url)
+                        if (cached != null) {
+                            return WebResourceResponse(mimeTypeForTileUrl(url), null, cached.inputStream())
+                        }
+                        val data = fetchTile(url) ?: return null
+                        tileCache.put(url, data)
+                        return WebResourceResponse(mimeTypeForTileUrl(url), null, data.inputStream())
+                    }
+                    return null
+                }
+
+                override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
+                    if (request?.url?.toString()?.endsWith("/favicon.ico") == true) return
+                    Log.e("Leaflekt.WebView", "Web resource error: ${request?.url} - $error")
+                    super.onReceivedError(view, request, error)
+                }
+            }
+
+            webView.removeJavascriptInterface(JS_BRIDGE_ANDROID)
+            webView.addJavascriptInterface(LeaflektJsBridgeAndroid(bridge), JS_BRIDGE_ANDROID)
+            controller.setWebView(webView)
+            webViewState.value = webView
+
+            if (pooled == null) {
+                webView.loadUrl(MAP_ASSET_URL_ANDROID)
+            } else {
+                // Map already initialised — skip cold-start wait, notify Compose state directly.
+                webView.post {
+                    bridge.onMapReady()
+                    bridge.onMapFirstRender()
+                }
+            }
+
+            webView
         },
         update = { webView ->
             controller.setWebView(webView)
@@ -120,9 +132,10 @@ internal actual fun PlatformWebView(
         onDispose {
             val webView = webViewState.value ?: return@onDispose
             controller.setWebView(null)
+            webView.evaluateJavascript("window.LeaflektBridge && window.LeaflektBridge.reset();", null)
             webView.removeJavascriptInterface(JS_BRIDGE_ANDROID)
             webView.stopLoading()
-            webView.destroy()
+            WebViewPool.release(webView)
             webViewState.value = null
         }
     }

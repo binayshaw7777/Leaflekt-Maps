@@ -43,7 +43,7 @@ LeafleKT is a Kotlin Multiplatform Leaflet.js SDK — a UI-free core, Compose Mu
 - Map rendering via `WebView` / `WKWebView` with a Kotlin/Swift JavaScript bridge
 - Declarative Compose API: markers, polylines, polygons, circles
 - Hoisted state for camera, shapes, and selection
-- 5 built-in tile providers (OSM, Carto Light/Dark, Topo, Esri Imagery)
+- 8 built-in tile styles: raster (OSM, Carto Light/Dark, Topo, Esri Imagery) + vector (OpenFreeMap Liberty/Fiord/Bright)
 - GeoJSON boundary overlays (India built-in + custom)
 - Marker clustering via Leaflet.markercluster
 - Custom marker icons (base64 or URL)
@@ -176,10 +176,19 @@ LeaflektMap(
 LeaflektMap(
     properties = LeaflektMapProperties(
         mapStyle = LeaflektMapStyle.CartoDark,
-        geoJsonOverlay = LeaflektGeoJsonOverlay.India
+        geoJsonOverlay = LeaflektGeoJsonOverlay.India,
+        tileBufferSize = 8  // optional — auto-detected from device RAM by default
     )
 )
 ```
+
+### LeaflektMapProperties fields
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `mapStyle` | `LeaflektMapStyle` | `OpenStreetMap` | Tile provider and style |
+| `geoJsonOverlay` | `LeaflektGeoJsonOverlay` | `India` | Boundary overlay |
+| `tileBufferSize` | `Int` | auto (RAM-based) | Leaflet `keepBuffer` — tiles kept outside viewport. Auto-selects 4/8/12 based on device RAM (<2 GB / 2–4 GB / >4 GB) |
 
 ### Available Map Styles
 

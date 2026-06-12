@@ -8,17 +8,15 @@ public struct LeaflektMapProperties {
     public init(
         mapStyle: LeaflektMapStyle = .openStreetMap,
         geoJsonOverlay: LeaflektGeoJsonOverlay = .india,
-        tileBufferSize: Int = LeaflektMapProperties.defaultTileBufferSize()
+        tileBufferSize: Int = {
+            let ramMb = Int(ProcessInfo.processInfo.physicalMemory / (1024 * 1024))
+            if ramMb < 2048 { return 4 }
+            if ramMb < 4096 { return 8 }
+            return 12
+        }()
     ) {
         self.mapStyle = mapStyle
         self.geoJsonOverlay = geoJsonOverlay
         self.tileBufferSize = tileBufferSize
-    }
-
-    private static func defaultTileBufferSize() -> Int {
-        let ramMb = Int(ProcessInfo.processInfo.physicalMemory / (1024 * 1024))
-        if ramMb < 2048 { return 4 }
-        if ramMb < 4096 { return 8 }
-        return 12
     }
 }

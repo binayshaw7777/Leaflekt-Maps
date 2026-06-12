@@ -47,6 +47,19 @@ public enum LeaflektMapStyle: String, CaseIterable {
         }
     }
 
+    var backgroundColor: String {
+        switch self {
+        case .openStreetMap:        return "#f2efe9"
+        case .cartoLight:           return "#f5f5f5"
+        case .cartoDark:            return "#1d1d1d"
+        case .openTopoMap:          return "#f2ede6"
+        case .esriWorldImagery:     return "#000000"
+        case .openFreeMapLiberty:   return "#f1ecdf"
+        case .openFreeMapFiord:     return "#2b3a4a"
+        case .openFreeMapBright:    return "#f8f4f0"
+        }
+    }
+
     var subdomains: String? {
         switch self {
         case .cartoLight, .cartoDark: return "abcd"

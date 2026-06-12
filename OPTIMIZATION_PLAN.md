@@ -1,6 +1,6 @@
 # LeafleKT Optimization Plan
 
-Last updated: 2026-06-12  
+Last updated: 2026-06-12 (session 2)  
 Branch: `experiment/optimization`
 
 ---
@@ -26,8 +26,9 @@ Branch: `experiment/optimization`
 | 5 | Disable `WebContentsDebuggingEnabled` in prod | M | E | ✅ |
 | 6 | Deduplicate `pendingScripts` queue | L | E | ✅ |
 | 7 | Fix tile URL filter — split domain check vs cache check | L | E | ✅ |
-| 8 | Increase camera idle debounce | L | E | 🔲 |
-| 9 | WebView instance reuse / pooling | H | H | 🔲 |
+| 8 | Increase camera idle debounce | L | E | ✅ |
+| 9 | WebView instance reuse / pooling | H | H | ✅ |
+| 12 | Dynamic tile buffer size from device RAM | M | E | ✅ |
 | 10 | Set WebView renderer priority | M | E | ✅ |
 | 11 | Hide map until ready (prevent white flash) — all platforms | M | M | ✅ |
 
@@ -263,8 +264,7 @@ url.contains("tile.opentopomap.org")  // already there but note: openfreemap mis
 }, 100);
 ```
 
-- [ ] Decide: hardcode 100ms or expose as config
-- [ ] Update debounce value in `map.html`
+- [x] Hardcoded 100ms in all 4 `map.html` variants
 
 ---
 
@@ -289,10 +289,11 @@ url.contains("tile.opentopomap.org")  // already there but note: openfreemap mis
 - Controller must support `reset()` to clear markers/layers on reuse
 - Must handle cases where pool WebView was GC'd or process killed
 
-- [ ] Profile actual cold-start time first (determine if worth the complexity)
-- [ ] Design Controller `reset()` API
-- [ ] Implement `WebViewPool` singleton in Android main
-- [ ] Test state isolation between reuses
+- [x] `WebViewPool` singleton (pool size 1) in `leaflekt-compose/src/androidMain`
+- [x] `reset()` JS bridge method in all 4 `map.html` — clears markers/shapes/clusters/GeoJSON, resets camera state
+- [x] `PlatformWebView.android.kt` uses pool: acquire on factory, release on dispose
+- [x] Pool reuse skips cold-start: `bridge.onMapReady()` + `bridge.onMapFirstRender()` posted directly
+- [ ] iOS: no WKWebView pooling API — not applicable
 
 ---
 

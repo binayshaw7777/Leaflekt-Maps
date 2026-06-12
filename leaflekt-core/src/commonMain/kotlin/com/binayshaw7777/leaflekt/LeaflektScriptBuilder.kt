@@ -102,7 +102,7 @@ internal object LeaflektScriptBuilder {
 
     private fun LeaflektMapStyle.toJson(): String {
         val subdomainsJson = subdomains?.let(LeaflektMapJson::encodeString) ?: "null"
-        return """{"id":${LeaflektMapJson.encodeString(id)},"tileUrlTemplate":${LeaflektMapJson.encodeString(url)},"attributionHtml":${LeaflektMapJson.encodeString(attribution)},"maxZoom":$maxZoom,"subdomains":$subdomainsJson,"isVectorStyle":$isVectorStyle}"""
+        return """{"id":${LeaflektMapJson.encodeString(id)},"tileUrlTemplate":${LeaflektMapJson.encodeString(url)},"attributionHtml":${LeaflektMapJson.encodeString(attribution)},"maxZoom":$maxZoom,"subdomains":$subdomainsJson,"isVectorStyle":$isVectorStyle,"backgroundColor":${LeaflektMapJson.encodeString(backgroundColor)}}"""
     }
 
     private fun LeaflektPolylineInfo.toJson(): String =
