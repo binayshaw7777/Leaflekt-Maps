@@ -16,6 +16,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.delay
 
 val LocalLeaflektController = compositionLocalOf<LeaflektController?> { null }
 internal val LocalLeaflektCameraPositionState = staticCompositionLocalOf { LeaflektCameraPositionState() }
@@ -29,6 +30,7 @@ fun LeaflektMap(
     uiSettings: LeaflektMapUiSettings = DefaultLeaflektMapUiSettings,
     onMapLoaded: (() -> Unit)? = null,
     onReady: ((LeaflektController) -> Unit)? = null,
+    onMapError: ((String) -> Unit)? = null,
     onMapClick: ((LeaflektLatLng) -> Unit)? = null,
     onCameraMoveStarted: (() -> Unit)? = null,
     onCameraMove: (() -> Unit)? = null,
@@ -39,9 +41,11 @@ fun LeaflektMap(
     val controller = remember { LeaflektController() }
     var hasReportedReady by remember { mutableStateOf(false) }
     var isMapReady by remember { mutableStateOf(false) }
+    var isFirstRenderDone by remember { mutableStateOf(false) }
 
     val currentOnReady by rememberUpdatedState(onReady)
     val currentOnMapLoaded by rememberUpdatedState(onMapLoaded)
+    val currentOnMapError by rememberUpdatedState(onMapError)
     val currentOnMapClick by rememberUpdatedState(onMapClick)
     val currentOnCameraMoveStarted by rememberUpdatedState(onCameraMoveStarted)
     val currentOnCameraMove by rememberUpdatedState(onCameraMove)
@@ -59,6 +63,15 @@ fun LeaflektMap(
                     currentOnReady?.invoke(controller)
                     currentOnMapLoaded?.invoke()
                 }
+            }
+
+            override fun onMapFirstRender() {
+                isFirstRenderDone = true
+            }
+
+            override fun onMapError(description: String) {
+                isFirstRenderDone = true
+                currentOnMapError?.invoke(description)
             }
 
             override fun onMapClick(lat: Double, lng: Double) {
@@ -117,7 +130,8 @@ fun LeaflektMap(
             initialZoom = cameraPositionState.position.zoom,
             isZoomControlEnabled = uiSettings.zoomControlsEnabled,
             initialMapStyle = properties.mapStyle,
-            initialGeoJsonOverlay = properties.geoJsonOverlay
+            initialGeoJsonOverlay = properties.geoJsonOverlay,
+            tileBufferSize = properties.tileBufferSize
         )
     }
 
@@ -127,12 +141,18 @@ fun LeaflektMap(
     LaunchedEffect(uiSettings.scrollGesturesEnabled) { controller.setScrollGesturesEnabled(uiSettings.scrollGesturesEnabled) }
     LaunchedEffect(uiSettings.zoomGesturesEnabled) { controller.setZoomGesturesEnabled(uiSettings.zoomGesturesEnabled) }
 
+    LaunchedEffect(Unit) {
+        delay(3000)
+        if (!isFirstRenderDone) isFirstRenderDone = true
+    }
+
     Box(modifier = modifier) {
         PlatformWebView(
             modifier = Modifier.fillMaxSize(),
             controller = controller,
             bridge = bridge,
-            contentDescription = contentDescription
+            contentDescription = contentDescription,
+            isFirstRenderDone = isFirstRenderDone
         )
 
         CompositionLocalProvider(

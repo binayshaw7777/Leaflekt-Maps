@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -70,7 +71,7 @@ internal fun ExploreSearchBar(
 ) {
     Box(
         Modifier
-            .fillMaxWidth()
+            .fillMaxSize()
             .statusBarsPadding()
             .padding(top = 12.dp)
             .semantics { isTraversalGroup = true }

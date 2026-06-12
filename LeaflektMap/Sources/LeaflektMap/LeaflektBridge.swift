@@ -3,6 +3,7 @@ import Foundation
 
 protocol LeaflektBridgeDelegate: AnyObject {
     func onMapReady()
+    func onMapFirstRender()
     func onMapClick(lat: Double, lng: Double)
     func onCameraMoveStarted(lat: Double, lng: Double, zoom: Double)
     func onCameraMove(lat: Double, lng: Double, zoom: Double)
@@ -27,6 +28,8 @@ final class LeaflektBridge: NSObject, WKScriptMessageHandler {
         switch event {
         case "onMapReady":
             delegate?.onMapReady()
+        case "onMapFirstRender":
+            delegate?.onMapFirstRender()
         case "onMapClick":
             guard let lat = Double(parts.at(1) ?? ""), let lng = Double(parts.at(2) ?? "") else { return }
             delegate?.onMapClick(lat: lat, lng: lng)

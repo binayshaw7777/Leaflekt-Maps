@@ -19,7 +19,8 @@ abstract class LeaflektControllerBase : LeaflektControllerInterface {
     }
 
     protected fun enqueueOrRun(script: String) {
-        if (isMapReady) platformExecuteJs(script) else pendingScripts.add(script)
+        if (isMapReady) platformExecuteJs(script)
+        else if (pendingScripts.lastOrNull() != script) pendingScripts.add(script)
     }
 
     override fun moveCamera(lat: Double, lng: Double, zoom: Double) {
@@ -36,6 +37,11 @@ abstract class LeaflektControllerBase : LeaflektControllerInterface {
 
     override fun addMarker(info: LeaflektMarkerInfo) {
         enqueueOrRun(LeaflektScriptBuilder.addMarkersScript(listOf(info)))
+    }
+
+    override fun addMarkers(markers: List<LeaflektMarkerInfo>) {
+        if (markers.isEmpty()) return
+        enqueueOrRun(LeaflektScriptBuilder.addMarkersScript(markers))
     }
 
     override fun removeMarker(id: String) {
@@ -126,14 +132,13 @@ abstract class LeaflektControllerBase : LeaflektControllerInterface {
     fun initializeMap(
         initialLat: Double, initialLng: Double, initialZoom: Double,
         isZoomControlEnabled: Boolean, initialMapStyle: LeaflektMapStyle,
-        initialGeoJsonOverlay: LeaflektGeoJsonOverlay = LeaflektGeoJsonOverlay.India
+        initialGeoJsonOverlay: LeaflektGeoJsonOverlay = LeaflektGeoJsonOverlay.India,
+        tileBufferSize: Int = 10
     ) {
-        enqueueOrRun(LeaflektScriptBuilder.initMapScript(initialLat, initialLng, initialZoom))
-        enqueueOrRun(LeaflektScriptBuilder.setZoomControlsEnabledScript(isZoomControlEnabled))
-        enqueueOrRun(LeaflektScriptBuilder.setMapStyleScript(initialMapStyle))
-        if (initialGeoJsonOverlay !is LeaflektGeoJsonOverlay.India) {
-            enqueueOrRun(LeaflektScriptBuilder.setGeoJsonOverlayScript(initialGeoJsonOverlay))
-        }
+        enqueueOrRun(LeaflektScriptBuilder.initMapBatchScript(
+            initialLat, initialLng, initialZoom,
+            isZoomControlEnabled, initialMapStyle, initialGeoJsonOverlay, tileBufferSize
+        ))
     }
 
     fun registerMarkerClick(markerId: String, onClick: () -> Boolean) {

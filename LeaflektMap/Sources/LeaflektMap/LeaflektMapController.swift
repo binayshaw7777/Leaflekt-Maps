@@ -156,7 +156,7 @@ public final class LeaflektMapController {
 
     public func setMapStyle(_ style: LeaflektMapStyle) {
         let sub = style.subdomains.map { "\"\($0)\"" } ?? "null"
-        let styleJson = "{\"id\":\"\(style.rawValue)\",\"tileUrlTemplate\":\"\(style.tileUrl)\",\"attributionHtml\":\"\(style.attribution)\",\"maxZoom\":\(style.maxZoom),\"subdomains\":\(sub),\"isVectorStyle\":\(style.isVectorStyle)}"
+        let styleJson = "{\"id\":\"\(style.rawValue)\",\"tileUrlTemplate\":\"\(style.tileUrl)\",\"attributionHtml\":\"\(style.attribution)\",\"maxZoom\":\(style.maxZoom),\"subdomains\":\(sub),\"isVectorStyle\":\(style.isVectorStyle),\"backgroundColor\":\"\(style.backgroundColor)\""  + "}"
         enqueueOrRun("window.LeaflektBridge.setMapStyle(\(styleJson));")
     }
 
@@ -180,11 +180,11 @@ public final class LeaflektMapController {
         let lat = position.target.latitude
         let lng = position.target.longitude
         let zoom = position.zoom
-        enqueueOrRun("window.LeaflektBridge.initMap(\(lat),\(lng),\(zoom));")
+        enqueueOrRun("window.LeaflektBridge.initMap(\(lat),\(lng),\(zoom),\(properties.tileBufferSize));")
         enqueueOrRun("window.LeaflektBridge.setZoomControlsEnabled(\(uiSettings.zoomControlsEnabled));")
         let style = properties.mapStyle
         let sub = style.subdomains.map { "\"\($0)\"" } ?? "null"
-        let styleJson = "{\"id\":\"\(style.rawValue)\",\"tileUrlTemplate\":\"\(style.tileUrl)\",\"attributionHtml\":\"\(style.attribution)\",\"maxZoom\":\(style.maxZoom),\"subdomains\":\(sub),\"isVectorStyle\":\(style.isVectorStyle)}"
+        let styleJson = "{\"id\":\"\(style.rawValue)\",\"tileUrlTemplate\":\"\(style.tileUrl)\",\"attributionHtml\":\"\(style.attribution)\",\"maxZoom\":\(style.maxZoom),\"subdomains\":\(sub),\"isVectorStyle\":\(style.isVectorStyle),\"backgroundColor\":\"\(style.backgroundColor)\""  + "}"
         enqueueOrRun("window.LeaflektBridge.setMapStyle(\(styleJson));")
         if case .india = properties.geoJsonOverlay { } else {
             setGeoJsonOverlay(properties.geoJsonOverlay)

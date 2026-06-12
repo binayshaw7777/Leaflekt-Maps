@@ -8,6 +8,7 @@ interface LeaflektControllerInterface {
     fun setGeoJsonOverlay(overlay: LeaflektGeoJsonOverlay)
     fun executeJavaScript(script: String)
     fun addMarker(info: LeaflektMarkerInfo)
+    fun addMarkers(markers: List<LeaflektMarkerInfo>)
     fun removeMarker(id: String)
     fun updateMarker(info: LeaflektMarkerInfo)
     fun clearMarkers()
