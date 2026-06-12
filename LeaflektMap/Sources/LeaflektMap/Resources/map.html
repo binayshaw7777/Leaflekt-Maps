@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="leaflet/maplibre-gl.css" />
     <style>
         html, body { width: 100vw; height: 100vh; margin: 0; padding: 0; overflow: hidden; }
-        #map { position: fixed; inset: 0; }
+        #map { position: fixed; inset: 0; touch-action: none; }
     </style>
 </head>
 <body>
@@ -70,6 +70,7 @@
         let customGeoJsonLayer = null;
 
         function notifyMapReady() { callNativeBridge("onMapReady"); }
+        function notifyMapFirstRender() { callNativeBridge("onMapFirstRender"); }
         function notifyMapClick(lat, lng) { callNativeBridge("onMapClick", lat, lng); }
         function notifyCameraMoveStarted(lat, lng, zoom) { callNativeBridge("onCameraMoveStarted", lat, lng, zoom); }
         function notifyCameraMove(lat, lng, zoom) { callNativeBridge("onCameraMove", lat, lng, zoom); }
@@ -83,8 +84,8 @@
             document.getElementById("map").innerHTML = "<div style='padding:16px;font-family:sans-serif;color:#b00020'>" + message + "</div>";
         }
 
-        function createMap(lat, lng, zoom) {
-            map = L.map("map", { zoomControl: false, keepBuffer: 6, fadeAnimation: false, zoomAnimation: true }).setView([lat, lng], zoom);
+        function createMap(lat, lng, zoom, keepBuffer) {
+            map = L.map("map", { zoomControl: false, keepBuffer: keepBuffer || 10, fadeAnimation: false, zoomAnimation: true, maxBounds: [[-85.051129, -180], [85.051129, 180]], maxBoundsViscosity: 1.0 }).setView([lat, lng], zoom);
             applyZoomControls();
             replaceTileLayer(activeMapStyle);
             map.on("click", function (event) { notifyMapClick(event.latlng.lat, event.latlng.lng); });
@@ -92,6 +93,7 @@
             applyIndiaBoundaryOverlayVisibility();
             invalidateSizeOnReady();
             notifyMapReady();
+            notifyMapFirstRender();
             return map;
         }
 
@@ -121,13 +123,13 @@
             observer.observe(el);
         }
 
-        function ensureMap(lat, lng, zoom) {
+        function ensureMap(lat, lng, zoom, keepBuffer) {
             if (map !== null) return map;
-            return createMap(lat, lng, zoom);
+            return createMap(lat, lng, zoom, keepBuffer);
         }
 
         function createTileLayer(style) {
-            const opts = { maxZoom: style.maxZoom, attribution: style.attributionHtml };
+            const opts = { maxZoom: style.maxZoom, attribution: style.attributionHtml, updateWhenIdle: false, noWrap: true };
             if (style.subdomains) opts.subdomains = style.subdomains;
             return L.tileLayer(style.tileUrlTemplate, opts);
         }
@@ -137,7 +139,7 @@
             if (map === null) return;
             if (activeTileLayer !== null) map.removeLayer(activeTileLayer);
             if (style.isVectorStyle) {
-                activeTileLayer = L.maplibreGL({ style: style.tileUrlTemplate, attributionControl: { customAttribution: style.attributionHtml } });
+                activeTileLayer = L.maplibreGL({ style: style.tileUrlTemplate, attributionControl: { customAttribution: style.attributionHtml }, maxTileCacheSize: 200, renderWorldCopies: false });
             } else {
                 activeTileLayer = createTileLayer(style);
             }
@@ -361,7 +363,7 @@
         }
 
         window.LeaflektBridge = {
-            initMap: function (lat, lng, zoom) { ensureMap(lat, lng, zoom); },
+            initMap: function (lat, lng, zoom, keepBuffer) { ensureMap(lat, lng, zoom, keepBuffer).setView([lat, lng], zoom); },
             setZoomControlsEnabled: function (isEnabled) { isZoomControlEnabled = Boolean(isEnabled); applyZoomControls(); },
             setScrollGesturesEnabled: function (isEnabled) {
                 if (map === null) return;

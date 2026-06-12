@@ -127,11 +127,12 @@ abstract class LeaflektControllerBase : LeaflektControllerInterface {
     fun initializeMap(
         initialLat: Double, initialLng: Double, initialZoom: Double,
         isZoomControlEnabled: Boolean, initialMapStyle: LeaflektMapStyle,
-        initialGeoJsonOverlay: LeaflektGeoJsonOverlay = LeaflektGeoJsonOverlay.India
+        initialGeoJsonOverlay: LeaflektGeoJsonOverlay = LeaflektGeoJsonOverlay.India,
+        tileBufferSize: Int = 10
     ) {
         enqueueOrRun(LeaflektScriptBuilder.initMapBatchScript(
             initialLat, initialLng, initialZoom,
-            isZoomControlEnabled, initialMapStyle, initialGeoJsonOverlay
+            isZoomControlEnabled, initialMapStyle, initialGeoJsonOverlay, tileBufferSize
         ))
     }
 

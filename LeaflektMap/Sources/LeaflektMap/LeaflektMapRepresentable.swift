@@ -43,10 +43,16 @@ struct LeaflektMapRepresentable: UIViewRepresentable {
         // the scrollView zoom range, so clamping min==max has no effect on JS-driven zoom.
         webView.scrollView.minimumZoomScale = 1.0
         webView.scrollView.maximumZoomScale = 1.0
+        webView.alpha = 0.0
+        context.coordinator.webView = webView
 
         controller.setWebView(webView)
 
         webView.load(URLRequest(url: URL(string: "leaflekt://localhost/map.html")!))
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak webView] in
+            if (webView?.alpha ?? 1.0) < 1.0 { webView?.alpha = 1.0 }
+        }
 
         return webView
     }
@@ -74,6 +80,7 @@ struct LeaflektMapRepresentable: UIViewRepresentable {
         var bridge: LeaflektBridge?
         private var hasInitialized = false
         var lastAppliedPosition: LeaflektCameraPosition?
+        weak var webView: WKWebView?
 
         init(_ parent: LeaflektMapRepresentable) {
             self.parent = parent
@@ -89,6 +96,12 @@ struct LeaflektMapRepresentable: UIViewRepresentable {
                     properties: parent.properties
                 )
                 parent.onMapReady?()
+            }
+        }
+
+        func onMapFirstRender() {
+            DispatchQueue.main.async { [weak self] in
+                self?.webView?.alpha = 1.0
             }
         }
 

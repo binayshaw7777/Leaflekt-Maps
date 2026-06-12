@@ -123,7 +123,8 @@ fun LeaflektMap(
             initialZoom = cameraPositionState.position.zoom,
             isZoomControlEnabled = uiSettings.zoomControlsEnabled,
             initialMapStyle = properties.mapStyle,
-            initialGeoJsonOverlay = properties.geoJsonOverlay
+            initialGeoJsonOverlay = properties.geoJsonOverlay,
+            tileBufferSize = properties.tileBufferSize
         )
     }
 

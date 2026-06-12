@@ -111,6 +111,7 @@ internal actual fun PlatformWebView(
         update = { webView ->
             controller.setWebView(webView)
             webView.contentDescription = contentDescription
+            webView.alpha = if (isFirstRenderDone) 1f else 0f
             webViewState.value = webView
         }
     )

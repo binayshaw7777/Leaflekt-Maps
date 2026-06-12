@@ -1,6 +1,6 @@
 # LeafleKT Optimization Plan
 
-Last updated: 2026-06-11  
+Last updated: 2026-06-12  
 Branch: `experiment/optimization`
 
 ---
@@ -29,7 +29,7 @@ Branch: `experiment/optimization`
 | 8 | Increase camera idle debounce | L | E | 🔲 |
 | 9 | WebView instance reuse / pooling | H | H | 🔲 |
 | 10 | Set WebView renderer priority | M | E | ✅ |
-| 11 | Hide map until ready (prevent white flash) | M | M | ✅ |
+| 11 | Hide map until ready (prevent white flash) — all platforms | M | M | ✅ |
 
 ---
 
@@ -356,10 +356,13 @@ AndroidView(
 )
 ```
 
-- [ ] Add `onMapFirstRender` event to JS bridge and `LeaflektBridgeCallbacks`
-- [ ] Wire alpha/visibility in `PlatformWebView.android.kt`
-- [ ] Add 3s timeout fallback (show map even if bridge event never fires)
-- [ ] Apply same pattern to iOS `PlatformWebView.ios.kt`
+- [x] Add `onMapFirstRender` event to JS bridge and `LeaflektBridgeCallbacks`
+- [x] Wire alpha/visibility in `PlatformWebView.android.kt` (update block sets `webView.alpha`)
+- [x] Add 3s timeout fallback (show map even if bridge event never fires)
+- [x] Apply same pattern to iOS `PlatformWebView.ios.kt` (alpha driven by `isFirstRenderDone`)
+- [x] Apply same pattern to Swift package (`LeaflektMapRepresentable` + `LeaflektBridge`)
+- [x] Fix parity: CMP + Swift `map.html` missing `notifyMapFirstRender()` function (was ReferenceError)
+- [x] Fix parity: CMP + Swift `map.html` missing `touch-action: none` on `#map`
 
 ---
 
