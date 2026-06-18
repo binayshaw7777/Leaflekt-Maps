@@ -81,7 +81,7 @@ In Xcode: **File → Add Package Dependencies**, paste:
 https://github.com/binayshaw7777/LeafleKT
 ```
 
-Select version `v1.0.5` → add `LeaflektMap` target to your app.
+Select version `v1.0.6` → add `LeaflektMap` target to your app.
 
 ---
 
