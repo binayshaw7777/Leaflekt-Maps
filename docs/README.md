@@ -147,6 +147,13 @@ cameraPositionState.move(
     target = LeaflektLatLng(19.0760, 72.8777),
     zoom = 14.0
 )
+
+// Animate programmatically
+cameraPositionState.animate(
+    target = LeaflektLatLng(19.0760, 72.8777),
+    zoom = 14.0,
+    durationMillis = 1500
+)
 ```
 
 ### Camera callbacks

@@ -2,6 +2,7 @@ package com.binayshaw7777.leaflekt
 
 interface LeaflektControllerInterface {
     fun moveCamera(lat: Double, lng: Double, zoom: Double)
+    fun animateCamera(lat: Double, lng: Double, zoom: Double, durationMillis: Int = 1000)
     fun setZoomControlsEnabled(isEnabled: Boolean)
     fun setZoomBounds(minZoom: Double, maxZoom: Double)
     fun setMapStyle(style: LeaflektMapStyle)

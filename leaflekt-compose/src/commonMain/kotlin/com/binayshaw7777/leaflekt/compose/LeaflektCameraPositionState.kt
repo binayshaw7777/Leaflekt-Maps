@@ -56,6 +56,20 @@ class LeaflektCameraPositionState(
         this.position = LeaflektCameraPosition(target, zoom)
     }
 
+    fun animate(target: LeaflektLatLng, zoom: Double = position.zoom, durationMillis: Int = 1000) {
+        val controller = boundController
+        if (controller == null) {
+            rawPosition = LeaflektCameraPosition(target, zoom)
+        } else {
+            controller.animateCamera(
+                lat = target.latitude,
+                lng = target.longitude,
+                zoom = zoom,
+                durationMillis = durationMillis
+            )
+        }
+    }
+
     internal fun onCameraMoveStarted(position: LeaflektCameraPosition) {
         rawPosition = position
         isMoving = true

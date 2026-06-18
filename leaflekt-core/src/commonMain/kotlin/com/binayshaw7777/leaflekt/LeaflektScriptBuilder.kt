@@ -35,6 +35,9 @@ internal object LeaflektScriptBuilder {
     fun moveCameraScript(lat: Double, lng: Double, zoom: Double): String =
         "window.LeaflektBridge.moveCamera($lat,$lng,$zoom);"
 
+    fun animateCameraScript(lat: Double, lng: Double, zoom: Double, duration: Int): String =
+        "window.LeaflektBridge.animateCamera($lat,$lng,$zoom,$duration);"
+
     fun addMarkersScript(markers: List<LeaflektMarkerInfo>): String {
         val payload = markers.joinToString(prefix = "[", postfix = "]") { it.toJson() }
         return "window.LeaflektBridge.addMarkers($payload);"

@@ -38,6 +38,10 @@ public final class LeaflektMapController {
         enqueueOrRun("window.LeaflektBridge.moveCamera(\(lat),\(lng),\(zoom));")
     }
 
+    public func animateCamera(lat: Double, lng: Double, zoom: Double, durationMillis: Int = 1000) {
+        enqueueOrRun("window.LeaflektBridge.animateCamera(\(lat),\(lng),\(zoom),\(durationMillis));")
+    }
+
     public func setZoomControlsEnabled(_ isEnabled: Bool) {
         enqueueOrRun("window.LeaflektBridge.setZoomControlsEnabled(\(isEnabled));")
     }
