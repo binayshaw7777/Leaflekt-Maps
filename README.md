@@ -2,7 +2,7 @@
 
 LeafleKT is a Kotlin Multiplatform Leaflet.js SDK — a UI-free core, Compose Multiplatform UI layer, and a native Swift Package for iOS.
 
-<img src="https://github.com/user-attachments/assets/ac67880c-9258-4b8b-be38-10ffd0a3788c"
+<img src="https://github.com/user-attachments/assets/0d3d2a45-724d-4581-a4fd-5b53735b9f2f"
      style="max-width:100%; height:auto;" />
 
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.binayshaw7777/leaflekt-compose)](https://central.sonatype.com/artifact/io.github.binayshaw7777/leaflekt-compose)
@@ -43,6 +43,10 @@ fun MyMap() {
 
 ## Features
 
+<img src="https://github.com/user-attachments/assets/4b0e8f82-1180-4bd0-b03c-a707ff990194"
+     style="max-width:100%; height:auto;" />
+
+
 - 8 tile styles (OSM, Carto, OpenFreeMap, Esri, Topo)
 - Markers, polylines, polygons, circles with hoisted state
 - Marker clustering + custom icons (base64/URL)
@@ -53,7 +57,7 @@ fun MyMap() {
 
 ## Quick Start
 
-[Full docs →]([https://leaflekt.dev](https://binayshaw7777.github.io/Leaflekt-Maps/#/)) | [iOS SPM →]([PLATFORM_IOS.md](https://binayshaw7777.github.io/Leaflekt-Maps/#/PLATFORM_IOS)) | [Sample app →](leaflektsampleapp/)
+[Full docs →](https://binayshaw7777.github.io/Leaflekt-Maps/#/) | [iOS SPM →](https://binayshaw7777.github.io/Leaflekt-Maps/#/PLATFORM_IOS) | [Sample app →](leaflektsampleapp/)
 
 ## License
 
