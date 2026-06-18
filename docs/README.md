@@ -739,13 +739,12 @@ controller.executeJavaScript("map.setView([22.5726, 88.3639], 15);")
 
 ### Composition locals
 
-Access controller and camera state from any child composable without prop drilling:
+Access the controller from any child composable without prop drilling:
 
 ```kotlin
 @Composable
 fun MyChild() {
     val controller = LocalLeaflektController.current
-    val cameraState = LocalLeaflektCameraPositionState.current
 }
 ```
 
