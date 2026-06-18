@@ -67,7 +67,7 @@ jobs:
 
       - name: Verify Release Build (Android)
         if: steps.tag.outputs.exists == 'false'
-        run: ./gradlew :leaflekt-core:assembleRelease :leaflekt-compose:assembleRelease :app:assembleDebug
+        run: ./gradlew :leaflekt-core:assembleRelease :leaflekt-compose:assembleRelease
 
       - name: Generate Documentation (Dokka)
         id: dokka
