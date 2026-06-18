@@ -61,7 +61,7 @@ style="max-width:100%; height:auto;" />
 
 ```kotlin
 dependencies {
-    implementation("io.github.binayshaw7777:leaflekt-compose:1.0.5")
+    implementation("io.github.binayshaw7777:leaflekt-compose:1.0.6")
 }
 ```
 
@@ -69,7 +69,7 @@ dependencies {
 
 ```kotlin
 dependencies {
-    implementation("io.github.binayshaw7777:leaflekt-core:1.0.5")
+    implementation("io.github.binayshaw7777:leaflekt-core:1.0.6")
 }
 ```
 

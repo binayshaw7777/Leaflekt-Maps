@@ -14,7 +14,7 @@ LeafleKT is a Kotlin Multiplatform Leaflet.js SDK — a UI-free core, Compose Mu
 
 ```kotlin
 // build.gradle.kts
-implementation("io.github.binayshaw7777:leaflekt-compose:1.0.5")
+implementation("io.github.binayshaw7777:leaflekt-compose:1.0.6")
 ```
 
 ```kotlin
