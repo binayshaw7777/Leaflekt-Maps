@@ -10,11 +10,20 @@ LeafleKT is a Kotlin Multiplatform Leaflet.js SDK — a UI-free core, Compose Mu
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 ![Build Status](https://github.com/binayshaw7777/LeafleKT-Maps/actions/workflows/release-master.yml/badge.svg)
 
+## Why LeafleKT?
+
+| | |
+|---|---|
+| No API Key Required | No Credit Card Required |
+| Android + iOS + KMP | Compose Multiplatform Support |
+| Multiple Map Styles | Marker Clustering |
+| GeoJSON Support | Open Source (Apache 2.0) |
+
 ---
 
 ```kotlin
 // build.gradle.kts
-implementation("io.github.binayshaw7777:leaflekt-compose:1.0.6")
+implementation("io.github.binayshaw7777:leaflekt-compose:1.1.0")
 ```
 
 ```kotlin
@@ -46,7 +55,6 @@ fun MyMap() {
 <img src="https://github.com/user-attachments/assets/4b0e8f82-1180-4bd0-b03c-a707ff990194"
      style="max-width:100%; height:auto;" />
 
-
 - 8 tile styles (OSM, Carto, OpenFreeMap, Esri, Topo)
 - Markers, polylines, polygons, circles with hoisted state
 - Marker clustering + custom icons (base64/URL)
@@ -55,9 +63,48 @@ fun MyMap() {
 - Imperative controller API
 - Ola Maps search & directions (sample app)
 
+## Showcase
+
+<table>
+  <tr>
+    <td align="center"><b>Map Styles</b></td>
+    <td align="center"><b>Marker Clustering</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/screenshots/map_styles_grid.png" width="360" /></td>
+    <td><img src="docs/assets/gifs/clustering.png" width="360" /></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Camera Animation</b></td>
+    <td align="center"><b>GeoJSON Overlay</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/gifs/camera_animation.png" width="360" /></td>
+    <td><img src="docs/assets/screenshots/geojson_india.png" width="360" /></td>
+  </tr>
+</table>
+
+## Status
+
+| Platform | Status |
+|----------|--------|
+| Android | ✅ Stable |
+| iOS (Swift Package) | ✅ Stable |
+| CMP (Compose Multiplatform) | 🚧 In development — known bugs, fixes in progress |
+
+Encounter a bug? [Open an issue](https://github.com/binayshaw7777/Leaflekt-Maps/issues) — feedback welcome.
+
+## Important
+
+LeafleKT is a free and open-source map SDK.
+
+LeafleKT does not operate map tile infrastructure and does not require API keys by default.
+
+Map availability, attribution requirements, and usage policies are determined by the selected map style provider.
+
 ## Quick Start
 
-[Full docs →](https://binayshaw7777.github.io/Leaflekt-Maps/#/) | [iOS SPM →](https://binayshaw7777.github.io/Leaflekt-Maps/#/PLATFORM_IOS) | [Sample app →](leaflektsampleapp/)
+[Full docs →](https://binayshaw7777.github.io/Leaflekt-Maps/#/) | [iOS SPM →](https://binayshaw7777.github.io/Leaflekt-Maps/#/PLATFORM_IOS) | [Sample app →](leaflektsampleapp/) | [Roadmap →](docs/ROADMAP.md) | [Terms & Attribution →](docs/TERMS.md)
 
 ## License
 

@@ -61,7 +61,7 @@ style="max-width:100%; height:auto;" />
 
 ```kotlin
 dependencies {
-    implementation("io.github.binayshaw7777:leaflekt-compose:1.0.6")
+    implementation("io.github.binayshaw7777:leaflekt-compose:1.1.0")
 }
 ```
 
@@ -69,7 +69,7 @@ dependencies {
 
 ```kotlin
 dependencies {
-    implementation("io.github.binayshaw7777:leaflekt-core:1.0.6")
+    implementation("io.github.binayshaw7777:leaflekt-core:1.1.0")
 }
 ```
 
@@ -81,7 +81,7 @@ In Xcode: **File → Add Package Dependencies**, paste:
 https://github.com/binayshaw7777/LeafleKT
 ```
 
-Select version `v1.0.6` → add `LeaflektMap` target to your app.
+Select version `v1.1.0` → add `LeaflektMap` target to your app.
 
 ---
 
@@ -926,6 +926,16 @@ color: Color.Red.toLeaflektColor()
 See [MIGRATION.md](MIGRATION.md) for complete symbol mapping.
 
 ---
+
+## Status
+
+| Platform | Status |
+|----------|--------|
+| Android | ✅ Stable |
+| iOS (Swift Package) | ✅ Stable |
+| CMP (Compose Multiplatform) | 🚧 In development — known bugs, fixes in progress |
+
+Encounter a bug? [Open an issue](https://github.com/binayshaw7777/Leaflekt-Maps/issues) — feedback welcome.
 
 ## Legal
 
