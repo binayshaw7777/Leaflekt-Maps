@@ -927,6 +927,16 @@ See [MIGRATION.md](MIGRATION.md) for complete symbol mapping.
 
 ---
 
+## Status
+
+| Platform | Status |
+|----------|--------|
+| Android | ✅ Stable |
+| iOS (Swift Package) | ✅ Stable |
+| CMP (Compose Multiplatform) | 🚧 In development — known bugs, fixes in progress |
+
+Encounter a bug? [Open an issue](https://github.com/binayshaw7777/Leaflekt-Maps/issues) — feedback welcome.
+
 ## Legal
 
 - LeafleKT is not affiliated with Google, Leaflet, or OpenStreetMap.

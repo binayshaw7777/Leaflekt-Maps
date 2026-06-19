@@ -84,6 +84,16 @@ fun MyMap() {
   </tr>
 </table>
 
+## Status
+
+| Platform | Status |
+|----------|--------|
+| Android | ✅ Stable |
+| iOS (Swift Package) | ✅ Stable |
+| CMP (Compose Multiplatform) | 🚧 In development — known bugs, fixes in progress |
+
+Encounter a bug? [Open an issue](https://github.com/binayshaw7777/Leaflekt-Maps/issues) — feedback welcome.
+
 ## Important
 
 LeafleKT is a free and open-source map SDK.
