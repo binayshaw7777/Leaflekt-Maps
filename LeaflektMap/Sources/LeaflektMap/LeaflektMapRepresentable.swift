@@ -38,11 +38,10 @@ struct LeaflektMapRepresentable: UIViewRepresentable {
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator
         webView.uiDelegate = context.coordinator
-        // Prevent WKWebView native double-tap-to-zoom from consuming the gesture before
-        // Leaflet's JS doubleClickZoom handler sees it. Leaflet zooms via touch events, not
-        // the scrollView zoom range, so clamping min==max has no effect on JS-driven zoom.
-        webView.scrollView.minimumZoomScale = 1.0
-        webView.scrollView.maximumZoomScale = 1.0
+        // touch-action: none on #map (CSS) prevents native scroll/zoom gestures on modern iOS.
+        // Do NOT clamp scrollView zoom scales — clamping min==max adds a UIKit gesture recognizer
+        // that intercepts double-tap at the native layer, preventing touch events from reaching
+        // Leaflet's JS handlers even when touch-action: none is set.
         webView.alpha = 0.0
         context.coordinator.webView = webView
 
