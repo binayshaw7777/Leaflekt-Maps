@@ -65,6 +65,8 @@ fun MyMap() {
 
 ## Showcase
 
+[![Demo video](https://img.youtube.com/vi/Stokqv3e77w/maxresdefault.jpg)](https://youtu.be/Stokqv3e77w)
+
 <table>
   <tr>
     <td align="center"><b>Map Styles</b></td>
@@ -83,6 +85,7 @@ fun MyMap() {
     <td><img src="docs/assets/screenshots/geojson_india.png" width="360" /></td>
   </tr>
 </table>
+
 
 ## Status
 
