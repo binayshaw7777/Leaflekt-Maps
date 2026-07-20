@@ -391,6 +391,9 @@
                 }
             },
             moveCamera: function (lat, lng, zoom) { ensureMap(lat, lng, zoom).setView([lat, lng], zoom); },
+            animateCamera: function (lat, lng, zoom, duration) {
+                ensureMap(lat, lng, zoom).flyTo([lat, lng], zoom, { duration: Number(duration) / 1000 });
+            },
             clearMarkers: function () {
                 if (map === null) return;
                 markerLayers.forEach(function (l) { map.removeLayer(l); });

@@ -27,6 +27,10 @@ abstract class LeaflektControllerBase : LeaflektControllerInterface {
         enqueueOrRun(LeaflektScriptBuilder.moveCameraScript(lat, lng, zoom))
     }
 
+    override fun animateCamera(lat: Double, lng: Double, zoom: Double, durationMillis: Int) {
+        enqueueOrRun(LeaflektScriptBuilder.animateCameraScript(lat, lng, zoom, durationMillis))
+    }
+
     override fun setZoomControlsEnabled(isEnabled: Boolean) {
         enqueueOrRun(LeaflektScriptBuilder.setZoomControlsEnabledScript(isEnabled))
     }

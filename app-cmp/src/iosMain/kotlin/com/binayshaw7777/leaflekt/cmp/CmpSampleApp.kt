@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -55,8 +56,13 @@ private enum class IosSampleTab(val label: String) {
 
 @Composable
 actual fun CmpSampleAppScreen(modifier: Modifier) {
-    var selectedTab by rememberSaveable { mutableStateOf(IosSampleTab.Explore) }
-    var selectedStyle by rememberSaveable { mutableStateOf(LeaflektMapStyle.CartoDark) }
+    // Use ordinal-based savers: enums are not auto-saveable on iOS Compose
+    var selectedTab by rememberSaveable(
+        stateSaver = Saver(save = { it.ordinal }, restore = { IosSampleTab.entries[it] })
+    ) { mutableStateOf(IosSampleTab.Explore) }
+    var selectedStyle by rememberSaveable(
+        stateSaver = Saver(save = { it.ordinal }, restore = { LeaflektMapStyle.entries[it] })
+    ) { mutableStateOf(LeaflektMapStyle.CartoDark) }
 
     Scaffold(
         modifier = modifier,

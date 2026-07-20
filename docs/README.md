@@ -2,8 +2,8 @@
 
 LeafleKT is a Kotlin Multiplatform Leaflet.js SDK — a UI-free core, Compose Multiplatform UI layer, and a native Swift Package for iOS.
 
-<img src="https://github.com/user-attachments/assets/ac67880c-9258-4b8b-be38-10ffd0a3788c"
-     style="max-width:100%; height:auto;" />
+<img src="https://github.com/user-attachments/assets/0d3d2a45-724d-4581-a4fd-5b53735b9f2f"
+style="max-width:100%; height:auto;" />
 
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.binayshaw7777/leaflekt-compose)](https://central.sonatype.com/artifact/io.github.binayshaw7777/leaflekt-compose)
 [![Android API](https://img.shields.io/badge/API-21%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=21)
@@ -61,7 +61,7 @@ LeafleKT is a Kotlin Multiplatform Leaflet.js SDK — a UI-free core, Compose Mu
 
 ```kotlin
 dependencies {
-    implementation("io.github.binayshaw7777:leaflekt-compose:1.0.5")
+    implementation("io.github.binayshaw7777:leaflekt-compose:1.1.0")
 }
 ```
 
@@ -69,7 +69,7 @@ dependencies {
 
 ```kotlin
 dependencies {
-    implementation("io.github.binayshaw7777:leaflekt-core:1.0.5")
+    implementation("io.github.binayshaw7777:leaflekt-core:1.1.0")
 }
 ```
 
@@ -81,7 +81,7 @@ In Xcode: **File → Add Package Dependencies**, paste:
 https://github.com/binayshaw7777/LeafleKT
 ```
 
-Select version `v1.0.0` → add `LeaflektMap` target to your app.
+Select version `v1.1.0` → add `LeaflektMap` target to your app.
 
 ---
 
@@ -97,6 +97,8 @@ Select version `v1.0.0` → add `LeaflektMap` target to your app.
 ---
 
 ## Quick Start
+
+<img src="assets/screenshots/basic_map.png" width="360" />
 
 ```kotlin
 @Composable
@@ -128,6 +130,8 @@ fun MyMap() {
 
 ## Camera State
 
+<img src="assets/gifs/camera_animation.png" width="360" />
+
 Camera state is hoisted — own it, drive it, observe it.
 
 ```kotlin
@@ -146,6 +150,13 @@ val isMoving = cameraPositionState.isMoving
 cameraPositionState.move(
     target = LeaflektLatLng(19.0760, 72.8777),
     zoom = 14.0
+)
+
+// Animate programmatically
+cameraPositionState.animate(
+    target = LeaflektLatLng(19.0760, 72.8777),
+    zoom = 14.0,
+    durationMillis = 1500
 )
 ```
 
@@ -192,6 +203,8 @@ LeaflektMap(
 
 ### Available Map Styles
 
+<img src="assets/screenshots/map_styles_grid.png" width="720" />
+
 | Style | Description |
 |-------|-------------|
 | `LeaflektMapStyle.OpenStreetMap` | Default OSM tiles |
@@ -216,6 +229,8 @@ LeaflektMap(
 ---
 
 ## Map UI Settings
+
+<img src="assets/screenshots/ui_settings.png" width="360" />
 
 ```kotlin
 LeaflektMap(
@@ -256,6 +271,8 @@ LeaflektMapUiSettings(
 ---
 
 ## Markers
+
+<img src="assets/screenshots/markers.png" width="360" />
 
 ### Simple marker
 
@@ -325,6 +342,8 @@ LeaflektMap(
 
 ## Custom Marker Icons
 
+<img src="assets/screenshots/custom_icons.png" width="360" />
+
 Icons are passed as data URIs (base64 PNG) or HTTPS URLs.
 
 ### From base64
@@ -379,6 +398,8 @@ LeaflektMarker(
 ---
 
 ## Polylines
+
+<img src="assets/screenshots/polylines.png" width="360" />
 
 ### Simple polyline
 
@@ -449,6 +470,8 @@ pattern = listOf(
 
 ## Polygons
 
+<img src="assets/screenshots/polygons.png" width="360" />
+
 ### Simple polygon
 
 ```kotlin
@@ -503,6 +526,8 @@ LeaflektPolygon(
 
 ## Circles
 
+<img src="assets/screenshots/circles.png" width="360" />
+
 ```kotlin
 LeaflektMap(...) {
     LeaflektCircle(
@@ -537,6 +562,8 @@ LeaflektMap(...) {
 ---
 
 ## Marker Clustering
+
+<img src="assets/gifs/clustering.png" width="360" />
 
 Group many markers into clusters that expand on zoom.
 
@@ -578,6 +605,8 @@ LeaflektMap(...) {
 
 ## GeoJSON Overlays
 
+<img src="assets/screenshots/geojson_india.png" width="360" />
+
 Overlay regional boundaries directly on the map.
 
 ```kotlin
@@ -608,6 +637,8 @@ controller.setGeoJsonOverlay(LeaflektGeoJsonOverlay.India)
 ---
 
 ## Selection State
+
+<img src="assets/gifs/selection_state.png" width="360" />
 
 Polylines, polygons, and circles support a selected state that visually highlights the shape with a different color and width.
 
@@ -651,6 +682,7 @@ LeaflektMap(
 
 ```kotlin
 controller.moveCamera(lat = 28.6139, lng = 77.2090, zoom = 14.0)
+controller.animateCamera(lat = 28.6139, lng = 77.2090, zoom = 14.0, durationMillis = 1000)
 controller.setZoomBounds(minZoom = 5.0, maxZoom = 18.0)
 controller.centerOnCurrentLocation(zoom = 16.0)
 ```
@@ -669,6 +701,7 @@ controller.setZoomGesturesEnabled(false)
 
 ```kotlin
 controller.addMarker(LeaflektMarkerInfo(id = "a", lat = 22.57, lng = 88.36))
+controller.addMarkers(listOf(markerA, markerB, markerC))
 controller.updateMarker(LeaflektMarkerInfo(id = "a", lat = 22.60, lng = 88.40))
 controller.removeMarker("a")
 controller.clearMarkers()
@@ -706,13 +739,12 @@ controller.executeJavaScript("map.setView([22.5726, 88.3639], 15);")
 
 ### Composition locals
 
-Access controller and camera state from any child composable without prop drilling:
+Access the controller from any child composable without prop drilling:
 
 ```kotlin
 @Composable
 fun MyChild() {
     val controller = LocalLeaflektController.current
-    val cameraState = LocalLeaflektCameraPositionState.current
 }
 ```
 
@@ -894,6 +926,16 @@ color: Color.Red.toLeaflektColor()
 See [MIGRATION.md](MIGRATION.md) for complete symbol mapping.
 
 ---
+
+## Status
+
+| Platform | Status |
+|----------|--------|
+| Android | ✅ Stable |
+| iOS (Swift Package) | ✅ Stable |
+| CMP (Compose Multiplatform) | 🚧 In development — known bugs, fixes in progress |
+
+Encounter a bug? [Open an issue](https://github.com/binayshaw7777/Leaflekt-Maps/issues) — feedback welcome.
 
 ## Legal
 

@@ -47,6 +47,7 @@ jobs:
             sed -i "s/io.github.binayshaw7777:leaflekt-core:[0-9]\+\.[0-9]\+\.[0-9]\+/io.github.binayshaw7777:leaflekt-core:$VERSION/g" "$f"
             sed -i "s/io.github.binayshaw7777:leaflekt-compose:[0-9]\+\.[0-9]\+\.[0-9]\+/io.github.binayshaw7777:leaflekt-compose:$VERSION/g" "$f"
             sed -i "s/from: \"v[0-9]\+\.[0-9]\+\.[0-9]\+\"/from: \"v$VERSION\"/g" "$f"
+            sed -i "s/Select version \`v[0-9]\+\.[0-9]\+\.[0-9]\+\`/Select version \`v$VERSION\`/g" "$f"
           done
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -67,7 +68,7 @@ jobs:
 
       - name: Verify Release Build (Android)
         if: steps.tag.outputs.exists == 'false'
-        run: ./gradlew :leaflekt-core:assembleRelease :leaflekt-compose:assembleRelease :app:assembleDebug
+        run: ./gradlew :leaflekt-core:assembleRelease :leaflekt-compose:assembleRelease
 
       - name: Generate Documentation (Dokka)
         id: dokka

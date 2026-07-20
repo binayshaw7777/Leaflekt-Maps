@@ -191,3 +191,61 @@ Hard               │  Pillar 1 (Web)  │  Pillar 7        │
 8. [ ] Add offline tile caching (Pillar 3)
 9. [ ] Publish public roadmap on GitHub (Pillar 6)
 10. [ ] Add scale bar + compass config to MapUiSettings (Pillar 4)
+
+---
+
+## 🚀 Public Roadmap
+
+LeafleKT is actively evolving. Below are planned improvements and features under consideration.
+
+### Documentation & Developer Experience
+
+* [ ] Interactive showcase application for Android, iOS, KMP, and Compose Multiplatform.
+* [ ] Comprehensive screenshot gallery demonstrating all supported features.
+* [ ] GIF-based demos for routing, vehicle tracking, clustering, and animations.
+* [ ] Migration guide for switching between LeafleKT and Google Maps SDK.
+* [ ] Expanded examples and sample projects.
+
+### Tile Providers & Styles
+
+* [ ] Custom tile provider support.
+* [ ] Experimental provider abstraction API.
+* [ ] Additional map styles and tile providers.
+* [ ] Runtime provider switching.
+* [ ] Provider fallback chain support for improved reliability.
+* [ ] Better tile provider documentation and usage guidelines.
+
+### Performance & Reliability
+
+* [ ] Configurable offline tile caching.
+* [ ] Cache size and expiration management.
+* [ ] Automatic cache cleanup strategies.
+* [ ] Tile loading optimizations.
+* [ ] Improved error handling and fallback mechanisms.
+
+### Mapping Features
+
+* [ ] Animated vehicle tracking.
+* [ ] Route playback and simulation.
+* [ ] Enhanced marker clustering.
+* [ ] Advanced GeoJSON support.
+* [ ] Geofencing utilities.
+* [ ] Heatmap support.
+* [ ] Custom tile overlays.
+
+### Platform Support
+
+* [ ] Improved Compose Multiplatform support.
+* [ ] Enhanced native iOS APIs.
+* [ ] Better Kotlin Multiplatform integration.
+* [ ] Additional platform-specific optimizations.
+
+### Future Exploration
+
+* [ ] Self-hosted tile infrastructure support.
+* [ ] Vector tile experimentation.
+* [ ] Native rendering engine research.
+* [ ] Offline-first mapping capabilities.
+* [ ] Advanced provider management APIs.
+
+> Note: Roadmap subject to change based on community feedback, contributor interest, and project priorities.
