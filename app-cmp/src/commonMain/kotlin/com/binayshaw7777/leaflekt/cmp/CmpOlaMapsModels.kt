@@ -81,7 +81,11 @@ data class CmpDirectionsRoute(
 
     fun distanceLabel(): String? {
         val d = distanceMeters ?: return null
-        return if (d >= 1000) String.format("%.1f km", d / 1000.0) else "${d.toInt()} m"
+        if (d >= 1000) {
+            val km = (d / 100.0).toInt() / 10.0
+            return "$km km"
+        }
+        return "${d.toInt()} m"
     }
 
     fun durationLabel(): String? {

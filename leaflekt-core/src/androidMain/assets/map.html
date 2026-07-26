@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Canonical runtime logic. Keep iOS core and Swift package variants synchronized; see CONTRIBUTING.md. -->
+<!-- CANONICAL SOURCE: leaflekt-compose/src/commonMain/composeResources/files/map.html. Keep androidMain assets and iosMain resources in sync! See CONTRIBUTING.md. Note: Android uses /assets/ prefix for paths. -->
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="/assets/leaflet/maplibre-gl.css" />
     <style>
         html, body { width: 100vw; height: 100vh; margin: 0; padding: 0; overflow: hidden; }
-        #map { position: fixed; inset: 0; }
+        #map { position: fixed; inset: 0; touch-action: none; }
     </style>
 </head>
 <body>
@@ -35,7 +35,8 @@
             tileUrlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
             attributionHtml: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             maxZoom: 19,
-            subdomains: null
+            subdomains: null,
+            backgroundColor: "#f2efe9"
         };
 
         function callNativeBridge(method) {
@@ -70,6 +71,7 @@
         let customGeoJsonLayer = null;
 
         function notifyMapReady() { callNativeBridge("onMapReady"); }
+        function notifyMapFirstRender() { callNativeBridge("onMapFirstRender"); }
         function notifyMapClick(lat, lng) { callNativeBridge("onMapClick", lat, lng); }
         function notifyCameraMoveStarted(lat, lng, zoom) { callNativeBridge("onCameraMoveStarted", lat, lng, zoom); }
         function notifyCameraMove(lat, lng, zoom) { callNativeBridge("onCameraMove", lat, lng, zoom); }
@@ -83,16 +85,35 @@
             document.getElementById("map").innerHTML = "<div style='padding:16px;font-family:sans-serif;color:#b00020'>" + message + "</div>";
         }
 
-        function createMap(lat, lng, zoom) {
-            map = L.map("map", { zoomControl: false }).setView([lat, lng], zoom);
+        function createMap(lat, lng, zoom, keepBuffer) {
+            map = L.map("map", { preferCanvas: true, zoomControl: false, keepBuffer: keepBuffer || 4, fadeAnimation: false, zoomAnimation: true, maxBounds: [[-85.051129, -180], [85.051129, 180]], maxBoundsViscosity: 1.0 }).setView([lat, lng], zoom);
             applyZoomControls();
             replaceTileLayer(activeMapStyle);
             map.on("click", function (event) { notifyMapClick(event.latlng.lat, event.latlng.lng); });
             bindCameraLifecycleCallbacks();
             applyIndiaBoundaryOverlayVisibility();
-            retryInvalidateSize(20);
+            invalidateSizeOnReady();
             notifyMapReady();
+            scheduleFirstRenderNotification();
             return map;
+        }
+
+        function scheduleFirstRenderNotification() {
+            var fired = false;
+            var fallback = setTimeout(function() {
+                if (!fired) { fired = true; notifyMapFirstRender(); }
+            }, 3000);
+            function fireOnce() {
+                if (fired) return;
+                fired = true;
+                clearTimeout(fallback);
+                notifyMapFirstRender();
+            }
+            if (activeTileLayer && !activeMapStyle.isVectorStyle) {
+                activeTileLayer.once("tileload", fireOnce);
+            } else {
+                setTimeout(fireOnce, 500);
+            }
         }
 
         function applyZoomControls() {
@@ -108,30 +129,44 @@
             }
         }
 
-        function retryInvalidateSize(remainingAttempts) {
+        function invalidateSizeOnReady() {
             if (map === null) return;
-            map.invalidateSize();
-            if (remainingAttempts <= 0) return;
-            setTimeout(function () { retryInvalidateSize(remainingAttempts - 1); }, 150);
+            const el = document.getElementById("map");
+            if (el.clientWidth > 0) { map.invalidateSize(); return; }
+            const observer = new ResizeObserver(function(entries) {
+                if (entries[0].contentRect.width > 0) {
+                    map.invalidateSize();
+                    observer.disconnect();
+                }
+            });
+            observer.observe(el);
         }
 
-        function ensureMap(lat, lng, zoom) {
+        function ensureMap(lat, lng, zoom, keepBuffer) {
             if (map !== null) return map;
-            return createMap(lat, lng, zoom);
+            return createMap(lat, lng, zoom, keepBuffer);
         }
 
         function createTileLayer(style) {
-            const opts = { maxZoom: style.maxZoom, attribution: style.attributionHtml };
-            if (style.subdomains) opts.subdomains = style.subdomains;
+            const opts = { maxZoom: style.maxZoom, attribution: style.attributionHtml, keepBuffer: 4, updateWhenIdle: true, updateWhenZooming: false, updateInterval: 150, noWrap: true };
+            if (style.subdomains) {
+                opts.subdomains = typeof style.subdomains === "string" ? style.subdomains.split("") : style.subdomains;
+            }
             return L.tileLayer(style.tileUrlTemplate, opts);
         }
 
         function replaceTileLayer(style) {
             activeMapStyle = style;
+            var rawColor = style.backgroundColor || "#f2efe9";
+            var bgColor = /^#[0-9a-fA-F]{3,8}$/.test(rawColor) ? rawColor : "#f2efe9";
+            document.getElementById("map").style.backgroundColor = bgColor;
+            var sheet = document.getElementById("leaflekt-bg-style");
+            if (!sheet) { sheet = document.createElement("style"); sheet.id = "leaflekt-bg-style"; document.head.appendChild(sheet); }
+            sheet.textContent = ".leaflet-container, .leaflet-tile-pane, .leaflet-tile { background: " + bgColor + " !important; }";
             if (map === null) return;
             if (activeTileLayer !== null) map.removeLayer(activeTileLayer);
             if (style.isVectorStyle) {
-                activeTileLayer = L.maplibreGL({ style: style.tileUrlTemplate, attributionControl: { customAttribution: style.attributionHtml } });
+                activeTileLayer = L.maplibreGL({ style: style.tileUrlTemplate, attributionControl: { customAttribution: style.attributionHtml }, maxTileCacheSize: 200, renderWorldCopies: false });
             } else {
                 activeTileLayer = createTileLayer(style);
             }
@@ -240,7 +275,7 @@
                 if (snapshot === null) return;
                 isCameraMoving = false;
                 notifyCameraIdle(snapshot.lat, snapshot.lng, snapshot.zoom);
-            }, 48);
+            }, 100);
         }
 
         function bindCameraLifecycleCallbacks() {
@@ -355,7 +390,7 @@
         }
 
         window.LeaflektBridge = {
-            initMap: function (lat, lng, zoom) { ensureMap(lat, lng, zoom); },
+            initMap: function (lat, lng, zoom, keepBuffer) { ensureMap(lat, lng, zoom, keepBuffer); },
             setZoomControlsEnabled: function (isEnabled) { isZoomControlEnabled = Boolean(isEnabled); applyZoomControls(); },
             setScrollGesturesEnabled: function (isEnabled) {
                 if (map === null) return;
@@ -368,7 +403,7 @@
             },
             setMapStyle: function (style) {
                 if (!style || !style.tileUrlTemplate || !style.attributionHtml) return;
-                replaceTileLayer({ id: style.id || defaultMapStyle.id, tileUrlTemplate: style.tileUrlTemplate, attributionHtml: style.attributionHtml, maxZoom: Number(style.maxZoom || defaultMapStyle.maxZoom), subdomains: style.subdomains || null, isVectorStyle: Boolean(style.isVectorStyle) });
+                replaceTileLayer({ id: style.id || defaultMapStyle.id, tileUrlTemplate: style.tileUrlTemplate, attributionHtml: style.attributionHtml, maxZoom: Number(style.maxZoom || defaultMapStyle.maxZoom), subdomains: style.subdomains || null, isVectorStyle: Boolean(style.isVectorStyle), backgroundColor: style.backgroundColor || defaultMapStyle.backgroundColor });
             },
             addMarkers: function (list) {
                 if (!Array.isArray(list) || list.length === 0) return;
@@ -437,6 +472,21 @@
             setZoomBounds: function (minZoom, maxZoom) {
                 if (map !== null) { map.setMinZoom(Number(minZoom)); map.setMaxZoom(Number(maxZoom)); }
             },
+            invalidateSize: function () {
+                if (map !== null) map.invalidateSize();
+            },
+            reset: function () {
+                if (map === null) return;
+                cancelCameraIdleReport();
+                isCameraMoving = false;
+                markerLayers.forEach(function (l) { map.removeLayer(l); }); markerLayers.clear();
+                polylineLayers.forEach(function (l) { map.removeLayer(l); }); polylineLayers.clear();
+                polygonLayers.forEach(function (l) { map.removeLayer(l); }); polygonLayers.clear();
+                circleLayers.forEach(function (l) { map.removeLayer(l); }); circleLayers.clear();
+                clusterGroups.forEach(function (g) { map.removeLayer(g); }); clusterGroups.clear();
+                vectorLayerOrder.clear(); vectorDrawSequence = 0;
+                if (customGeoJsonLayer !== null) { map.removeLayer(customGeoJsonLayer); customGeoJsonLayer = null; }
+            },
             setGeoJsonOverlay: function (geojsonString) {
                 if (map === null) return;
                 if (customGeoJsonLayer !== null) {
@@ -469,6 +519,9 @@
         };
 
         if (typeof L === "undefined") { showLoadError("Leaflekt local assets failed to load."); return; }
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("map-sw.js").catch(function(e) { console.log("[LeafleKT] SW reg failed", e); });
+        }
         window.addEventListener("resize", function () { if (map !== null) map.invalidateSize(); });
         ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM);
     })();

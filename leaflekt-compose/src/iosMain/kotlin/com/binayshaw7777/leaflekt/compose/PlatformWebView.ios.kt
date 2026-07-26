@@ -17,14 +17,35 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.cValue
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import platform.CoreGraphics.CGRect
+import platform.Foundation.NSBundle
 import platform.Foundation.NSURLCache
 import platform.Foundation.NSURL
 import platform.UIKit.UIColor
+import platform.WebKit.WKProcessPool
 import platform.WebKit.WKUserContentController
 import platform.WebKit.WKUserScript
 import platform.WebKit.WKUserScriptInjectionTime
+import platform.WebKit.WKWebsiteDataStore
 import platform.WebKit.WKWebView
 import platform.WebKit.WKWebViewConfiguration
+
+private object IosWebViewGlobals {
+    val processPool = WKProcessPool()
+    private var isCacheConfigured = false
+
+    fun setupCacheOnce() {
+        if (!isCacheConfigured) {
+            isCacheConfigured = true
+            NSURLCache.setSharedURLCache(
+                NSURLCache(
+                    memoryCapacity = 50UL * 1024UL * 1024UL,
+                    diskCapacity = 200UL * 1024UL * 1024UL,
+                    diskPath = "leaflekt_url_cache"
+                )
+            )
+        }
+    }
+}
 
 @Composable
 internal actual fun PlatformWebView(
@@ -45,13 +66,7 @@ internal actual fun PlatformWebView(
     UIKitView(
         modifier = modifier.alpha(alpha),
         factory = {
-            NSURLCache.setSharedURLCache(
-                NSURLCache(
-                    memoryCapacity = 10UL * 1024UL * 1024UL,
-                    diskCapacity = 100UL * 1024UL * 1024UL,
-                    diskPath = null
-                )
-            )
+            IosWebViewGlobals.setupCacheOnce()
 
             val userContentController = WKUserContentController()
             userContentController.addScriptMessageHandler(messageHandler, name = JS_BRIDGE_IOS)
@@ -63,21 +78,31 @@ internal actual fun PlatformWebView(
             )
             userContentController.addUserScript(bridgeNameScript)
 
-            val config = WKWebViewConfiguration()
-            config.userContentController = userContentController
+            val config = WKWebViewConfiguration().apply {
+                this.processPool = IosWebViewGlobals.processPool
+                this.websiteDataStore = WKWebsiteDataStore.defaultDataStore()
+                this.userContentController = userContentController
+                this.suppressesIncrementalRendering = false
+                this.allowsInlineMediaPlayback = true
+            }
 
             @OptIn(ExperimentalResourceApi::class)
-            val mapHtmlUri = Res.getUri("files/map.html")
-            val htmlUrl = NSURL(string = mapHtmlUri)
-                ?: error("map.html not found in compose resources")
-            val baseUrl = htmlUrl.URLByDeletingLastPathComponent
-                ?: error("Could not resolve base URL for map resources")
+            val htmlUrl = runCatching {
+                val uri = Res.getUri("files/map.html")
+                NSURL.URLWithString(uri)
+            }.getOrNull() ?: NSBundle.mainBundle.URLForResource("map", withExtension = "html")
+            ?: error("map.html not found in resources")
+
+            val baseUrl = htmlUrl.URLByDeletingLastPathComponent ?: htmlUrl
 
             @OptIn(ExperimentalForeignApi::class)
             WKWebView(frame = cValue<CGRect>(), configuration = config).also { webView ->
                 webView.opaque = false
                 webView.backgroundColor = UIColor.clearColor()
                 webView.navigationDelegate = navigationDelegate
+                webView.allowsLinkPreview = false
+                webView.allowsBackForwardNavigationGestures = false
+                webView.scrollView.scrollEnabled = false
                 controller.setWebView(webView)
                 webView.loadFileURL(htmlUrl, allowingReadAccessToURL = baseUrl)
             }
@@ -88,7 +113,9 @@ internal actual fun PlatformWebView(
         onRelease = { webView ->
             controller.setWebView(null)
             webView.navigationDelegate = null
-            webView.configuration.userContentController.removeScriptMessageHandlerForName(JS_BRIDGE_IOS)
+            runCatching {
+                webView.configuration.userContentController.removeScriptMessageHandlerForName(JS_BRIDGE_IOS)
+            }
         }
     )
 

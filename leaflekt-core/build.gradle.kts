@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.dokka)
     alias(libs.plugins.vanniktech.maven.publish)
+    alias(libs.plugins.binary.compatibility.validator)
 }
 
 val releaseVersion = rootProject.file("VERSION").readText().trim()
@@ -25,6 +26,7 @@ kotlin {
         publishLibraryVariants("release")
     }
 
+    iosX64()
     iosArm64()
     iosSimulatorArm64()
 
@@ -60,6 +62,17 @@ android {
 
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     sourceSets["main"].assets.srcDirs("src/androidMain/assets")
+}
+
+val syncServiceWorker = tasks.register<Copy>("syncServiceWorker") {
+    group = "build"
+    description = "Syncs map-sw.js from composeResources to leaflekt-core androidMain assets"
+    from(project(":leaflekt-compose").file("src/commonMain/composeResources/files/map-sw.js"))
+    into("src/androidMain/assets")
+}
+
+tasks.named("preBuild") {
+    dependsOn(syncServiceWorker)
 }
 
 mavenPublishing {

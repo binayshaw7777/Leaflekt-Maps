@@ -22,8 +22,12 @@ internal actual class PlatformLocationProvider {
         delegate = d
         manager.delegate = d
         manager.desiredAccuracy = kCLLocationAccuracyBest
-        manager.requestWhenInUseAuthorization()
-        manager.startUpdatingLocation()
+        val status = CLLocationManager.authorizationStatus()
+        if (status == kCLAuthorizationStatusAuthorizedWhenInUse || status == kCLAuthorizationStatusAuthorizedAlways) {
+            manager.startUpdatingLocation()
+        } else {
+            manager.requestWhenInUseAuthorization()
+        }
     }
 
     actual fun removeLocationUpdates() {

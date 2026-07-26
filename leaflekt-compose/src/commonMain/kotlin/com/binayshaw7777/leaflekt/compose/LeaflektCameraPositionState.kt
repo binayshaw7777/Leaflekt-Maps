@@ -9,6 +9,7 @@ import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
 
 class LeaflektCameraPositionState(
     initialPosition: LeaflektCameraPosition = LeaflektCameraPosition(
@@ -68,6 +69,11 @@ class LeaflektCameraPositionState(
                 durationMillis = durationMillis
             )
         }
+    }
+
+    suspend fun animateTo(target: LeaflektLatLng, zoom: Double = position.zoom, durationMillis: Int = 1000) {
+        animate(target, zoom, durationMillis)
+        delay(durationMillis.toLong())
     }
 
     internal fun onCameraMoveStarted(position: LeaflektCameraPosition) {

@@ -3,7 +3,6 @@ package com.binayshaw7777.leaflekt.cmp
 import com.binayshaw7777.leaflekt.LeaflektLatLng
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
@@ -27,34 +26,46 @@ class CmpOlaMapsRepository {
 
     private val json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
 
-    private val client = HttpClient(Android) {
+    private val client = HttpClient {
         install(ContentNegotiation) { json(json) }
     }
 
-    private val apiKey = BuildConfig.OLA_MAPS_KEY
+    private val apiKey get() = getOlaMapsApiKey()
 
-    suspend fun autocomplete(input: String): List<CmpPrediction> = withContext(Dispatchers.IO) {
-        if (input.isBlank()) return@withContext emptyList()
+    fun close() {
+        client.close()
+    }
+
+    suspend fun autocomplete(input: String): List<CmpPrediction> = withContext(Dispatchers.Default) {
+        if (input.isBlank() || apiKey.isBlank()) return@withContext emptyList()
         runCatching {
             val body = client.get("https://api.olamaps.io/places/v1/autocomplete") {
                 parameter("input", input)
                 parameter("api_key", apiKey)
             }.bodyAsText()
             json.decodeFromString<CmpAutocompleteResponse>(body).predictions
-        }.getOrElse { emptyList() }
+        }.getOrElse { e ->
+            println("[CmpOlaMapsRepository] Autocomplete failed: ${e.message}")
+            emptyList()
+        }
     }
 
-    suspend fun getPlaceDetails(placeId: String): CmpPlaceDetails? = withContext(Dispatchers.IO) {
+    suspend fun getPlaceDetails(placeId: String): CmpPlaceDetails? = withContext(Dispatchers.Default) {
+        if (apiKey.isBlank()) return@withContext null
         runCatching {
             client.get("https://api.olamaps.io/places/v1/details") {
                 parameter("place_id", placeId)
                 parameter("api_key", apiKey)
             }.body<CmpPlaceDetailsResponse>().result
-        }.getOrNull()
+        }.getOrElse { e ->
+            println("[CmpOlaMapsRepository] Place details failed: ${e.message}")
+            null
+        }
     }
 
     suspend fun getDirections(origin: CmpLocation, destination: CmpLocation): CmpDirectionsRoute? =
-        withContext(Dispatchers.IO) {
+        withContext(Dispatchers.Default) {
+            if (apiKey.isBlank()) return@withContext null
             val o = "${origin.lat},${origin.lng}"
             val d = "${destination.lat},${destination.lng}"
             val response = runCatching {
@@ -70,9 +81,15 @@ class CmpOlaMapsRepository {
                         parameter("overview", "full"); parameter("alternatives", false)
                         parameter("steps", false); parameter("api_key", apiKey)
                     }.bodyAsText()
-                }.getOrNull()
+                }.getOrElse { e ->
+                    println("[CmpOlaMapsRepository] Directions failed: ${e.message}")
+                    null
+                }
             } ?: return@withContext null
-            runCatching { json.parseToJsonElement(response).toDirectionsRoute() }.getOrNull()
+            runCatching { json.parseToJsonElement(response).toDirectionsRoute() }.getOrElse { e ->
+                println("[CmpOlaMapsRepository] Directions parsing failed: ${e.message}")
+                null
+            }
         }
 }
 
@@ -128,8 +145,10 @@ private fun JsonArray.toPoints(): List<LeaflektLatLng>? {
     val pts = mapNotNull { c ->
         val arr = c as? JsonArray ?: return@mapNotNull null
         if (arr.size < 2) return@mapNotNull null
-        LeaflektLatLng(arr[1].jsonPrimitive.doubleOrNull ?: return@mapNotNull null,
-            arr[0].jsonPrimitive.doubleOrNull ?: return@mapNotNull null)
+        LeaflektLatLng(
+            arr[1].jsonPrimitive.doubleOrNull ?: return@mapNotNull null,
+            arr[0].jsonPrimitive.doubleOrNull ?: return@mapNotNull null
+        )
     }
     return pts.takeIf { it.isNotEmpty() }
 }

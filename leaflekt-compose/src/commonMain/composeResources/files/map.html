@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Synced from Android core; relative resource URLs are intentional. See CONTRIBUTING.md. -->
+<!-- CANONICAL SOURCE: leaflekt-compose/src/commonMain/composeResources/files/map.html. Keep androidMain assets and iosMain resources in sync! See CONTRIBUTING.md. -->
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -86,7 +86,7 @@
         }
 
         function createMap(lat, lng, zoom, keepBuffer) {
-            map = L.map("map", { zoomControl: false, keepBuffer: keepBuffer || 10, fadeAnimation: false, zoomAnimation: true, maxBounds: [[-85.051129, -180], [85.051129, 180]], maxBoundsViscosity: 1.0 }).setView([lat, lng], zoom);
+            map = L.map("map", { preferCanvas: true, zoomControl: false, keepBuffer: keepBuffer || 4, fadeAnimation: false, zoomAnimation: true, maxBounds: [[-85.051129, -180], [85.051129, 180]], maxBoundsViscosity: 1.0 }).setView([lat, lng], zoom);
             applyZoomControls();
             replaceTileLayer(activeMapStyle);
             map.on("click", function (event) { notifyMapClick(event.latlng.lat, event.latlng.lng); });
@@ -148,14 +148,17 @@
         }
 
         function createTileLayer(style) {
-            const opts = { maxZoom: style.maxZoom, attribution: style.attributionHtml, updateWhenIdle: false, noWrap: true };
-            if (style.subdomains) opts.subdomains = style.subdomains;
+            const opts = { maxZoom: style.maxZoom, attribution: style.attributionHtml, keepBuffer: 4, updateWhenIdle: true, updateWhenZooming: false, updateInterval: 150, noWrap: true };
+            if (style.subdomains) {
+                opts.subdomains = typeof style.subdomains === "string" ? style.subdomains.split("") : style.subdomains;
+            }
             return L.tileLayer(style.tileUrlTemplate, opts);
         }
 
         function replaceTileLayer(style) {
             activeMapStyle = style;
-            var bgColor = style.backgroundColor || "#f2efe9";
+            var rawColor = style.backgroundColor || "#f2efe9";
+            var bgColor = /^#[0-9a-fA-F]{3,8}$/.test(rawColor) ? rawColor : "#f2efe9";
             document.getElementById("map").style.backgroundColor = bgColor;
             var sheet = document.getElementById("leaflekt-bg-style");
             if (!sheet) { sheet = document.createElement("style"); sheet.id = "leaflekt-bg-style"; document.head.appendChild(sheet); }
@@ -387,7 +390,7 @@
         }
 
         window.LeaflektBridge = {
-            initMap: function (lat, lng, zoom, keepBuffer) { ensureMap(lat, lng, zoom, keepBuffer).setView([lat, lng], zoom); },
+            initMap: function (lat, lng, zoom, keepBuffer) { ensureMap(lat, lng, zoom, keepBuffer); },
             setZoomControlsEnabled: function (isEnabled) { isZoomControlEnabled = Boolean(isEnabled); applyZoomControls(); },
             setScrollGesturesEnabled: function (isEnabled) {
                 if (map === null) return;
@@ -516,6 +519,9 @@
         };
 
         if (typeof L === "undefined") { showLoadError("Leaflekt local assets failed to load."); return; }
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("map-sw.js").catch(function(e) { console.log("[LeafleKT] SW reg failed", e); });
+        }
         window.addEventListener("resize", function () { if (map !== null) map.invalidateSize(); });
         ensureMap(DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM);
     })();

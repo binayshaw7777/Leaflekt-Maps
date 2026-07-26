@@ -76,7 +76,10 @@ private enum class SampleTab(val label: String) {
 
 @Composable
 actual fun CmpSampleAppScreen(modifier: Modifier) {
-    val vm: CmpOlaMapsViewModel = viewModel()
+    val vm: CmpOlaMapsViewModel = remember { CmpOlaMapsViewModel() }
+    androidx.compose.runtime.DisposableEffect(vm) {
+        onDispose { vm.onCleared() }
+    }
     var selectedTab by rememberSaveable { mutableStateOf(SampleTab.Explore) }
     var selectedStyle by rememberSaveable { mutableStateOf(LeaflektMapStyle.CartoDark) }
 

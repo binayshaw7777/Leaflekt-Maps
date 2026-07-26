@@ -1,0 +1,34 @@
+name: PR Check & Verification
+
+on:
+  pull_request:
+    branches:
+      - master
+      - main
+      - develop
+
+jobs:
+  check-and-verify:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set Up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set Up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run Gradle Checks and Binary Compatibility
+        run: ./gradlew :leaflekt-core:check :leaflekt-compose:check :app-cmp:check apiCheck
+
+      - name: Compile iOS Simulator Targets
+        run: ./gradlew :leaflekt-core:compileKotlinIosSimulatorArm64 :leaflekt-compose:compileKotlinIosSimulatorArm64 :app-cmp:compileKotlinIosSimulatorArm64
+
+      - name: Compile iOS Device Targets
+        run: ./gradlew :leaflekt-core:compileKotlinIosArm64 :leaflekt-compose:compileKotlinIosArm64 :app-cmp:compileKotlinIosArm64

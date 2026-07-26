@@ -1,86 +1,115 @@
 package com.binayshaw7777.leaflekt
 
 internal object LeaflektScriptBuilder {
+
+    private fun wrapSafe(call: String): String =
+        "try{$call}catch(e){if(window.nativeBridge&&window.nativeBridge.onError)window.nativeBridge.onError(String(e));}"
+
+    fun initMapBatchScript(
+        lat: Double,
+        lng: Double,
+        zoom: Double,
+        isZoomControlEnabled: Boolean,
+        style: LeaflektMapStyle,
+        geoJsonOverlay: LeaflektGeoJsonOverlay,
+        tileBufferSize: Int
+    ): String = buildString {
+        append(wrapSafe("window.LeaflektBridge.initMap($lat,$lng,$zoom,$tileBufferSize)"))
+        append(wrapSafe("window.LeaflektBridge.setZoomControlsEnabled($isZoomControlEnabled)"))
+        append(wrapSafe("window.LeaflektBridge.setMapStyle(${style.toJson()})"))
+        append(setGeoJsonOverlayScript(geoJsonOverlay))
+    }
+
     fun initMapScript(lat: Double, lng: Double, zoom: Double): String =
-        "window.LeaflektBridge.initMap($lat,$lng,$zoom);"
+        wrapSafe("window.LeaflektBridge.initMap($lat,$lng,$zoom)")
 
     fun setZoomControlsEnabledScript(isEnabled: Boolean): String =
-        "window.LeaflektBridge.setZoomControlsEnabled($isEnabled);"
+        wrapSafe("window.LeaflektBridge.setZoomControlsEnabled($isEnabled)")
 
     fun setScrollGesturesEnabledScript(isEnabled: Boolean): String =
-        "window.LeaflektBridge.setScrollGesturesEnabled($isEnabled);"
+        wrapSafe("window.LeaflektBridge.setScrollGesturesEnabled($isEnabled)")
 
     fun setZoomGesturesEnabledScript(isEnabled: Boolean): String =
-        "window.LeaflektBridge.setZoomGesturesEnabled($isEnabled);"
+        wrapSafe("window.LeaflektBridge.setZoomGesturesEnabled($isEnabled)")
 
     fun setMapStyleScript(style: LeaflektMapStyle): String =
-        "window.LeaflektBridge.setMapStyle(${style.toJson()});"
+        wrapSafe("window.LeaflektBridge.setMapStyle(${style.toJson()})")
 
     fun setZoomBoundsScript(minZoom: Double, maxZoom: Double): String =
-        "window.LeaflektBridge.setZoomBounds($minZoom,$maxZoom);"
+        wrapSafe("window.LeaflektBridge.setZoomBounds($minZoom,$maxZoom)")
 
     fun moveCameraScript(lat: Double, lng: Double, zoom: Double): String =
-        "window.LeaflektBridge.moveCamera($lat,$lng,$zoom);"
+        wrapSafe("window.LeaflektBridge.moveCamera($lat,$lng,$zoom)")
 
     fun animateCameraScript(lat: Double, lng: Double, zoom: Double, duration: Int): String =
-        "window.LeaflektBridge.animateCamera($lat,$lng,$zoom,$duration);"
+        wrapSafe("window.LeaflektBridge.animateCamera($lat,$lng,$zoom,$duration)")
 
     fun addMarkersScript(markers: List<LeaflektMarkerInfo>): String {
         val payload = markers.joinToString(prefix = "[", postfix = "]") { it.toJson() }
-        return "window.LeaflektBridge.addMarkers($payload);"
+        return wrapSafe("window.LeaflektBridge.addMarkers($payload)")
     }
 
     fun updateMarkerScript(marker: LeaflektMarkerInfo): String =
-        "window.LeaflektBridge.updateMarker(${marker.toJson()});"
+        wrapSafe("window.LeaflektBridge.updateMarker(${marker.toJson()})")
 
     fun removeMarkerScript(markerId: String): String =
-        "window.LeaflektBridge.removeMarker('$markerId');"
+        wrapSafe("window.LeaflektBridge.removeMarker(${LeaflektMapJson.encodeString(markerId)})")
 
-    fun clearMarkersScript(): String = "window.LeaflektBridge.clearMarkers();"
+    fun removeMarkersScript(ids: List<String>): String {
+        val payload = ids.joinToString(prefix = "[", postfix = "]") { LeaflektMapJson.encodeString(it) }
+        return wrapSafe("window.LeaflektBridge.removeMarkers($payload)")
+    }
+
+    fun clearMarkersScript(): String = wrapSafe("window.LeaflektBridge.clearMarkers()")
+
+    fun clearMapScript(): String = wrapSafe("window.LeaflektBridge.clearMap()")
+
+    fun fitBoundsScript(sw: LeaflektLatLng, ne: LeaflektLatLng, paddingPx: Int): String =
+        wrapSafe("window.LeaflektBridge.fitBounds(${LeaflektMapJson.encodeLatLng(sw)},${LeaflektMapJson.encodeLatLng(ne)},$paddingPx)")
 
     fun addPolylineScript(polyline: LeaflektPolylineInfo): String =
-        "window.LeaflektBridge.addPolyline(${polyline.toJson()});"
+        wrapSafe("window.LeaflektBridge.addPolyline(${polyline.toJson()})")
 
     fun updatePolylineScript(polyline: LeaflektPolylineInfo): String =
-        "window.LeaflektBridge.updatePolyline(${polyline.toJson()});"
+        wrapSafe("window.LeaflektBridge.updatePolyline(${polyline.toJson()})")
 
     fun removePolylineScript(polylineId: String): String =
-        "window.LeaflektBridge.removePolyline(${LeaflektMapJson.encodeString(polylineId)});"
+        wrapSafe("window.LeaflektBridge.removePolyline(${LeaflektMapJson.encodeString(polylineId)})")
 
     fun addPolygonScript(polygon: LeaflektPolygonInfo): String =
-        "window.LeaflektBridge.addPolygon(${polygon.toJson()});"
+        wrapSafe("window.LeaflektBridge.addPolygon(${polygon.toJson()})")
 
     fun updatePolygonScript(polygon: LeaflektPolygonInfo): String =
-        "window.LeaflektBridge.updatePolygon(${polygon.toJson()});"
+        wrapSafe("window.LeaflektBridge.updatePolygon(${polygon.toJson()})")
 
     fun removePolygonScript(polygonId: String): String =
-        "window.LeaflektBridge.removePolygon(${LeaflektMapJson.encodeString(polygonId)});"
+        wrapSafe("window.LeaflektBridge.removePolygon(${LeaflektMapJson.encodeString(polygonId)})")
 
     fun addCircleScript(circle: LeaflektCircleInfo): String =
-        "window.LeaflektBridge.addCircle(${circle.toJson()});"
+        wrapSafe("window.LeaflektBridge.addCircle(${circle.toJson()})")
 
     fun updateCircleScript(circle: LeaflektCircleInfo): String =
-        "window.LeaflektBridge.updateCircle(${circle.toJson()});"
+        wrapSafe("window.LeaflektBridge.updateCircle(${circle.toJson()})")
 
     fun removeCircleScript(circleId: String): String =
-        "window.LeaflektBridge.removeCircle(${LeaflektMapJson.encodeString(circleId)});"
+        wrapSafe("window.LeaflektBridge.removeCircle(${LeaflektMapJson.encodeString(circleId)})")
 
     fun createClusterGroupScript(groupId: String, maxClusterRadius: Int): String =
-        "window.LeaflektBridge.createClusterGroup(${LeaflektMapJson.encodeString(groupId)},$maxClusterRadius);"
+        wrapSafe("window.LeaflektBridge.createClusterGroup(${LeaflektMapJson.encodeString(groupId)},$maxClusterRadius)")
 
     fun addMarkersToClusterScript(groupId: String, markers: List<LeaflektMarkerInfo>): String {
         val payload = markers.joinToString(prefix = "[", postfix = "]") { it.toJson() }
-        return "window.LeaflektBridge.addMarkersToCluster(${LeaflektMapJson.encodeString(groupId)},$payload);"
+        return wrapSafe("window.LeaflektBridge.addMarkersToCluster(${LeaflektMapJson.encodeString(groupId)},$payload)")
     }
 
     fun removeClusterGroupScript(groupId: String): String =
-        "window.LeaflektBridge.removeClusterGroup(${LeaflektMapJson.encodeString(groupId)});"
+        wrapSafe("window.LeaflektBridge.removeClusterGroup(${LeaflektMapJson.encodeString(groupId)})")
 
     fun setGeoJsonOverlayScript(overlay: LeaflektGeoJsonOverlay): String = when (overlay) {
-        is LeaflektGeoJsonOverlay.India -> "window.LeaflektBridge.setGeoJsonOverlay(null);"
-        is LeaflektGeoJsonOverlay.None -> "window.LeaflektBridge.setGeoJsonOverlay(\"none\");"
+        is LeaflektGeoJsonOverlay.India -> wrapSafe("window.LeaflektBridge.setGeoJsonOverlay(null)")
+        is LeaflektGeoJsonOverlay.None -> wrapSafe("window.LeaflektBridge.setGeoJsonOverlay(\"none\")")
         is LeaflektGeoJsonOverlay.Custom ->
-            "window.LeaflektBridge.setGeoJsonOverlay(${LeaflektMapJson.encodeString(overlay.geojson)});"
+            wrapSafe("window.LeaflektBridge.setGeoJsonOverlay(${LeaflektMapJson.encodeString(overlay.geojson)})")
     }
 
     private fun LeaflektMarkerInfo.toJson(): String {

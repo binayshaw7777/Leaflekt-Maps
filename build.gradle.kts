@@ -9,3 +9,11 @@ plugins {
     alias(libs.plugins.dokka) apply false
     alias(libs.plugins.vanniktech.maven.publish) apply false
 }
+
+tasks.register<Copy>("syncMapHtml") {
+    group = "build"
+    description = "Syncs canonical map.html from leaflekt-compose to leaflekt-core"
+    from("leaflekt-compose/src/commonMain/composeResources/files/map.html")
+    into("leaflekt-core/src/iosMain/resources")
+}
+

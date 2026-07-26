@@ -10,4 +10,9 @@ class NavigationDelegate(private val callbacks: LeaflektBridgeCallbacks) : NSObj
     override fun webView(webView: WKWebView, didFailProvisionalNavigation: WKNavigation?, withError: NSError) {
         callbacks.onMapError(withError.localizedDescription)
     }
+
+    override fun webViewWebContentProcessDidTerminate(webView: WKWebView) {
+        callbacks.onMapError("WKWebView process terminated. Reloading web content.")
+        webView.reload()
+    }
 }

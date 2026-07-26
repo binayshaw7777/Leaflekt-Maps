@@ -11,6 +11,7 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.dokka)
     alias(libs.plugins.vanniktech.maven.publish)
+    alias(libs.plugins.binary.compatibility.validator)
 }
 
 val releaseVersion = rootProject.file("VERSION").readText().trim()
@@ -35,6 +36,7 @@ kotlin {
         publishLibraryVariants("release")
     }
 
+    iosX64()
     iosArm64()
     iosSimulatorArm64()
 

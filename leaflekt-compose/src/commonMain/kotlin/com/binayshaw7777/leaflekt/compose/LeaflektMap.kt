@@ -28,6 +28,7 @@ fun LeaflektMap(
     contentDescription: String? = null,
     properties: LeaflektMapProperties = DefaultLeaflektMapProperties,
     uiSettings: LeaflektMapUiSettings = DefaultLeaflektMapUiSettings,
+    debugConfig: LeaflektMapDebugConfig = LeaflektMapDebugConfig(),
     onMapLoaded: (() -> Unit)? = null,
     onReady: ((LeaflektController) -> Unit)? = null,
     onMapError: ((String) -> Unit)? = null,
@@ -124,7 +125,7 @@ fun LeaflektMap(
     }
 
     LaunchedEffect(controller) {
-        controller.initializeMap(
+        controller.prepareMap(
             initialLat = cameraPositionState.position.target.latitude,
             initialLng = cameraPositionState.position.target.longitude,
             initialZoom = cameraPositionState.position.zoom,

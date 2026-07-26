@@ -6,6 +6,8 @@ import android.util.Log
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
+import android.view.View
+import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.webkit.WebViewAssetLoader
@@ -35,12 +37,15 @@ internal object WebViewPool {
         val webView = WebView(appContext).apply {
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
+            settings.databaseEnabled = true
             settings.allowFileAccess = true
             settings.loadWithOverviewMode = true
             settings.useWideViewPort = true
+            settings.cacheMode = WebSettings.LOAD_CACHE_ELSE_NETWORK
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT, false)
             }
+            setLayerType(View.LAYER_TYPE_HARDWARE, null)
         }
         webView.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? {

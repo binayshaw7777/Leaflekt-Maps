@@ -10,6 +10,8 @@ actual class LeaflektController actual constructor() : LeaflektControllerBase() 
     }
 
     override fun platformExecuteJs(script: String) {
-        webView?.evaluateJavaScript(script, null)
+        platform.darwin.dispatch_async(platform.darwin.dispatch_get_main_queue()) {
+            webView?.evaluateJavaScript(script, null)
+        }
     }
 }

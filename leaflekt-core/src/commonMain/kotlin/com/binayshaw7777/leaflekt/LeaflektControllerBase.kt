@@ -1,13 +1,26 @@
 package com.binayshaw7777.leaflekt
 
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+
 abstract class LeaflektControllerBase : LeaflektControllerInterface {
     private val pendingScripts = ArrayDeque<String>()
+    // These maps are always accessed on the main thread (JS bridge posts to main, Compose runs on main).
+    // ConcurrentHashMap is not available in KMP commonMain — main-thread-only invariant is the safety guarantee.
     private val markerClickHandlers = mutableMapOf<String, () -> Boolean>()
     private val polylineClickHandlers = mutableMapOf<String, () -> Unit>()
     private val polygonClickHandlers = mutableMapOf<String, () -> Unit>()
     private val circleClickHandlers = mutableMapOf<String, () -> Unit>()
     private var currentLocationCenteringAction: ((Double) -> Unit)? = null
     protected var isMapReady = false
+
+    private val _errors = MutableSharedFlow<LeaflektMapError>(extraBufferCapacity = 16)
+    val errors: SharedFlow<LeaflektMapError> = _errors.asSharedFlow()
+
+    fun emitError(error: LeaflektMapError) {
+        _errors.tryEmit(error)
+    }
 
     protected open fun platformExecuteJs(script: String) {}
 
@@ -18,9 +31,19 @@ abstract class LeaflektControllerBase : LeaflektControllerInterface {
         }
     }
 
+    fun resetState() {
+        isMapReady = false
+        pendingScripts.clear()
+    }
+
     protected fun enqueueOrRun(script: String) {
-        if (isMapReady) platformExecuteJs(script)
-        else if (pendingScripts.lastOrNull() != script) pendingScripts.add(script)
+        if (isMapReady) {
+            platformExecuteJs(script)
+        } else {
+            if (pendingScripts.lastOrNull() == script) return
+            if (pendingScripts.size >= MAX_PENDING_SCRIPTS) pendingScripts.removeFirst()
+            pendingScripts.add(script)
+        }
     }
 
     override fun moveCamera(lat: Double, lng: Double, zoom: Double) {
@@ -39,6 +62,18 @@ abstract class LeaflektControllerBase : LeaflektControllerInterface {
         enqueueOrRun(script)
     }
 
+    override fun setScrollGesturesEnabled(isEnabled: Boolean) {
+        enqueueOrRun(LeaflektScriptBuilder.setScrollGesturesEnabledScript(isEnabled))
+    }
+
+    override fun setZoomGesturesEnabled(isEnabled: Boolean) {
+        enqueueOrRun(LeaflektScriptBuilder.setZoomGesturesEnabledScript(isEnabled))
+    }
+
+    override fun fitBounds(sw: LeaflektLatLng, ne: LeaflektLatLng, paddingPx: Int) {
+        enqueueOrRun(LeaflektScriptBuilder.fitBoundsScript(sw, ne, paddingPx))
+    }
+
     override fun addMarker(info: LeaflektMarkerInfo) {
         enqueueOrRun(LeaflektScriptBuilder.addMarkersScript(listOf(info)))
     }
@@ -52,12 +87,21 @@ abstract class LeaflektControllerBase : LeaflektControllerInterface {
         enqueueOrRun(LeaflektScriptBuilder.removeMarkerScript(id))
     }
 
+    override fun removeMarkers(ids: List<String>) {
+        if (ids.isEmpty()) return
+        enqueueOrRun(LeaflektScriptBuilder.removeMarkersScript(ids))
+    }
+
     override fun updateMarker(info: LeaflektMarkerInfo) {
         enqueueOrRun(LeaflektScriptBuilder.updateMarkerScript(info))
     }
 
     override fun clearMarkers() {
         enqueueOrRun(LeaflektScriptBuilder.clearMarkersScript())
+    }
+
+    override fun clearMap() {
+        enqueueOrRun(LeaflektScriptBuilder.clearMapScript())
     }
 
     override fun addPolyline(info: LeaflektPolylineInfo) {
@@ -96,14 +140,6 @@ abstract class LeaflektControllerBase : LeaflektControllerInterface {
         enqueueOrRun(LeaflektScriptBuilder.removeCircleScript(id))
     }
 
-    fun setScrollGesturesEnabled(isEnabled: Boolean) {
-        enqueueOrRun(LeaflektScriptBuilder.setScrollGesturesEnabledScript(isEnabled))
-    }
-
-    fun setZoomGesturesEnabled(isEnabled: Boolean) {
-        enqueueOrRun(LeaflektScriptBuilder.setZoomGesturesEnabledScript(isEnabled))
-    }
-
     override fun setMapStyle(style: LeaflektMapStyle) {
         enqueueOrRun(LeaflektScriptBuilder.setMapStyleScript(style))
     }
@@ -133,7 +169,7 @@ abstract class LeaflektControllerBase : LeaflektControllerInterface {
         currentLocationCenteringAction?.invoke(zoom)
     }
 
-    fun initializeMap(
+    fun prepareMap(
         initialLat: Double, initialLng: Double, initialZoom: Double,
         isZoomControlEnabled: Boolean, initialMapStyle: LeaflektMapStyle,
         initialGeoJsonOverlay: LeaflektGeoJsonOverlay = LeaflektGeoJsonOverlay.India,
@@ -193,5 +229,9 @@ abstract class LeaflektControllerBase : LeaflektControllerInterface {
 
     fun notifyCircleClick(circleId: String) {
         circleClickHandlers[circleId]?.invoke()
+    }
+
+    companion object {
+        private const val MAX_PENDING_SCRIPTS = 200
     }
 }

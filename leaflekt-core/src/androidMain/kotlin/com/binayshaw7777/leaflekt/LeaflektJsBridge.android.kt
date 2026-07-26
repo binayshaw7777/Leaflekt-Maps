@@ -17,4 +17,5 @@ class LeaflektJsBridgeAndroid(private val callbacks: LeaflektBridgeCallbacks) {
     @JavascriptInterface fun onPolylineClick(polylineId: String) = main.post { callbacks.onPolylineClick(polylineId) }
     @JavascriptInterface fun onPolygonClick(polygonId: String) = main.post { callbacks.onPolygonClick(polygonId) }
     @JavascriptInterface fun onCircleClick(circleId: String) = main.post { callbacks.onCircleClick(circleId) }
+    @JavascriptInterface fun onError(message: String) = main.post { callbacks.onMapError(message) }
 }

@@ -1,9 +1,11 @@
 package com.binayshaw7777.leaflekt.cmp
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -15,8 +17,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class CmpOlaMapsViewModel : ViewModel() {
+class CmpOlaMapsViewModel {
 
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val repo = CmpOlaMapsRepository()
 
     // Explore
@@ -29,18 +32,28 @@ class CmpOlaMapsViewModel : ViewModel() {
         .debounce(450).distinctUntilChanged()
         .flatMapLatest { q ->
             if (q.length <= 2) flow { emit(emptyList()) }
-            else flow { isExploreLoading.value = true; emit(repo.autocomplete(q)); isExploreLoading.value = false }
+            else flow {
+                isExploreLoading.value = true
+                try {
+                    emit(repo.autocomplete(q))
+                } finally {
+                    isExploreLoading.value = false
+                }
+            }
         }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        .stateIn(scope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun onExploreQueryChange(q: String) { exploreQuery.value = q }
 
     fun selectExplorePrediction(p: CmpPrediction) {
         exploreQuery.value = p.description
-        viewModelScope.launch {
+        scope.launch {
             isExploreLoading.value = true
-            selectedExplorePlace.value = repo.getPlaceDetails(p.placeId)
-            isExploreLoading.value = false
+            try {
+                selectedExplorePlace.value = repo.getPlaceDetails(p.placeId)
+            } finally {
+                isExploreLoading.value = false
+            }
         }
     }
 
@@ -61,25 +74,35 @@ class CmpOlaMapsViewModel : ViewModel() {
         .debounce(450).distinctUntilChanged()
         .flatMapLatest { q ->
             if (q.length <= 2) flow { emit(emptyList()) }
-            else flow { isDirectionsLoading.value = true; emit(repo.autocomplete(q)); isDirectionsLoading.value = false }
+            else flow {
+                isDirectionsLoading.value = true
+                try {
+                    emit(repo.autocomplete(q))
+                } finally {
+                    isDirectionsLoading.value = false
+                }
+            }
         }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        .stateIn(scope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun beginDirectionsSearch(ep: CmpDirectionsEndpoint) { activeEndpoint.value = ep; directionsQuery.value = "" }
     fun onDirectionsQueryChange(q: String) { directionsQuery.value = q }
     fun clearDirectionsSearch() { directionsQuery.value = "" }
 
     fun selectDirectionsPrediction(p: CmpPrediction) {
-        viewModelScope.launch {
+        scope.launch {
             isDirectionsLoading.value = true
-            val place = repo.getPlaceDetails(p.placeId)
-            when (activeEndpoint.value) {
-                CmpDirectionsEndpoint.Origin -> originPlace.value = place
-                CmpDirectionsEndpoint.Destination -> destinationPlace.value = place
+            try {
+                val place = repo.getPlaceDetails(p.placeId)
+                when (activeEndpoint.value) {
+                    CmpDirectionsEndpoint.Origin -> originPlace.value = place
+                    CmpDirectionsEndpoint.Destination -> destinationPlace.value = place
+                }
+                directionsQuery.value = ""
+                fetchRouteIfReady()
+            } finally {
+                isDirectionsLoading.value = false
             }
-            directionsQuery.value = ""
-            isDirectionsLoading.value = false
-            fetchRouteIfReady()
         }
     }
 
@@ -95,18 +118,26 @@ class CmpOlaMapsViewModel : ViewModel() {
         val tmp = originPlace.value
         originPlace.value = destinationPlace.value
         destinationPlace.value = tmp
-        viewModelScope.launch { fetchRouteIfReady() }
+        scope.launch { fetchRouteIfReady() }
     }
 
-    fun refreshRoute() { viewModelScope.launch { fetchRouteIfReady() } }
+    fun refreshRoute() { scope.launch { fetchRouteIfReady() } }
 
     private suspend fun fetchRouteIfReady() {
         val o = originPlace.value?.geometry?.location ?: return
         val d = destinationPlace.value?.geometry?.location ?: return
         isRouteLoading.value = true; routeError.value = null
-        val route = repo.getDirections(o, d)
-        activeRoute.value = route
-        routeError.value = if (route == null) "Could not fetch route. Check API key and network." else null
-        isRouteLoading.value = false
+        try {
+            val route = repo.getDirections(o, d)
+            activeRoute.value = route
+            routeError.value = if (route == null) "Could not fetch route. Check API key and network." else null
+        } finally {
+            isRouteLoading.value = false
+        }
+    }
+
+    fun onCleared() {
+        repo.close()
+        scope.cancel()
     }
 }
