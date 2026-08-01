@@ -103,20 +103,18 @@ class LeaflektScriptBuilderTest {
     }
 
     @Test
-    fun allScriptsWrappedInTryCatch() {
+    fun scriptEndsWithSemicolon() {
         val script = builder.moveCameraScript(0.0, 0.0, 10.0)
-        assertTrue(script.startsWith("try{"))
-        assertTrue(script.contains("catch(e)"))
-        assertTrue(script.contains("nativeBridge.onError"))
+        assertTrue(script.startsWith("window.LeaflektBridge."))
+        assertTrue(script.endsWith(";"))
     }
 
     @Test
-    fun initMapBatchScriptWrapsEachCall() {
+    fun initMapBatchScriptCombinesCalls() {
         val script = builder.initMapBatchScript(
             0.0, 0.0, 10.0, true, LeaflektMapStyle.OpenStreetMap,
             LeaflektGeoJsonOverlay.India, 10
         )
-        assertTrue(script.count { it == '{' } > 1, "expected multiple try blocks")
         assertContains(script, "initMap")
         assertContains(script, "setZoomControlsEnabled")
         assertContains(script, "setMapStyle")
@@ -147,7 +145,7 @@ class LeaflektScriptBuilderTest {
     fun clearMarkersScriptPresent() {
         val script = builder.clearMarkersScript()
         assertContains(script, "clearMarkers")
-        assertTrue(script.startsWith("try{"))
+        assertTrue(script.startsWith("window.LeaflektBridge."))
     }
 
     @Test
