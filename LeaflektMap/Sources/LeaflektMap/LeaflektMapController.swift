@@ -150,6 +150,10 @@ public final class LeaflektMapController {
         enqueueOrRun("window.LeaflektBridge.removeClusterGroup(\"\(escaped)\");")
     }
 
+    public func invalidateSize() {
+        enqueueOrRun("window.LeaflektBridge.invalidateSize();")
+    }
+
     public func setZoomBounds(min minZoom: Double, max maxZoom: Double) {
         enqueueOrRun("window.LeaflektBridge.setZoomBounds(\(minZoom),\(maxZoom));")
     }
