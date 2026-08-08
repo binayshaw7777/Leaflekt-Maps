@@ -61,7 +61,7 @@ style="max-width:100%; height:auto;" />
 
 ```kotlin
 dependencies {
-    implementation("io.github.binayshaw7777:leaflekt-compose:1.1.0")
+    implementation("io.github.binayshaw7777:leaflekt-compose:1.1.1")
 }
 ```
 
@@ -69,7 +69,7 @@ dependencies {
 
 ```kotlin
 dependencies {
-    implementation("io.github.binayshaw7777:leaflekt-core:1.1.0")
+    implementation("io.github.binayshaw7777:leaflekt-core:1.1.1")
 }
 ```
 
@@ -81,7 +81,7 @@ In Xcode: **File → Add Package Dependencies**, paste:
 https://github.com/binayshaw7777/LeafleKT
 ```
 
-Select version `v1.1.0` → add `LeaflektMap` target to your app.
+Select version `v1.1.1` → add `LeaflektMap` target to your app.
 
 ---
 

@@ -45,7 +45,7 @@ Add dependency in your `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("io.github.binayshaw7777:leaflekt-compose:1.1.0")
+    implementation("io.github.binayshaw7777:leaflekt-compose:1.1.1")
 }
 ```
 
@@ -105,8 +105,8 @@ struct NativeMapScreen: View {
 
 | Module | Coordinates / Artifact | Description | Supported Platforms |
 | :--- | :--- | :--- | :--- |
-| **Compose UI** | `io.github.binayshaw7777:leaflekt-compose:1.1.0` | Declarative Compose map UI components | Android, Compose Multiplatform (iOS) |
-| **Core** | `io.github.binayshaw7777:leaflekt-core:1.1.0` | Headless engine, camera state, color system | Kotlin Multiplatform (Common, Android, iOS) |
+| **Compose UI** | `io.github.binayshaw7777:leaflekt-compose:1.1.1` | Declarative Compose map UI components | Android, Compose Multiplatform (iOS) |
+| **Core** | `io.github.binayshaw7777:leaflekt-core:1.1.1` | Headless engine, camera state, color system | Kotlin Multiplatform (Common, Android, iOS) |
 | **iOS Swift Package** | `LeaflektMap` SPM Target | Native SwiftUI wrappers and controller API | iOS 15.0+ |
 
 ---
