@@ -13,3 +13,10 @@ internal expect fun PlatformWebView(
     contentDescription: String?,
     isFirstRenderDone: Boolean
 )
+
+/**
+ * Pre-warms the map WebView so the first [LeaflektMap] composable appears near-instantly.
+ * Call this once at app startup, before the user navigates to any screen containing a map.
+ * No-op on Android (WebView pool handles warm-up automatically).
+ */
+expect fun prewarmLeaflektWebView()

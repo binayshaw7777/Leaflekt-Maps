@@ -223,3 +223,7 @@ internal actual fun PlatformWebView(
         }
     }
 }
+
+actual fun prewarmLeaflektWebView() {
+    // Android WebViewPool handles pre-warming; nothing needed here
+}

@@ -12,6 +12,7 @@ internal object LeaflektScriptBuilder {
         tileBufferSize: Int = 10
     ): String = buildString(256) {
         append("window.LeaflektBridge.initMap(").append(lat).append(',').append(lng).append(',').append(zoom).append(");")
+        append("window.LeaflektBridge.moveCamera(").append(lat).append(',').append(lng).append(',').append(zoom).append(");")
         append("window.LeaflektBridge.setZoomControlsEnabled(").append(isZoomControlEnabled).append(");")
         append("window.LeaflektBridge.setMapStyle(").append(style.toJson()).append(");")
         append(setGeoJsonOverlayScript(geoJsonOverlay))

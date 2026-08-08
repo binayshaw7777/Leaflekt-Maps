@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="leaflet/leaflet.css" />
     <link rel="stylesheet" href="leaflet/MarkerCluster.css" />
     <link rel="stylesheet" href="leaflet/MarkerCluster.Default.css" />
-    <link rel="stylesheet" href="leaflet/maplibre-gl.css" />
+    <!-- maplibre-gl.css is loaded lazily when a vector style is requested -->
     <style>
         html, body { width: 100vw; height: 100vh; margin: 0; padding: 0; overflow: hidden; }
         #map { position: fixed; inset: 0; }
@@ -18,10 +18,9 @@
 <body>
 <div id="map"></div>
 <script src="leaflet/leaflet.js"></script>
-<script src="leaflet/leaflet.markercluster.js"></script>
-<script src="leaflet/india-boundaries.js"></script>
-<script src="leaflet/maplibre-gl.js"></script>
-<script src="leaflet/leaflet-maplibre-gl.js"></script>
+<script src="leaflet/leaflet.markercluster.js" defer></script>
+<script src="leaflet/india-boundaries.js" defer></script>
+<!-- maplibre-gl.js and leaflet-maplibre-gl.js are lazy-loaded only when a vector style is requested -->
 <script>
     (function () {
         const DEFAULT_LAT = 22.5726;
@@ -126,17 +125,43 @@
             return L.tileLayer(style.tileUrlTemplate, opts);
         }
 
+        var maplibreLoadState = "idle"; // "idle" | "loading" | "ready"
+        var maplibrePendingCallbacks = [];
+
+        function ensureMaplibreLoaded(callback) {
+            if (maplibreLoadState === "ready") { callback(); return; }
+            maplibrePendingCallbacks.push(callback);
+            if (maplibreLoadState === "loading") return;
+            maplibreLoadState = "loading";
+            var s1 = document.createElement("script"); s1.src = "leaflet/maplibre-gl.js";
+            var s2 = document.createElement("script"); s2.src = "leaflet/leaflet-maplibre-gl.js";
+            var css = document.createElement("link"); css.rel = "stylesheet"; css.href = "leaflet/maplibre-gl.css";
+            document.head.appendChild(css);
+            s1.onload = function() { document.head.appendChild(s2); };
+            s2.onload = function() {
+                maplibreLoadState = "ready";
+                var cbs = maplibrePendingCallbacks.splice(0);
+                cbs.forEach(function(cb) { cb(); });
+            };
+            document.head.appendChild(s1);
+        }
+
         function replaceTileLayer(style) {
             activeMapStyle = style;
             if (map === null) return;
-            if (activeTileLayer !== null) map.removeLayer(activeTileLayer);
+            if (activeTileLayer !== null) { map.removeLayer(activeTileLayer); activeTileLayer = null; }
             if (style.isVectorStyle) {
-                activeTileLayer = L.maplibreGL({ style: style.tileUrlTemplate, attributionControl: { customAttribution: style.attributionHtml } });
+                ensureMaplibreLoaded(function() {
+                    if (activeTileLayer !== null) map.removeLayer(activeTileLayer);
+                    activeTileLayer = L.maplibreGL({ style: style.tileUrlTemplate, attributionControl: { customAttribution: style.attributionHtml } });
+                    activeTileLayer.addTo(map);
+                    applyIndiaBoundaryOverlayTheme();
+                });
             } else {
                 activeTileLayer = createTileLayer(style);
+                activeTileLayer.addTo(map);
+                applyIndiaBoundaryOverlayTheme();
             }
-            activeTileLayer.addTo(map);
-            applyIndiaBoundaryOverlayTheme();
         }
 
         function applyIndiaBoundaryOverlayVisibility() {

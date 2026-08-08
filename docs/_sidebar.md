@@ -18,8 +18,12 @@
 - Platform Guides
   - [Android / CMP Compose](PLATFORM_CMP.md)
   - [iOS Native Swift](PLATFORM_IOS.md)
-- Migration
+- Migration & Legal
   - [From Legacy (v0.x)](/?id=migration-from-legacy)
   - [Color System](/?id=color-system)
-- [Release Checklist](RELEASE_CHECKLIST.md)
-- [v1.2 Roadmap](PLAN_v1.2_JUNE_2026.md)
+  - [Terms & Attribution](TERMS.md)
+- Project
+  - [Benchmarks](BENCHMARKS.md)
+  - [Roadmap](ROADMAP.md)
+  - [Release Checklist](RELEASE_CHECKLIST.md)
+

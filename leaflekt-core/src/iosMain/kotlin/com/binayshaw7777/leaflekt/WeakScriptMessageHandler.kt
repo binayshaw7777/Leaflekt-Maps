@@ -6,8 +6,9 @@ import platform.WebKit.WKUserContentController
 import platform.darwin.NSObject
 
 class WeakScriptMessageHandler(
-    private val callbacks: LeaflektBridgeCallbacks
+    callbacks: LeaflektBridgeCallbacks
 ) : NSObject(), WKScriptMessageHandlerProtocol {
+    var callbacks: LeaflektBridgeCallbacks = callbacks
     override fun userContentController(
         userContentController: WKUserContentController,
         didReceiveScriptMessage: WKScriptMessage

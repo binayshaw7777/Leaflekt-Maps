@@ -35,6 +35,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +49,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.binayshaw7777.leaflekt.LeaflektCameraPosition
 import com.binayshaw7777.leaflekt.compose.LeaflektCircle
+import com.binayshaw7777.leaflekt.compose.prewarmLeaflektWebView
 import com.binayshaw7777.leaflekt.LeaflektController
 import com.binayshaw7777.leaflekt.LeaflektLatLng
 import com.binayshaw7777.leaflekt.compose.LeaflektMap
@@ -108,6 +110,7 @@ private fun CmpLauncherScreen(
     onLaunchDemo: () -> Unit,
     onLaunchSample: () -> Unit
 ) {
+    LaunchedEffect(Unit) { prewarmLeaflektWebView() }
     Column(
         modifier = modifier.padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
