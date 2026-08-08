@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.1.0] - 2026-08-08
+## [1.1.1] - 2026-08-08
 
 ### 🚀 Performance & Script Generation
 - **Zero-Allocation LatLng Encoding:** Pre-allocated `StringBuilder` capacity calculations in `LeaflektMapJson.encodeLatLngList` avoiding thousands of intermediate object allocations for large polylines and polygons.
