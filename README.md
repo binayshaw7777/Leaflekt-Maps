@@ -1,3 +1,5 @@
+
+
 # LeafleKT 🗺️
 
 **The Zero-Cost, Open-Source Map SDK for Kotlin Multiplatform & Native iOS**
@@ -79,7 +81,7 @@ fun MapScreen() {
 ### 2️⃣ iOS Native (SwiftUI via Swift Package Manager)
 
 In Xcode: **File → Add Package Dependencies**, enter repository URL:
-`https://github.com/binayshaw7777/LeafleKT` (Version: `v1.1.0`)
+`https://github.com/binayshaw7777/LeafleKT-Maps` (Version: `v1.1.0`)
 
 ```swift
 import SwiftUI
@@ -199,4 +201,3 @@ Key runtime optimizations include zero-allocation `StringBuilder` pre-allocation
 Distributed under the **Apache 2.0 License**. See [`LICENSE`](LICENSE) for details.
 
 > **Note on Map Tiles:** LeafleKT does not operate tile server infrastructure. Map tile data, rate limits, and attribution rules are set by tile providers (OpenStreetMap, Carto, OpenFreeMap, Esri). Ensure compliance with provider terms when building production apps. See [Terms & Attribution](docs/TERMS.md).
-
